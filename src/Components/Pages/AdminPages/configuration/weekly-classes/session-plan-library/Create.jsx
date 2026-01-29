@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import { Mic, StopCircle, Copy, Play } from "lucide-react";
 
 import { useSessionPlan } from '../../../contexts/SessionPlanContext';
+import ProgressBar from "../../../contexts/ProgressBar";
 
 const Create = () => {
     const videoInputRef = useRef(null);
@@ -49,7 +50,7 @@ const Create = () => {
     const [descriptionSession, setDescriptionSession] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [previewShowModal, setPreviewShowModal] = useState(false);
-    const { fetchExercises, sessionGroup, groups, updateDiscount, createSessionExercise, fetchExerciseById, deleteExercise, duplicatePlan, setLoading, updateSessionExercise, selectedGroup, loading, createGroup, selectedExercise, exercises, updateGroup, setExercises, createSessionGroup } = useSessionPlan();
+    const { fetchExercises, sessionGroup, groups, updateDiscount, progressLoading, uploadProgress, createSessionExercise, fetchExerciseById, deleteExercise, duplicatePlan, setLoading, updateSessionExercise, selectedGroup, loading, createGroup, selectedExercise, exercises, updateGroup, setExercises, createSessionGroup } = useSessionPlan();
     const [selectedPlans, setSelectedPlans] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -167,9 +168,23 @@ const Create = () => {
             photoPreview.forEach((url) => URL.revokeObjectURL(url));
         };
     }, [photoPreview]);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     const handleVideoChange = (e) => {
         const file = e.target.files[0];
+
         if (file) {
+            if (file.size > MAX_FILE_SIZE) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File too large',
+                    text: 'Video size should not exceed 10 MB.',
+                    confirmButtonText: 'OK',
+                });
+                e.target.value = null; // Reset file input
+                return;
+            }
+
             const url = URL.createObjectURL(file);
 
             setVideoFiles((prev) => ({
@@ -206,7 +221,17 @@ const Create = () => {
     const handleBannerChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
+        // Inside your event handler
+        if (file.size > MAX_FILE_SIZE) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Banner image size should not exceed 10 MB.',
+                confirmButtonText: 'OK',
+            });
+            e.target.value = null;
+            return;
+        }
         const url = URL.createObjectURL(file);
 
         setBannerFiles(prev => ({
@@ -219,7 +244,13 @@ const Create = () => {
             [activeTab]: url,
         }));
     };
-
+    useEffect(() => {
+        // Cleanup all URLs on unmount
+        return () => {
+            Object.values(videoPreviews).forEach(URL.revokeObjectURL);
+            Object.values(bannerPreviews).forEach(URL.revokeObjectURL);
+        };
+    }, []);
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files).filter(Boolean);
@@ -417,11 +448,11 @@ const Create = () => {
                 }
 
                 setDescriptionSession(existingLevel.descriptionSession || "");
-     setSelectedPlans(
-  existingLevel.sessionExerciseIds
-    ?.map(id => exercises.find(ex => ex.id === id))
-    .filter(Boolean) || []
-);
+                setSelectedPlans(
+                    existingLevel.sessionExerciseIds
+                        ?.map(id => exercises.find(ex => ex.id === id))
+                        .filter(Boolean) || []
+                );
 
 
             } else {
@@ -947,6 +978,14 @@ const Create = () => {
             </>
         )
     }
+    if (progressLoading) {
+        return (
+            <>
+                <ProgressBar uploadProgress={uploadProgress} />
+            </>
+        )
+    }
+
 
     // console.log('formData', formData)
     const stripHtml = (html) => {
@@ -1005,11 +1044,11 @@ const Create = () => {
             }
 
             setDescriptionSession(existingLevel.descriptionSession || "");
-          setSelectedPlans(
-  existingLevel.sessionExerciseIds
-    ?.map(id => exercises.find(ex => ex.id === id))
-    .filter(Boolean) || []
-);
+            setSelectedPlans(
+                existingLevel.sessionExerciseIds
+                    ?.map(id => exercises.find(ex => ex.id === id))
+                    .filter(Boolean) || []
+            );
         } else {
             // No saved data for this tab — clear everything
             setPlayer("");
@@ -1031,6 +1070,7 @@ const Create = () => {
     });
 
     return (
+
         <div className=" md:p-6 md:pl-0 bg-gray-50 min-h-screen">
 
             <div className={`flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3 w-full md:w-1/2`}>
@@ -1099,79 +1139,79 @@ const Create = () => {
                                     ))}
 
                                 </div>
-                             <div className="flex w-full gap-4">
-    {/* VIDEO */}
-    <div className="w-full">
-        <button
-            type="button"
-            onClick={() => videoInputRef.current.click()}
-            className="w-full h-12 rounded-xl border border-blue-500 text-[#237FEA] font-semibold hover:bg-blue-50 transition"
-        >
-            {videoFiles[activeTab] ? "Change Video" : "Add Video"}
-        </button>
+                                <div className="flex w-full gap-4">
+                                    {/* VIDEO */}
+                                    <div className="w-full">
+                                        <button
+                                            type="button"
+                                            onClick={() => videoInputRef.current.click()}
+                                            className="w-full h-12 rounded-xl border border-blue-500 text-[#237FEA] font-semibold hover:bg-blue-50 transition"
+                                        >
+                                            {videoFiles[activeTab] ? "Change Video" : "Add Video"}
+                                        </button>
 
-        <input
-            type="file"
-            ref={videoInputRef}
-            onChange={handleVideoChange}
-            accept="video/*"
-            className="hidden"
-        />
+                                        <input
+                                            type="file"
+                                            ref={videoInputRef}
+                                            onChange={handleVideoChange}
+                                            accept="video/*"
+                                            className="hidden"
+                                        />
 
-        {/* VIDEO PREVIEW */}
-        {videoPreviews[activeTab] && (
-            <div className="mt-4 rounded-xl border shadow-md bg-white overflow-hidden">
-                <label className="block text-sm font-semibold text-gray-700 p-3 capitalize">
-                    {activeTab} Video Preview
-                </label>
+                                        {/* VIDEO PREVIEW */}
+                                        {videoPreviews[activeTab] && (
+                                            <div className="mt-4 rounded-xl border shadow-md bg-white overflow-hidden">
+                                                <label className="block text-sm font-semibold text-gray-700 p-3 capitalize">
+                                                    {activeTab} Video Preview
+                                                </label>
 
-                <div className="h-[220px] bg-gray-100 flex items-center justify-center">
-                    <video
-                        controls
-                        src={videoPreviews[activeTab]}
-                        className="h-full max-w-full object-contain"
-                    />
-                </div>
-            </div>
-        )}
-    </div>
+                                                <div className="h-[220px] bg-gray-100 flex items-center justify-center">
+                                                    <video
+                                                        controls
+                                                        src={videoPreviews[activeTab]}
+                                                        className="h-full max-w-full object-contain"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
 
-    {/* BANNER */}
-    <div className="w-full">
-        <button
-            type="button"
-            onClick={() => bannerInputRef.current.click()}
-            className="w-full h-12 rounded-xl border border-blue-500 text-[#237FEA] font-semibold hover:bg-blue-50 transition"
-        >
-            {bannerFiles[activeTab] ? "Change Banner" : "Add Banner"}
-        </button>
+                                    {/* BANNER */}
+                                    <div className="w-full">
+                                        <button
+                                            type="button"
+                                            onClick={() => bannerInputRef.current.click()}
+                                            className="w-full h-12 rounded-xl border border-blue-500 text-[#237FEA] font-semibold hover:bg-blue-50 transition"
+                                        >
+                                            {bannerFiles[activeTab] ? "Change Banner" : "Add Banner"}
+                                        </button>
 
-        <input
-            type="file"
-            ref={bannerInputRef}
-            onChange={handleBannerChange}
-            accept="image/*"
-            className="hidden"
-        />
+                                        <input
+                                            type="file"
+                                            ref={bannerInputRef}
+                                            onChange={handleBannerChange}
+                                            accept="image/*"
+                                            className="hidden"
+                                        />
 
-        {/* BANNER PREVIEW */}
-        {bannerPreviews[activeTab] && (
-            <div className="mt-4 rounded-xl border shadow-md bg-white overflow-hidden">
-                <label className="block text-sm font-semibold text-gray-700 p-3 capitalize">
-                    {activeTab} Banner Preview
-                </label>
+                                        {/* BANNER PREVIEW */}
+                                        {bannerPreviews[activeTab] && (
+                                            <div className="mt-4 rounded-xl border shadow-md bg-white overflow-hidden">
+                                                <label className="block text-sm font-semibold text-gray-700 p-3 capitalize">
+                                                    {activeTab} Banner Preview
+                                                </label>
 
-                <div className="h-[220px] bg-gray-100 flex items-center justify-center">
-                    <img
-                        src={bannerPreviews[activeTab]}
-                        alt="Banner Preview"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            </div>
-        )}
-    </div>
-</div>
+                                                <div className="h-[220px] bg-gray-100 flex items-center justify-center">
+                                                    <img
+                                                        src={bannerPreviews[activeTab]}
+                                                        alt="Banner Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
                                 <div>
 

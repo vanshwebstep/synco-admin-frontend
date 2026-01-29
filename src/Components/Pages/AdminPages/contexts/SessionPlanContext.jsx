@@ -7,12 +7,16 @@ const SessionPlanContext = createContext();
 export const SessionPlanContextProvider = ({ children }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem("adminToken");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const resetProgress = () => setUploadProgress(0);
 
   const [sessionGroup, setSessionGroup] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [progressLoading, setProgressLoading] = useState(false);
+
   const navigate = useNavigate();
   const [exercises, setExercises] = useState([]);
 
@@ -37,12 +41,12 @@ export const SessionPlanContextProvider = ({ children }) => {
   const createSessionGroup = useCallback(
     async (formdata, shouldRedirect = false) => {
       if (!token) return;
+      setProgressLoading(true);
 
-      console.log('formdata', formdata);
+      // setLoading(true);
+      setUploadProgress(0);
 
       try {
-        setLoading(true);
-
         const fd = new FormData();
 
         // Append all keys except "levels"
@@ -52,65 +56,69 @@ export const SessionPlanContextProvider = ({ children }) => {
           const value = formdata[key];
 
           if (value instanceof File || value instanceof Blob) {
-            // If it's a Blob or File, append directly
-            // Provide a filename if it's a Blob
             const fileName = value instanceof File ? value.name : `${key}.mp4`;
             fd.append(key, value, fileName);
           } else if (typeof value === "string") {
             fd.append(key, value);
-          } else if (value !== null && value !== undefined) {
-            // Convert other non-null values to string
-            fd.append(key, JSON.stringify(value));
           }
         }
 
-        // Append levels as JSON string
         fd.append("levels", JSON.stringify(formdata.levels));
 
-        const response = await fetch(`${API_BASE_URL}/api/admin/session-plan-group`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: fd,
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.open("POST", `${API_BASE_URL}/api/admin/session-plan-group`);
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+          // 🔵 Upload progress
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 100);
+              setUploadProgress(percent);
+            }
+          };
+
+          xhr.onload = () => {
+            const res = JSON.parse(xhr.responseText || "{}");
+            if (xhr.status >= 200 && xhr.status < 300 && res.status) {
+              resolve(res);
+            } else {
+              reject(res);
+            }
+          };
+
+          xhr.onerror = () => reject("Upload failed");
+
+          xhr.send(fd);
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.status) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: data.message || 'Group created successfully.',
-            confirmButtonColor: '#237FEA',
-          });
-
-          if (shouldRedirect) {
-            navigate('/configuration/weekly-classes/session-plan-list');
-          }
-        } else {
-          await Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message || 'Failed to create session group.',
-            confirmButtonColor: '#d33',
-          });
-          console.error("API Error:", data.message || "Unknown error");
-        }
-      } catch (err) {
-        console.error("Failed to create session group:", err);
         await Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Something went wrong while creating the session group.',
-          confirmButtonColor: '#d33',
+          icon: "success",
+          title: "Success",
+          text: "Group created successfully.",
+          confirmButtonColor: "#237FEA",
+        });
+
+        if (shouldRedirect) {
+          navigate("/configuration/weekly-classes/session-plan-list");
+        }
+
+      } catch (err) {
+        console.error(err);
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.message || "Upload failed",
         });
       } finally {
-        setLoading(false);
+        setProgressLoading(false);
+        resetProgress();
       }
     },
     [token, navigate]
   );
+
 
 
 
@@ -130,7 +138,7 @@ export const SessionPlanContextProvider = ({ children }) => {
       setLoading(false);
     }
   }, [token]);
-  
+
   const createSessionExercise = useCallback(async (data) => {
     if (!token) return;
 
@@ -203,7 +211,7 @@ export const SessionPlanContextProvider = ({ children }) => {
       if (!response.ok) throw result;
 
       console.log("✅ Exercise updated");
-      
+
       return result;
     } catch (err) {
       console.error("❌ Failed to update exercise:", err);
@@ -247,10 +255,10 @@ export const SessionPlanContextProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await res.json();
-          const data = result.data || null;
+      const data = result.data || null;
 
       setSelectedExercise(result.data || null);
-       return data;  
+      return data;
     } catch (err) {
       console.error("Failed to fetch group:", err);
     } finally {
@@ -481,12 +489,14 @@ export const SessionPlanContextProvider = ({ children }) => {
         updateDiscount,
         deleteSessionGroup,
         duplicateSession,
-
+        uploadProgress,
+        setUploadProgress,
         selectedExercise,
         setSelectedExercise,
         exercises,
         deleteExercise,
         setExercises,
+        progressLoading,
         fetchExerciseById,
         deleteSessionlevel,
         fetchExercises,
