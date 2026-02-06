@@ -3,9 +3,9 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Select from "react-select";
 import { useNotification } from "../../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
+import { showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 const ParentProfile = () => {
   const [editParent, setEditParent] = useState(false);
   const [editEmergency, setEditEmergency] = useState(false);
@@ -14,7 +14,7 @@ const ParentProfile = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { formData, setFormData, emergency, setEmergency, handleUpdate, students } = useAccountsInfo();
   console.log('students', students)
-
+  const [loadingData, setLoadingData] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -163,13 +163,8 @@ const ParentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
+      showError("Fetch Failed", error.message || "Failed to fetch comments. Please try again later.");
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
     }
   }, []);
 
@@ -194,13 +189,7 @@ const ParentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      setLoadingData(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -208,68 +197,53 @@ const ParentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "An error occurred while adding the comment.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || "Comment has been added successfully!");
+
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Failed to Add Comment", error.message || "An error occurred while adding the comment.");
+
+    } finally {
+      setLoadingData(false);
     }
   }
 
   const validateParent = () => {
-  let newErrors = {};
+    let newErrors = {};
 
-  if (!newParent.parentFirstName.trim()) newErrors.parentFirstName = "First name is required";
-  if (!newParent.parentLastName.trim()) newErrors.parentLastName = "Last name is required";
-  if (!newParent.parentEmail.trim()) newErrors.parentEmail = "Email is required";
-  if (!newParent.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-  if (!newParent.relationChild) newErrors.relationChild = "Relation is required";
-  if (!newParent.howDidHear) newErrors.howDidHear = "This field is required";
+    if (!newParent.parentFirstName.trim()) newErrors.parentFirstName = "First name is required";
+    if (!newParent.parentLastName.trim()) newErrors.parentLastName = "Last name is required";
+    if (!newParent.parentEmail.trim()) newErrors.parentEmail = "Email is required";
+    if (!newParent.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+    if (!newParent.relationChild) newErrors.relationChild = "Relation is required";
+    if (!newParent.howDidHear) newErrors.howDidHear = "This field is required";
 
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0; // returns true if valid
-};
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // returns true if valid
+  };
 
   // Add parent from modal
   const handleAddParent = () => {
-  if (
-    !newParent.parentFirstName?.trim() ||
-    !newParent.parentLastName?.trim() ||
-    !newParent.parentEmail?.trim() ||
-    !newParent.phoneNumber?.trim() ||
-    !newParent.relationChild ||
-    !newParent.howDidHear
-  ) {
-    Swal.fire({
-      icon: "error",
-      title: "Missing Required Fields",
-      text: "Please fill all required fields before saving.",
-      confirmButtonColor: "#237FEA",
-    });
-    return;
-  }
+    if (
+      !newParent.parentFirstName?.trim() ||
+      !newParent.parentLastName?.trim() ||
+      !newParent.parentEmail?.trim() ||
+      !newParent.phoneNumber?.trim() ||
+      !newParent.relationChild ||
+      !newParent.howDidHear
+    ) {
+      showError("Missing Required Fields", "Please fill all required fields before saving.");
+      return;
+    }
     setFormData((prev) => [...prev, newParent]);
     // Create the updated students array
     const updatedStudents = [...formData, { ...newParent, studentId: students[0]?.id }];
@@ -330,34 +304,31 @@ const ParentProfile = () => {
   }, [emergency.sameAsAbove, formData]);
 
   const handleUpdateParent = (index) => {
-  const parent = formData[index];   // ✔ get single parent object
+    const parent = formData[index];   // ✔ get single parent object
 
-  const requiredFields = [
-    "parentFirstName",
-    "parentLastName",
-    "parentEmail",
-    "phoneNumber",
-    "relationChild",
-    "howDidHear"
-  ];
+    const requiredFields = [
+      "parentFirstName",
+      "parentLastName",
+      "parentEmail",
+      "phoneNumber",
+      "relationChild",
+      "howDidHear"
+    ];
 
-  const emptyFields = requiredFields.filter(
-    (field) =>
-      !parent[field] || parent[field].toString().trim() === ""
-  );
+    const emptyFields = requiredFields.filter(
+      (field) =>
+        !parent[field] || parent[field].toString().trim() === ""
+    );
 
-  if (emptyFields.length > 0) {
-    Swal.fire({
-      icon: "warning",
-      title: "Missing Required Fields",
-      text: "Please fill all required fields before saving.",
-    });
-    return;  // ❌ block saving
-  }
+    if (emptyFields.length > 0) {
+      showWarning("Missing Required Fields", "Please fill all required fields before saving.");
+      return;
+    }
 
-  // If validation passes → allow save
-  handleUpdate("parents", formData);
-};
+
+    // If validation passes → allow save
+    handleUpdate("parents", formData);
+  };
 
   const handleSaveEmergency = () => {
     console.log('clicked', emergency)
@@ -369,7 +340,7 @@ const ParentProfile = () => {
     fetchComments();
   }, [fetchComments])
 
-  console.log('formData',formData.length)
+  console.log('formData', formData.length)
 
   return (
     <>

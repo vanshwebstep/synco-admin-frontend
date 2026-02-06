@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import CreatableSelect from "react-select/creatable";
-import Swal from "sweetalert2";
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from "framer-motion";
 import { useDiscounts } from "../contexts/DiscountContext";

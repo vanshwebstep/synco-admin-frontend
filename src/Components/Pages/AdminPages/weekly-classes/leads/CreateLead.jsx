@@ -2,9 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useNotification } from "../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-
+import { showSuccess, showError } from "../../../../../utils/swalHelper";
 const CreateLead = () => {
     const { adminInfo } = useNotification();
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -80,12 +79,7 @@ const CreateLead = () => {
             setCommentsList(result?.data || []);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-            Swal.fire({
-                title: "Error",
-                text: error.message || "Failed to fetch comments.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || "Failed to fetch comments.");
         }
     }, [API_BASE_URL]);
 
@@ -95,12 +89,7 @@ const CreateLead = () => {
         if (!token || !comment.trim()) return;
 
         try {
-            Swal.fire({
-                title: "Creating...",
-                text: "Please Wait while we create your comment",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            // Loader skipped
 
             const response = await fetch(`${API_BASE_URL}/api/admin/lead/comment/create`, {
                 method: "POST",
@@ -114,31 +103,17 @@ const CreateLead = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: "Comment has been added successfully!",
-                showConfirmButton: false,
-                timer: 1500,
-            });
+            showSuccess("Comment Created", "Comment has been added successfully!");
 
             setComment("");
             fetchComments();
         } catch (error) {
             console.error("Error creating comment:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text: error.message || "An error occurred while submitting.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting.");
         }
     };
     const handleAddLead = async (e) => {
@@ -147,12 +122,7 @@ const CreateLead = () => {
         if (!token) return;
 
         try {
-            Swal.fire({
-                title: "Creating...",
-                text: "Please wait while we create your lead",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            // Loader skipped
 
             const response = await fetch(`${API_BASE_URL}/api/admin/lead`, {
                 method: "POST",
@@ -167,21 +137,11 @@ const CreateLead = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Lead",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Lead", result.message || "Something went wrong.");
                 return;
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Lead Created",
-                text: "Lead has been added successfully!",
-                showConfirmButton: false,
-                timer: 1500,
-            });
+            showSuccess("Lead Created", "Lead has been added successfully!");
 
             // ✅ reset form
             setFormData({
@@ -196,11 +156,7 @@ const CreateLead = () => {
             navigate('/weekly-classes/central-leads')
         } catch (error) {
             console.error("Error creating lead:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text: error.message || "An error occurred while submitting.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting.");
         }
     };
 

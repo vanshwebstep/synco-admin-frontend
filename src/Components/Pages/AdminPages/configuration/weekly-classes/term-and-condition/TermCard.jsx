@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTermContext } from '../../../contexts/TermDatesSessionContext';
-import Swal from "sweetalert2"; // make sure it's installed
+import { showConfirm, showSuccess, showError } from '../../../../../../utils/swalHelper';
 import { useNavigate } from 'react-router-dom';
 import { usePermission } from '../../../Common/permission';
 
@@ -10,21 +10,17 @@ const TermCard = ({ item, sessionData }) => {
   const [showSessions, setShowSessions] = useState(false);
   const { fetchTermGroup, deleteTermGroup, termGroup, termData, loading } = useTermContext();
   const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will delete the Term Group.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    }).then(async (result) => {
+    showConfirm(
+      'Are you sure?',
+      'This action will delete the Term Group.',
+      'Yes, delete it!'
+    ).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await deleteTermGroup(id);
-          Swal.fire('Deleted!', 'Term Group has been deleted.', 'success');
+          showSuccess('Deleted!', 'Term Group has been deleted.');
         } catch (error) {
-          Swal.fire('Error!', 'Failed to delete Term Group.', 'error');
+          showError('Error!', 'Failed to delete Term Group.');
         }
       }
     });

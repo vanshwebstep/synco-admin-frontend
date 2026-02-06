@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import Loader from '../../../contexts/Loader';
 import { Editor } from '@tinymce/tinymce-react';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning, showConfirm, showLoading, ThemeSwal } from "../../../../../../utils/swalHelper";
 import { Mic, StopCircle, Copy, Play } from "lucide-react";
 
 import { useHolidaySessionPlan } from "../../../contexts/HolidaySessionPlanContext";
@@ -98,10 +98,7 @@ const HolidaySessionCreate = () => {
             }, 1000);
         } catch (err) {
             console.error("Error accessing microphone:", err);
-            Swal.fire({
-                icon: 'warning',
-                title: 'Microphone access denied or not available.',
-            });
+            showWarning("Permissions Denied", "Microphone access denied or not available.");
         }
     };
 
@@ -249,10 +246,7 @@ const HolidaySessionCreate = () => {
 
 
         if (!groupNameSection || !player || !skillOfTheDay || !descriptionSession || selectedPlans.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Please fill out all required fields before proceeding.',
-            });
+            showWarning("Missing Fields", "Please fill out all required fields before proceeding.");
             return;
         }
 
@@ -645,24 +639,21 @@ const HolidaySessionCreate = () => {
 
 
     const handleDeletePlan = async (index, id) => {
-        const result = await Swal.fire({
-            title: 'Choose an action for this plan',
-            showCancelButton: true,
-            showDenyButton: true,
-            showConfirmButton: true,
-            confirmButtonText: 'Permanent Delete',
-            denyButtonText: 'Just Remove',
-            cancelButtonText: 'Do Nothing',
-        });
+        const result = await showConfirm(
+            "Choose an action for this plan",
+            "This action cannot be undone",
+            "Permanent Delete",
+            true
+        );
 
         if (result.isConfirmed) {
             // Permanent Delete
             try {
                 await deleteExercise(id); // your API call
                 removeFromUI(index);      // remove from UI after backend success
-                Swal.fire('Deleted!', '', 'success');
+                showSuccess('Deleted!', 'Exercise deleted successfully');
             } catch (error) {
-                Swal.fire('Error deleting!', '', 'error');
+                showError('Error deleting!', 'Failed to delete exercise.');
             }
         } else if (result.isDenied) {
             // Just Remove from UI
@@ -696,13 +687,15 @@ const HolidaySessionCreate = () => {
 
 
         const showAlert = ({ type = "info", message = "", title = "" }) => {
-            Swal.fire({
-                icon: type,
-                title: title || type.charAt(0).toUpperCase() + type.slice(1),
-                text: message,
-                timer: type === "success" ? 1500 : undefined,
-                showConfirmButton: type !== "success",
-            });
+            if (type === "success") {
+                showSuccess(title || "Success", message);
+            } else if (type === "error") {
+                showError(title || "Error", message);
+            } else if (type === "warning") {
+                showWarning(title || "Warning", message);
+            } else {
+                showSuccess(title || "Info", message);
+            }
         };
 
         // 🧩 Validation
@@ -862,30 +855,20 @@ const HolidaySessionCreate = () => {
         return typeof bannerFile === "string" ? bannerFile : null;
     }, [bannerFile]);
 
-    const handleDuplicateExercise = (weekId) => {
-        Swal.fire({
-            title: 'Duplicate Exercise?',
-            text: "This Exercise will be duplicated.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, duplicate it!',
-            reverseButtons: true,
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    setLoading(true); // Optional, show loading
-                    await duplicatePlan(weekId); // Call your duplication function
-                    Swal.fire('Duplicated!', 'The Exercise has been duplicated.', 'success');
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('Error!', 'Failed to duplicate the Exercise.', 'error');
-                } finally {
-                    setLoading(false);
-                }
+    const handleDuplicateExercise = async (weekId) => {
+        const result = await showConfirm("Duplicate Exercise?", "This Exercise will be duplicated.", "Yes, duplicate it!");
+        if (result.isConfirmed) {
+            try {
+                showLoading("Duplicating...");
+                await duplicatePlan(weekId); // Call your duplication function
+                showSuccess('Duplicated!', 'The Exercise has been duplicated.');
+            } catch (err) {
+                console.error(err);
+                showError('Error!', 'Failed to duplicate the Exercise.');
+            } finally {
+                setLoading(false);
             }
-        });
+        }
     };
     console.log('removedImages', removedImages)
     if (loading) {
@@ -1454,7 +1437,7 @@ const HolidaySessionCreate = () => {
                                                     height: 200,
                                                     branding: false,
                                                     skin: "oxide", // ✅ use default oxide skin (so we can override styles)
-                                                       content_style: `
+                                                    content_style: `
   body {
     background-color: #f3f4f6;
  font-family: "Poppins", sans-serif !important;

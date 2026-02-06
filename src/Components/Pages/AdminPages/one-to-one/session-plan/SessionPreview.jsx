@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { showError } from "../../../../../utils/swalHelper";
 
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from 'date-fns';
@@ -50,12 +50,7 @@ const SessionPreview = ({ item, sessionData }) => {
       setSelectedGroup(result.data || []);
     } catch (err) {
       console.error("Failed to fetch sessionGroup:", err);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || "Something went wrong while fetching session groups",
-        confirmButtonColor: '#d33',
-      });
+      showError('Error', err.message || "Something went wrong while fetching session groups");
     } finally {
       setLoading(false);
     }
@@ -200,25 +195,24 @@ const SessionPreview = ({ item, sessionData }) => {
         <div className="w-full md:w-10/12 space-y-6">
           {/* Tabs */}
           <div className="flex w-full flex-col lg:flex-row gap-6">
-           
+
             <div className="w-full lg:w-1/2 bg-white border border-gray-300 rounded-2xl p-2 flex flex-wrap gap-2">
-  {dynamicTabs.map((tab) => (
-    <button
-      key={tab}
-      onClick={() => {
-        setActiveTab(tab);
-        setPage(1);
-      }}
-      className={`px-6 py-2 rounded-xl text-[18px] font-semibold transition ${
-        activeTab === tab
-          ? 'bg-blue-500 text-white'
-          : 'text-[#717073] hover:text-blue-500'
-      }`}
-    >
-      {tab}
-    </button>
-  ))}
-</div>
+              {dynamicTabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setPage(1);
+                  }}
+                  className={`px-6 py-2 rounded-xl text-[18px] font-semibold transition ${activeTab === tab
+                      ? 'bg-blue-500 text-white'
+                      : 'text-[#717073] hover:text-blue-500'
+                    }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
             <div className="w-full pl-6  lg:w-1/2 "></div>
           </div>
@@ -240,7 +234,7 @@ const SessionPreview = ({ item, sessionData }) => {
                 </h2>
                 <p className="text-[20px] flex items-center gap-2 font-semibold my-3">
                   {/* {currentContent?.player} */}
-                  {currentContent.heading} 
+                  {currentContent.heading}
                   {/* <img
                     src="/images/icons/Volumeblue.png"
                     alt="Play Recording"
@@ -266,7 +260,7 @@ const SessionPreview = ({ item, sessionData }) => {
                   <h2 className="font-semibold text-[24px] mb-0">
                     Session Plan
                   </h2>
-                 {videoUrl && videoUrl.trim() !== "" && (
+                  {videoUrl && videoUrl.trim() !== "" && (
                     <div className="relative">
                       <img
                         src="/images/icons/downloadicon.png"

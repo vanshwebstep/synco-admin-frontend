@@ -3,14 +3,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Eye, User, Edit2, Trash2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../contexts/Loader";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+
 import { Loader2 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import { usePermission } from "../../Common/permission";
+import { showError, showConfirm, showLoading, showSuccess } from "../../../../../utils/swalHelper";
 const BirthdaySessionPlan = () => {
-    const MySwal = withReactContent(Swal);
+
     const [sessionGroup, setSessionGroup] = useState([]);
     const [loading, setLoading] = useState(false);
     const [reorderMode, setReorderMode] = useState(false);
@@ -23,7 +23,7 @@ const BirthdaySessionPlan = () => {
 
     const canDelete = checkPermission({ module: 'session-plan-birthdayParty', action: 'delete' });
     const canEdit = checkPermission({ module: 'session-plan-birthdayParty', action: 'update' });
-console.log('canDelete', canDelete)
+    console.log('canDelete', canDelete)
     const navigate = useNavigate();
 
     const fetchSessionGroup = useCallback(async () => {
@@ -48,12 +48,8 @@ console.log('canDelete', canDelete)
 
         } catch (err) {
             console.error("Failed to fetch sessionGroup:", err);
-            await Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: err.message || "Something went wrong while fetching session groups",
-                confirmButtonColor: '#d33',
-            });
+            await showError(err.message || "Failed to fetch session groups");
+
         } finally {
             setLoading(false);
         }
@@ -62,38 +58,22 @@ console.log('canDelete', canDelete)
         const myLevel = level?.toLowerCase();
         if (!groupId || !myLevel) return;
 
-        const confirm = await Swal.fire({
-            title: "Delete Session Plan?",
-            html: `
+        const confirm = await showConfirm(
+            "Delete Session Plan?",
+            `
             <p class="text-gray-700 text-sm">
                 You’re about to delete the <b>${level}</b> session plan.<br/>
                 This action cannot be undone.
             </p>
         `,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it",
-            cancelButtonText: "Cancel",
-            reverseButtons: true,
-            confirmButtonColor: "#e53935",
-            cancelButtonColor: "#6c757d",
-            customClass: {
-                popup: "rounded-2xl shadow-xl",
-                confirmButton: "px-4 py-2 font-semibold",
-                cancelButton: "px-4 py-2 font-semibold",
-            },
-        });
+            "Yes, delete it",
+            true
+        );
 
         if (!confirm.isConfirmed) return;
 
         try {
-            Swal.fire({
-                title: "Deleting...",
-                html: `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan.</div>`,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            showLoading("Deleting...", `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan.</div>`);
 
             const response = await fetch(
                 `${API_BASE_URL}/api/admin/birthday-party/session-plan-birthdayParty/${groupId}/level/${myLevel}`,
@@ -110,62 +90,34 @@ console.log('canDelete', canDelete)
 
             if (!response.ok) throw new Error(data.message || "Failed to delete session plan");
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted!",
-                text: `${level} session plan has been successfully removed.`,
-                showConfirmButton: false,
-                timer: 1800,
-                timerProgressBar: true,
-            });
+            showSuccess("Deleted!", `${level} session plan has been successfully removed.`);
 
             fetchSessionGroup(); // refresh list
         } catch (error) {
             console.error("Delete error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while deleting.",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", error.message || "Something went wrong while deleting.");
         }
     };
 
     const handleDeleteGroup = async (groupId) => {
         if (!groupId) return;
 
-        const confirm = await Swal.fire({
-            title: "Delete Session Plan Group?",
-            html: `
+        const confirm = await showConfirm(
+            "Delete Session Plan Group?",
+            `
             <p class="text-gray-700 text-sm">
                 You’re about to delete this session plan group.<br/>
                 This action cannot be undone.
             </p>
         `,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it",
-            cancelButtonText: "Cancel",
-            reverseButtons: true,
-            confirmButtonColor: "#e53935",
-            cancelButtonColor: "#6c757d",
-            customClass: {
-                popup: "rounded-2xl shadow-xl",
-                confirmButton: "px-4 py-2 font-semibold",
-                cancelButton: "px-4 py-2 font-semibold",
-            },
-        });
+            "Yes, delete it",
+            true
+        );
 
         if (!confirm.isConfirmed) return;
 
         try {
-            Swal.fire({
-                title: "Deleting...",
-                html: `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan group.</div>`,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            showLoading("Deleting...", `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan group.</div>`);
 
             const response = await fetch(
                 `${API_BASE_URL}/api/admin/birthday-party/session-plan-birthdayParty/delete/${groupId}`,
@@ -182,24 +134,12 @@ console.log('canDelete', canDelete)
 
             if (!response.ok) throw new Error(data.message || "Failed to delete session plan group");
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted!",
-                text: data.message || "Session plan group has been successfully removed.",
-                showConfirmButton: false,
-                timer: 1800,
-                timerProgressBar: true,
-            });
+            showSuccess("Deleted!", data.message || "Session plan group has been successfully removed.");
 
             fetchSessionGroup();
         } catch (error) {
             console.error("Delete error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while deleting.",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", error.message || "Something went wrong while deleting.");
         }
     };
 

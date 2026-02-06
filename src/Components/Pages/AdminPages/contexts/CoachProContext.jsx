@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess } from "../../../../utils/swalHelper";
 
 const CoachProContext = createContext();
 
@@ -68,24 +68,15 @@ export const CoachProProvider = ({ children }) => {
             }
 
             const result = await response.json();
+            await showSuccess('Success!', result.message || "FindClasses has been created successfully.");
 
-            await Swal.fire({
-                title: "Success!",
-                text: result.message || "FindClasses has been created successfully.",
-                icon: "success",
-                confirmButtonText: "OK",
-            });
 
             fetchCoachPro();
             return result;
         } catch (error) {
             console.error("Error creating coachProData:", error);
-            await Swal.fire({
-                title: "Error",
-                text: error.message || "Something went wrong while creating coachProData.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            await showError('Error', error.message || "Something went wrong while creating coachProData.");
+               
             throw error;
         } finally {
             setLoading(false);
@@ -119,23 +110,13 @@ export const CoachProProvider = ({ children }) => {
 
             const result = await response.json();
 
-            await Swal.fire({
-                title: "Success!",
-                text: result.message || "FindClasses has been updated successfully.",
-                icon: "success",
-                confirmButtonText: "OK",
-            });
+            await showSuccess('Success!', result.message || "FindClasses has been updated successfully.");
 
             fetchCoachPro();
             return result;
         } catch (error) {
             console.error("Error updating coachProData:", error);
-            await Swal.fire({
-                title: "Error",
-                text: error.message || "Something went wrong while updating coachProData.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            await showError('Error', error.message || "Something went wrong while updating coachProData.");
             throw error;
         } finally {
             setLoading(false);

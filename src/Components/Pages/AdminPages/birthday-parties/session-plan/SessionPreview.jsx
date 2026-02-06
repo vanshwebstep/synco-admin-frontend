@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from 'date-fns';
 import Loader from '../../contexts/Loader';
+import { showError } from "../../../../../utils/swalHelper";
 
 const levelKeyToLabel = {
   beginner: "Beginner",
@@ -49,12 +50,7 @@ const BirthdaySessionPreview = ({ item, sessionData }) => {
       setSelectedGroup(result.data || []);
     } catch (err) {
       console.error("Failed to fetch sessionGroup:", err);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || "Something went wrong while fetching session groups",
-        confirmButtonColor: '#d33',
-      });
+      await showError("Error", err.message || "Something went wrong while fetching session groups");
     } finally {
       setLoading(false);
     }

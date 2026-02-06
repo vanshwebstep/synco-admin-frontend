@@ -3,9 +3,9 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Select from "react-select";
 import { useNotification } from "../../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
+import { showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 const ParentProfile = () => {
   const [editParent, setEditParent] = useState(false);
   const [editEmergency, setEditEmergency] = useState(false);
@@ -162,13 +162,8 @@ const ParentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
     }
   }, []);
 
@@ -193,13 +188,7 @@ const ParentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -207,53 +196,32 @@ const ParentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError(result.message || "Something went wrong.");
         return;
       }
-
-
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
-
-
+      showSuccess(result.message || " Comment has been  added successfully!");
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError(error.message || "An error occurred while submitting the form.");
+    } finally {
+      setLoading(false);
     }
   }
   // Add parent from modal
   const handleAddParent = () => {
-     if (
-        !newParent.parentFirstName?.trim() ||
-        !newParent.parentLastName?.trim() ||
-        !newParent.parentEmail?.trim() ||
-        !newParent.phoneNumber?.trim() ||
-        !newParent.relationChild ||
-        !newParent.howDidHear
-      ) {
-        Swal.fire({
-          icon: "error",
-          title: "Missing Required Fields",
-          text: "Please fill all required fields before saving.",
-          confirmButtonColor: "#237FEA",
-        });
-        return;
-      }
+    if (
+      !newParent.parentFirstName?.trim() ||
+      !newParent.parentLastName?.trim() ||
+      !newParent.parentEmail?.trim() ||
+      !newParent.phoneNumber?.trim() ||
+      !newParent.relationChild ||
+      !newParent.howDidHear
+    ) {
+      showError("Please fill all required fields before saving.");
+      return;
+    }
     console.log('newParent', newParent)
     setFormData((prev) => [...prev, newParent]);
     // Create the updated students array
@@ -317,37 +285,29 @@ const ParentProfile = () => {
 
   const handleUpdateParent = (index) => {
     const parent = formData[index];   // ✔ get single parent object
-    
-      const requiredFields = [
-        "parentFirstName",
-        "parentLastName",
-        "parentEmail",
-        "phoneNumber",
-        "relationChild",
-        "howDidHear"
-      ];
-    
-      const emptyFields = requiredFields.filter(
-        (field) =>
-          !parent[field] || parent[field].toString().trim() === ""
-      );
-    
-      if (emptyFields.length > 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Missing Required Fields",
-          text: "Please fill all required fields before saving.",
-        });
-        return;  // ❌ block saving
-      }
-      if (!/\S+@\S+\.\S+/.test(parent.parentEmail)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Invalid Email",
-          text: "Please enter a valid email address.",
-        });
-        return;  // ❌ block saving
-      }
+
+    const requiredFields = [
+      "parentFirstName",
+      "parentLastName",
+      "parentEmail",
+      "phoneNumber",
+      "relationChild",
+      "howDidHear"
+    ];
+
+    const emptyFields = requiredFields.filter(
+      (field) =>
+        !parent[field] || parent[field].toString().trim() === ""
+    );
+
+    if (emptyFields.length > 0) {
+      showWarning("Please fill all required fields before saving.");
+      return;  // ❌ block saving
+    }
+    if (!/\S+@\S+\.\S+/.test(parent.parentEmail)) {
+      showWarning("Please enter a valid email address.");
+      return;  // ❌ block saving
+    }
     console.log('clicked', formData)
     handleUpdateBirthday("parents", formData)
   }
@@ -368,7 +328,7 @@ const ParentProfile = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
 
-      {formData.length < 3 && (
+          {formData.length < 3 && (
             <button
               type="button"
               onClick={() => setShowModal(true)}

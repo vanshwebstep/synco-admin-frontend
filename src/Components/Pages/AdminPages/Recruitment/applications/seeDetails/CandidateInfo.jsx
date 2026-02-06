@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react'
-import Swal from "sweetalert2";
 import { useSearchParams } from "react-router-dom";
 import pdfMake from "pdfmake/build/pdfmake";
 import vfsFonts from "pdfmake/build/vfs_fonts";
@@ -17,6 +16,7 @@ import PhoneInput from "react-phone-input-2";
 import { useRecruitmentTemplate } from '../../../contexts/RecruitmentContext';
 import { useVenue } from '../../../contexts/VenueContext';
 import Loader from '../../../contexts/Loader';
+import { showConfirm, showError } from '../../../../../../utils/swalHelper';
 const dateOptions = [
   { value: "2025-01-01", label: "Jan 01 2025" },
   { value: "2025-01-02", label: "Jan 02 2025" },
@@ -259,13 +259,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+    showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
 
@@ -296,13 +290,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+    setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -310,33 +298,21 @@ const CandidateInfo = ({ steps, setSteps }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
+    }finally{
+      setLoading(false);
     }
   }
   const recruitedMode = form.status?.toLowerCase() === "recruited";
@@ -572,14 +548,12 @@ const CandidateInfo = ({ steps, setSteps }) => {
     toggleStep(2, "completed");
   };
   const handleRejectCandidate = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to Reject this Candidate ?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Reject it',
-      cancelButtonText: 'Cancel',
+    showConfirm("Are you sure?", "Do you want to Reject this Candidate ?", "warning").then(async (result) => {
+      if (result.isConfirmed) {
+        await rejectCoach(id);
+      }
     });
+  
 
     if (result.isConfirmed) {
       await rejectCoach(id);
@@ -614,20 +588,15 @@ const CandidateInfo = ({ steps, setSteps }) => {
     // send payload to your API here
   };
   const handleSubmit = async () => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Once you submit this recruitment, you will not be able to edit or fill any fields again. Please carefully review all your entries before submitting. Only submit when everything is confirmed and correct.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, submit",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-      confirmButtonColor: "#d33",
+    showConfirm("Are you sure?", "Once you submit this recruitment, you will not be able to edit or fill any fields again. Please carefully review all your entries before submitting. Only submit when everything is confirmed and correct.", "warning").then(async (result) => {
+      if (result.isConfirmed) {
+        await submitRecruitment(id);
+      }
     });
+   
 
     // If user cancels, stop execution
     if (!result.isConfirmed) return;
-    console.log("Submit Payload:", form);
 
     if (comesfrom === "coach") {
       const payloadMain = {
@@ -703,19 +672,13 @@ const CandidateInfo = ({ steps, setSteps }) => {
   };
   // console.log('payload', payload)
   const handleCoachMail = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to send the mail?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, send it',
-      cancelButtonText: 'Cancel',
+    showConfirm("Are you sure?", "Do you want to send the mail?", "warning").then(async (result) => {
+      if (result.isConfirmed) {
+        await sendCoachMail([id]);
+      }
     });
-
-    if (result.isConfirmed) {
-      await sendCoachMail([id]);
-
-    }
+    
+    
   };
   const getStatusStyles = (status) => {
     switch (status?.toLowerCase()) {

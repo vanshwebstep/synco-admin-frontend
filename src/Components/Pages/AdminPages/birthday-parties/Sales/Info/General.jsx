@@ -11,9 +11,10 @@ import { useMembers } from "../../../contexts/MemberContext";
 import { Mail, MessageSquare, AlertTriangle } from "lucide-react";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { useLocation } from "react-router-dom";
-import Swal from "sweetalert2";
+import { showConfirm, showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
+import { set } from "date-fns";
 const General = () => {
-
+  const [loading, setLoading] = useState(false);
     const location = useLocation();
 
     const queryParams = new URLSearchParams(location.search);
@@ -187,13 +188,8 @@ const General = () => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
+            showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
         }
     }, []);
     const handleSubmitComment = async (e) => {
@@ -216,13 +212,7 @@ const General = () => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            setLoading(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -230,33 +220,20 @@ const General = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError(result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess(result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError(error.message || error.error || "Failed to create comment. Please try again later.");
+
         }
     }
 
@@ -455,38 +432,16 @@ const General = () => {
 
 
     const handleCancelPackage = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This package will be cancelled. This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Yes, cancel it",
-            cancelButtonText: "No, keep it",
-        }).then((result) => {
+        showConfirm("Are you sure?", "This package will be cancelled. This action cannot be undone.", "warning").then((result) => {
             if (!result.isConfirmed) return;
 
             const token = localStorage.getItem("adminToken");
             if (!token) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Unauthorized",
-                    text: "Admin token not found. Please login again.",
-                });
+                showError("Admin token not found. Please login again.");
                 return;
             }
 
-            Swal.fire({
-                title: "Cancelling package...",
-                text: "Please wait",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-
+            setLoading(true);
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${token}`);
 
@@ -496,64 +451,34 @@ const General = () => {
                 redirect: "follow",
             })
                 .then(async (response) => {
-                    const data = await response.json();
+                    const result = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(data?.message || "Something went wrong");
+                        showError(result.message || "Something went wrong.");
+                        return;
                     }
 
-                    Swal.fire({
-                        icon: "success",
-                        title: "Cancelled!",
-                        text: data?.message || "Package cancelled successfully.",
-                    });
-
-                    // 👉 Optional: refresh list / update state
-                    fetchBirthdyPartiesMembers(id);
-                    // router.refresh();
+                    showSuccess(result.message || "Package cancelled successfully!");
+                    fetchPackageDetails();
                 })
                 .catch((error) => {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Failed",
-                        text: error.message || "Unable to cancel the package.",
-                    });
+                    console.error("Error cancelling package:", error);
+                    showError(error.message || "An error occurred while cancelling the package.");
                 });
         });
+       
     };
     const handleRenewPackage = () => {
-        Swal.fire({
-            title: "Renew this package?",
-            text: "This will renew the selected package for the user.",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#16a34a",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Yes, renew it",
-            cancelButtonText: "No, cancel",
-        }).then((result) => {
+        showConfirm("Are you sure?", "This package will be renewed for the user.", "question").then((result) => {
             if (!result.isConfirmed) return;
 
             const token = localStorage.getItem("adminToken");
             if (!token) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Unauthorized",
-                    text: "Admin token not found. Please login again.",
-                });
+                showError("Admin token not found. Please login again.");
                 return;
             }
 
-            Swal.fire({
-                title: "Renewing package...",
-                text: "Please wait while we renew the package",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-
+            setLoading(true);
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${token}`);
 
@@ -563,29 +488,22 @@ const General = () => {
                 redirect: "follow",
             })
                 .then(async (response) => {
-                    const data = await response.json();
+                    const result = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(data?.message || "Something went wrong");
+                        showError(result.message || "Something went wrong.");
+                        return;
                     }
 
-                    Swal.fire({
-                        icon: "success",
-                        title: "Renewed!",
-                        text: data?.message || "Package renewed successfully.",
-                    });
-
-                    // Optional refresh
-                    fetchBirthdyPartiesMembers(id);
+                    showSuccess(result.message || "Package renewed successfully!");
+                    fetchPackageDetails();
                 })
                 .catch((error) => {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Renewal Failed",
-                        text: error.message || "Unable to renew the package.",
-                    });
+                    console.error("Error renewing package:", error);
+                    showError(error.message || "An error occurred while renewing the package.");
                 });
         });
+       
     };
 
     return (
@@ -813,12 +731,7 @@ const General = () => {
                                     if (bookingId) {
                                         sendBirthdayMail(bookingId);
                                     } else {
-                                        Swal.fire({
-                                            icon: "warning",
-                                            title: "No Students Selected",
-                                            text: "Please select at least one Lead before sending an email.",
-                                            confirmButtonText: "OK",
-                                        });
+                                        showWarning("No Students Selected", "Please select at least one Lead before sending an email.");
                                     }
                                 }} className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[18px]  hover:bg-gray-50 transition">
                                     <Mail className="w-4 h-4 mr-1" /> Send Email

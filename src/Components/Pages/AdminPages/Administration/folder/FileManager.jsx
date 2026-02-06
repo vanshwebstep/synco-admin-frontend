@@ -11,7 +11,7 @@ import {
 
 } from "lucide-react";
 import Loader from '../../../../Pages/AdminPages/contexts/Loader';
-import Swal from "sweetalert2";
+import { showConfirm, showSuccess } from "../../../../../utils/swalHelper";
 
 export default function FileManager() {
     const [folders, setFolders] = useState([]);
@@ -78,13 +78,8 @@ export default function FileManager() {
             setShowCreatePopup(false);
             setNewFolderName("");
             await fetchFolders();
-
-            Swal.fire({
-                icon: "success",
-                title: "Folder Created!",
-                text: "Your folder has been successfully created.",
-                confirmButtonColor: "#237FEA",
-            });
+     showSuccess("Folder Created!", "Your folder has been successfully created.");
+           
 
         } catch (err) {
             toast.error("Failed to create folder");
@@ -151,21 +146,11 @@ export default function FileManager() {
             );
 
             await loadFiles(selectedFolder);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Upload Successful',
-                text: 'Files have been uploaded successfully.',
-                confirmButtonColor: '#237FEA',
-            });
-
+           showSuccess("Upload Successful", "Files have been uploaded successfully.");
+          
         } catch (err) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Upload Failed',
-                text: 'There was an error uploading the files.',
-                confirmButtonColor: '#d33',
-            });
+            showError("Upload Failed", "There was an error uploading the files.");
+                
         } finally {
             setUploading(false);
             e.target.value = "";
@@ -179,15 +164,7 @@ export default function FileManager() {
     // DELETE FILE
     // -----------------------------
     const deleteFile = async (file_id, url) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This file will be permanently deleted.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it",
-        }).then(async (result) => {
+        showConfirm("Are you sure?", "This file will be permanently deleted.", "warning").then(async (result) => {
             if (!result.isConfirmed) return;
 
             try {
@@ -200,18 +177,14 @@ export default function FileManager() {
                         data: { file_id, url }, // delete body must be here
                     }
                 );
-                Swal.fire({
-                    icon: "success",
-                    title: "Deleted!",
-                    text: "File removed successfully.",
-                    confirmButtonColor: "#237FEA",
-                });
+                showSuccess("Deleted!", "File removed successfully.");
                 loadFiles(selectedFolder);
-
+                
             } catch (err) {
-                toast.error("Failed to delete");
+                toast.error("Failed to delete file");
             }
         });
+       
     };
     const hasFiles = files.some(
         (file) => file.uploadFiles && file.uploadFiles.length > 0

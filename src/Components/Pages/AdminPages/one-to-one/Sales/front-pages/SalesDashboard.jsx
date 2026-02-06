@@ -18,13 +18,14 @@ import {
     CirclePoundSterling, X, CircleDollarSign
 } from "lucide-react";
 import { TiUserAdd } from "react-icons/ti";
-import Swal from "sweetalert2";
+
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { PiUsersThreeBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
+import { showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 const SalesDashboard = () => {
     const navigate = useNavigate();
     const [noLoaderShow, setNoLoaderShow] = useState(false);
@@ -293,18 +294,8 @@ const SalesDashboard = () => {
             if (!formData.availability) missingFields.push("Availability");
             if (!formData.source) missingFields.push("Source");
 
-            Swal.fire({
-                icon: "warning",
-                title: "Missing Fields",
-                html: `
-      <div style="text-align:left;">
-        <p>Please fill out the following required field(s):</p>
-        <ul style="margin-top:8px;">
-          ${missingFields.map(f => `<li>• ${f}</li>`).join("")}
-        </ul>
-      </div>
-    `,
-            });
+            showWarning("Missing Fields", `Please fill out the following required field(s):\n\n${missingFields.join("\n")}`);
+
             return;
         }
 
@@ -331,13 +322,8 @@ const SalesDashboard = () => {
             }
 
             // ✅ Success alert
-            Swal.fire({
-                icon: "success",
-                title: "Lead Created",
-                text: "The lead has been successfully added.",
-                timer: 2000,
-                showConfirmButton: false,
-            });
+            showSuccess("Lead Created", "The lead has been successfully added.");
+
 
             await fetchLeads(); // refresh roles or data
             setIsOpen(false);   // close modal or form
@@ -346,11 +332,8 @@ const SalesDashboard = () => {
         } catch (error) {
             console.error("Create lead error:", error);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while creating the lead.",
-            });
+            showError("Error", error.message || "Something went wrong while creating the lead.");
+
         } finally {
             setLoading(false);
         }
@@ -532,14 +515,11 @@ const SalesDashboard = () => {
 
         // ✅ SweetAlert check for incomplete date range
         if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
-            Swal.fire({
-                icon: "warning",
-                title: "Incomplete Date Range",
-                text: hasFrom
-                    ? "Please select a To Date to complete the range."
-                    : "Please select a From Date to complete the range.",
-                confirmButtonColor: "#3085d6",
-            });
+
+            showWarning("Incomplete Date Range", hasFrom
+                ? "Please select a To Date to complete the range."
+                : "Please select a From Date to complete the range.",)
+
             return; // stop further execution
         }
 
@@ -1212,12 +1192,8 @@ const SalesDashboard = () => {
                                 if (selectedUserIds && selectedUserIds.length > 0) {
                                     sendOnetoOneMail(selectedUserIds);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.")
+
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"

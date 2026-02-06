@@ -4,7 +4,7 @@ import { FaEye } from "react-icons/fa";
 const tabs = ["Beginner", "Intermediate", "Advanced", "Pro"];
 import { Trash2, Copy } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading, ThemeSwal } from "../../../../../utils/swalHelper";
 import { Editor } from '@tinymce/tinymce-react';
 import Loader from "../../contexts/Loader";
 
@@ -176,21 +176,14 @@ export default function Create() {
 
             try {
 
-                Swal.fire({
-                    title: isEditExcercise ? "Updating Exercise..." : "Saving Exercise...",
-                    text: "Please wait while we process your request.",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
+                showLoading(isEditExcercise ? "Updating Exercise..." : "Saving Exercise...", "Please wait while we process your request.");
 
 
                 const formdata = new FormData();
                 formdata.append("title", exercise.title);
                 formdata.append("description", exercise.description);
                 formdata.append("duration", exercise.duration);
-               if (removedImages) {
+                if (removedImages) {
                     formdata.append("removedImages", JSON.stringify(removedImages));
                 }
                 if (exercise.imageToSend && exercise.imageToSend.length > 0) {
@@ -219,16 +212,7 @@ export default function Create() {
 
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: "success",
-                    text: "Your Exercise Has Been Saved Succesfylly!",
-
-                    title: isEditExcercise
-                        ? "Exercise updated successfully!"
-                        : "Exercise created successfully!",
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                showSuccess(isEditExcercise ? "Exercise updated successfully!" : "Exercise created successfully!", "Your Exercise Has Been Saved Succesfylly!");
                 emptyExcerCises();
                 setShowExerciseModal(false)
                 setRemovedImages([])
@@ -236,15 +220,11 @@ export default function Create() {
                 return result;
             } catch (err) {
                 // Show error alert
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: err.message || "Failed to save exercise. Please try again.",
-                });
+                showError("Error", err.message || "Failed to save exercise. Please try again.");
                 throw err;
             }
         },
-        [token, fetchExercises, exercise, isEditExcercise,removedImages]
+        [token, fetchExercises, exercise, isEditExcercise, removedImages]
     );
     console.log('removedImages', removedImages)
 
@@ -254,12 +234,7 @@ export default function Create() {
 
             try {
                 // Show loading Swal
-                Swal.fire({
-                    title: "Duplicating Exercise...",
-                    text: "Please wait while the exercise is being duplicated.",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
+                showLoading("Duplicating Exercise...", "Please wait while the exercise is being duplicated.");
 
                 const response = await fetch(
                     `${API_BASE_URL}/api/admin/one-to-one/session-exercise-struture/${id}/duplicate`,
@@ -272,19 +247,13 @@ export default function Create() {
                 const result = await response.json();
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: response.ok ? "success" : "error",
-                    title: response.ok ? "Exercise Duplicated!" : "Failed to Duplicate",
-                    text: result.message || (response.ok ? "Exercise duplicated successfully." : "Something went wrong."),
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                if (response.ok) {
+                    showSuccess("Exercise Duplicated!", result.message || "Exercise duplicated successfully.");
+                } else {
+                    showError("Failed to Duplicate", result.message || "Something went wrong.");
+                }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Duplicate",
-                    text: err.message || "Something went wrong while duplicating the exercise.",
-                });
+                showError("Failed to Duplicate", err.message || "Something went wrong while duplicating the exercise.");
                 console.error("Failed :", err);
             }
         },
@@ -296,7 +265,7 @@ export default function Create() {
             if (!token) return;
 
             try {
-                const result = await Swal.fire({
+                const result = await ThemeSwal.fire({
                     title: "Delete Exercise",
                     html: `
                     <div class="text-[15px] text-gray-700">
@@ -309,7 +278,7 @@ export default function Create() {
                     confirmButtonText: "Permanent Delete",
                     denyButtonText: "Just Remove",
                     cancelButtonText: "Cancel",
-                    confirmButtonColor: "#d33",
+                    confirmButtonColor: "#be185d",
                     denyButtonColor: "#3b82f6",
                     cancelButtonColor: "#6b7280",
                 });
@@ -324,7 +293,7 @@ export default function Create() {
                         exercises: prev.exercises.filter((ex) => ex.value !== id),
                     }));
 
-                    Swal.fire({
+                    ThemeSwal.fire({
                         icon: "info",
                         title: "Removed",
                         text: "Exercise removed from this group only.",
@@ -336,11 +305,7 @@ export default function Create() {
 
                 // 🔴 PERMANENT DELETE → Delete from database & remove from list
                 if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Deleting Exercise...",
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading(),
-                    });
+                    showLoading("Deleting Exercise...");
 
                     const response = await fetch(
                         `${API_BASE_URL}/api/admin/one-to-one/session-exercise-struture/delete/${id}`,
@@ -360,20 +325,14 @@ export default function Create() {
                         }));
                     }
 
-                    Swal.fire({
-                        icon: response.ok ? "success" : "error",
-                        title: response.ok ? "Deleted!" : "Failed",
-                        text: data.message || "Something went wrong.",
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
+                    if (response.ok) {
+                        showSuccess("Deleted!", data.message || "Something went wrong.");
+                    } else {
+                        showError("Failed", data.message || "Something went wrong.");
+                    }
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Delete",
-                    text: err.message || "Something went wrong.",
-                });
+                showError("Failed to Delete", err.message || "Something went wrong.");
                 console.error("Failed to delete Exercise:", err);
             }
         },
@@ -430,30 +389,15 @@ export default function Create() {
             const data = await response.json();
 
             if (response.ok && data.status) {
-                await Swal.fire({
-                    icon: "success",
-                    title: "Success",
-                    text: data.message || "Group created successfully.",
-                    confirmButtonColor: "#237FEA",
-                });
+                await showSuccess("Success", data.message || "Group created successfully.");
                 emptySession();
                 navigate(`/one-to-one/session-plan`);
             } else {
-                await Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: data.message || "Failed to create session group.",
-                    confirmButtonColor: "#d33",
-                });
+                await showError("Error", data.message || "Failed to create session group.");
             }
         } catch (err) {
             console.error("Failed to create session group:", err);
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Something went wrong while creating the session group.",
-                confirmButtonColor: "#d33",
-            });
+            await showError("Error", "Something went wrong while creating the session group.");
         } finally {
 
             setLoading(false);
@@ -535,11 +479,10 @@ export default function Create() {
     };
     const gotoNextTab = () => {
         if (!groupData.skill) {
-            Swal.fire({
+            ThemeSwal.fire({
                 icon: "warning",
                 title: "Incomplete Data",
                 text: "Please fill the skill for this tab before proceeding.",
-                confirmButtonColor: "#237FEA",
             });
             return;
         }
@@ -574,7 +517,7 @@ export default function Create() {
 
             // ✅ Validate fields
             if (!groupData.skill?.trim() || !groupData.description?.trim() || !groupData.exercises?.length) {
-                await Swal.fire({
+                await ThemeSwal.fire({
                     icon: "warning",
                     title: "Incomplete Data",
                     html: `
@@ -584,7 +527,6 @@ export default function Create() {
                         ${!groupData.exercises?.length ? "• Please select at least one <b>Exercise</b>." : ""}
                     </div>
                 `,
-                    confirmButtonColor: "#237FEA",
                 });
                 return;
             }
@@ -624,7 +566,7 @@ export default function Create() {
 
         // ✅ Validate required fields before saving
         if (!groupData.skill?.trim() || !groupData.description?.trim() || !groupData.exercises?.length) {
-            await Swal.fire({
+            await ThemeSwal.fire({
                 icon: "warning",
                 title: "Incomplete Data",
                 html: `
@@ -634,7 +576,6 @@ export default function Create() {
                     ${!groupData.exercises?.length ? "• Please select at least one <b>Exercise</b>." : ""}
                 </div>
             `,
-                confirmButtonColor: "#237FEA",
             });
             return;
         }
@@ -774,11 +715,10 @@ export default function Create() {
                 ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => {
                                             if (isDisabled) {
-                                                Swal.fire({
+                                                ThemeSwal.fire({
                                                     icon: "warning",
                                                     title: "Incomplete Data",
                                                     text: "Please fill the skill for the current tab before proceeding.",
-                                                    confirmButtonColor: "#237FEA",
                                                 });
                                                 return;
                                             }
@@ -1053,7 +993,7 @@ export default function Create() {
                                                 'fontsizeselect capitalize bold italic underline alignleft aligncenter bullist  ',
                                             height: 200,
                                             branding: false,
-                                              content_style: `
+                                            content_style: `
   body {
     background-color: #f3f4f6;
  font-family: "Poppins", sans-serif !important;

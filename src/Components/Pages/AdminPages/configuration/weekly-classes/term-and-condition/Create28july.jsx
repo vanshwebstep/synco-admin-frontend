@@ -8,7 +8,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSearchParams } from "react-router-dom";
 
-import Swal from "sweetalert2"; // make sure it's installed
+import { showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 
 const initialTerms = [
     {
@@ -183,22 +183,14 @@ const Create = () => {
             }
 
              console.log("✅ Term Saved:", data);
-
-            Swal.fire({
-                icon: 'success',
-                title: data.message || 'Term Saved Successfully',
-                confirmButtonColor: '#3085d6'
-            });
+showSuccess('Success', data.message || 'Term Saved Successfully');
+           
             toggleTerm(term.id)
 
         } catch (error) {
             console.error("❌ Error saving term:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to Save Term',
-                text: error.message || 'An unexpected error occurred.',
-                confirmButtonColor: '#d33'
-            });
+            showError('Failed to Save Term', error.message || 'An unexpected error occurred.');
+            
         }
     };
 
@@ -265,12 +257,8 @@ const Create = () => {
         // Update state if needed
         setMapSession(sessionMappings); // Still keep this if it's used elsewhere
         setIsMapCreated(true);
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Map Saved successfully.',
-            confirmButtonColor: '#237FEA'
-        });
+        showSuccess('Success', 'Map Saved successfully.');
+      
 
         setIsMapping(false);
 
@@ -281,14 +269,11 @@ const Create = () => {
         // Optional: perform save logic here (e.g. API call)
 
         // Show SweetAlert
-        await Swal.fire({
-            icon: 'success',
-            title: 'Saved!',
-            text: 'Your data has been saved.',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#237FEA',
-        });
+      await  showSuccess('Success', 'Your data has been saved.');
+       
 
+         console.log('✅ Term Group saved successfully.');
+  
         // Navigate after confirmation
         navigate('/configuration/weekly-classes/term-dates/list');
     };
@@ -512,22 +497,17 @@ const Create = () => {
                                                                 : 'bg-gray-400 text-white cursor-not-allowed'}`}
                                                         onClick={() => {
                                                             if (!termGroupName.trim()) {
-                                                                Swal.fire({
-                                                                    icon: 'warning',
-                                                                    title: 'Group name is required',
-                                                                    confirmButtonColor: '#237FEA',
-                                                                });
+                                                               showWarning('Group name is required', 'You cannot save term without a group name.');
+                                                             
                                                                 return;
                                                             }
 
                                                             if (!isMapCreated) {
-                                                                Swal.fire({
-                                                                    icon: 'warning',
-                                                                    title: 'Please save map first',
-                                                                    confirmButtonColor: '#237FEA',
-                                                                });
+                                                                
+                                                                showWarning('Please save map first', 'You must create a session map before saving the term.');
                                                                 return;
                                                             }
+                                                               
 
                                                             handleSaveTerm(term);
                                                         }}
@@ -546,13 +526,10 @@ const Create = () => {
                             <button
                                 onClick={() => {
                                     if (!termGroupName?.trim()) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'You cannot add term without group name ',
-                                            confirmButtonColor: '#237FEA',
-                                        });
+                                        showWarning('Group name is required', 'You cannot add term without a group name.');
                                         return;
                                     }
+                                        
                                     setTerms((prev) => [
                                         ...prev,
                                         {
@@ -576,11 +553,7 @@ const Create = () => {
                             <button
                                 onClick={() => {
                                     if (!termGroupName?.trim()) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'You cannot save without a group name',
-                                            confirmButtonColor: '#237FEA',
-                                        });
+                                        showWarning('Group name is required', 'You cannot save without a group name');
                                         return;
                                     }
 

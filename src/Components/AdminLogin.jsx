@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import { Link } from 'react-router-dom';
+import { Links, NavLink, useNavigate } from 'react-router-dom';
 import { verifyToken } from './verifyToken';
-import { Eye, EyeOff, Check } from 'lucide-react';
+import { Eye, EyeOff, Check, Link } from 'lucide-react';
 import StepOneModal from './NewConfirm';
+import { showError, showSuccess } from '../utils/swalHelper';
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -22,7 +21,7 @@ const AdminLogin = () => {
     const emailFromURL = params.get("email");
 
     for (const [key, value] of params.entries()) {
-       // console.log(`${key}: ${value}`);
+      // console.log(`${key}: ${value}`);
     }
 
     if (tokenFromURL) {
@@ -43,17 +42,11 @@ const AdminLogin = () => {
     myHeaders.append("Content-Type", "application/json");
 
     if (newPassword !== confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "Passwords do not match",
-      });
+      showError("Error", "Passwords do not match");
       return;
     }
     if (!newPassword || !confirmPassword) {
-      Swal.fire({
-        icon: "warning",
-        title: "Both fields are required",
-      });
+      showError("Error", "Both fields are required");
       return;
     }
 
@@ -77,30 +70,19 @@ const AdminLogin = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: result.message || `Password successfully reset.`,
-          showConfirmButton: false,
-          timer: 2000, // auto close after 2s
-        });
+        showSuccess("Success", result.message || `Password successfully reset.`)
         setIsResetCome(false);
       } else {
-        Swal.fire({
-          icon: "error",
-          title: result.message || "Reset failed",
-        });
+        showError("Error", result.message || "Reset failed");
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Server error. Please try again later.",
-      });
+      showError("Error", "Server error. Please try again later.");
     } finally {
       setLoading(false);
     }
 
-     // console.log("Ready to submit:", { token, newPassword });
+    // console.log("Ready to submit:", { token, newPassword });
   };
 
   const validateEmail = (email) => {
@@ -108,15 +90,15 @@ const AdminLogin = () => {
   };
   const handleLogin = async (e) => {
     e.preventDefault();
-     // console.log('🔐 Starting login...');
+    // console.log('🔐 Starting login...');
 
     if (!email || !password) {
-      Swal.fire({ icon: 'warning', title: 'Missing Fields', text: 'Please enter both email and password.' });
+      showError("Error", "Please enter both email and password.");
       return;
     }
 
     if (!validateEmail(email)) {
-      Swal.fire({ icon: 'error', title: 'Invalid Email', text: 'Please enter a valid email address.' });
+      showError("Error", "Please enter a valid email address.");
       return;
     }
 
@@ -132,7 +114,7 @@ const AdminLogin = () => {
       });
 
       const result = await response.json();
-       // console.log('🟢 Login result:', result);
+      // console.log('🟢 Login result:', result);
 
       if (response.ok && result?.data?.token) {
         const token = result.data.token;
@@ -145,11 +127,11 @@ const AdminLogin = () => {
 
         localStorage.setItem('role', result.data.admin.role);
 
-         // console.log('✅ Token saved:', token);
+        // console.log('✅ Token saved:', token);
 
         try {
           const verified = await verifyToken(token);
-           // console.log('🔍 Verification result:', verified);
+          // console.log('🔍 Verification result:', verified);
 
           // Swal.fire({
           //   icon: 'success',
@@ -160,32 +142,20 @@ const AdminLogin = () => {
           // });
 
           setTimeout(() => {
-             // console.log('➡️ Navigating to dashboard...');
+            // console.log('➡️ Navigating to dashboard...');
             navigate('/');
           }, 1500);
 
         } catch (verifyError) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Verification Failed',
-            text: verifyError.message || 'Token could not be verified.',
-          });
+          showError("Error", verifyError.message || "Token could not be verified.");
         }
 
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: result.message || 'Invalid credentials.',
-        });
+        showError("Error", result.message || "Invalid credentials.");
       }
     } catch (error) {
       console.error('🚨 Login error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Server Error',
-        text: 'Unable to reach the server.',
-      });
+      showError("Error", "Server error. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -276,9 +246,9 @@ const AdminLogin = () => {
                   Remember me
                 </label>
 
-                <Link to="/admin-ForgotPassword" className="hover:underline text-[#282829] font-normal">
+                <NavLink to="/admin-ForgotPassword" className="hover:underline text-[#282829] font-normal">
                   Forgot password?
-                </Link>
+                </NavLink>
               </div>
 
               <button

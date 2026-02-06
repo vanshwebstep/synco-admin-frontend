@@ -3,7 +3,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Select from "react-select";
 import { useNotification } from "../../contexts/NotificationContext";
-import Swal from "sweetalert2";
+import { showSuccess, showError, showWarning } from '../../../../../utils/swalHelper';
 import { useAccountsInfo } from "../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
 const ParentProfile = () => {
@@ -142,12 +142,7 @@ const ParentProfile = () => {
     } catch (error) {
       console.error("Failed to fetch comments:", error);
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
   const handleChangeDial = (index, value, data) => {
@@ -182,13 +177,13 @@ const ParentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      // Swal.fire({
+      //   title: "Creating ....",
+      //   allowOutsideClick: false,
+      //   didOpen: () => {
+      //     Swal.showLoading();
+      //   },
+      // });
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -196,90 +191,72 @@ const ParentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
     }
   }
   const isValidEmail = (email) => {
-  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return pattern.test(email);
-};
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email);
+  };
 
-const validateNewParent = () => {
-  const requiredFields = [
-    "parentFirstName",
-    "parentLastName",
-    "parentEmail",
-    "parentPhoneNumber",
-    "relationToChild",
-    "howDidYouHear",
-  ];
+  const validateNewParent = () => {
+    const requiredFields = [
+      "parentFirstName",
+      "parentLastName",
+      "parentEmail",
+      "parentPhoneNumber",
+      "relationToChild",
+      "howDidYouHear",
+    ];
 
-  for (let f of requiredFields) {
-    if (!newParent[f] || newParent[f].toString().trim() === "") return false;
-  }
+    for (let f of requiredFields) {
+      if (!newParent[f] || newParent[f].toString().trim() === "") return false;
+    }
 
-  // Email validation
-  if (!isValidEmail(newParent.parentEmail)) return false;
+    // Email validation
+    if (!isValidEmail(newParent.parentEmail)) return false;
 
-  return true;
-};
+    return true;
+  };
 
 
   // Add parent from modal
- const handleAddParent = () => {
-  if (!validateNewParent()) {
-    Swal.fire({
-      icon: "error",
-      title: "Invalid or Missing Information",
-      text: "Please fill all fields and enter a valid email address.",
+  const handleAddParent = () => {
+    if (!validateNewParent()) {
+      showError("Invalid or Missing Information", "Please fill all fields and enter a valid email address.");
+      return;
+    }
+
+    const updatedParents = [...formData, newParent];
+    setFormData(updatedParents);
+
+    handleUpdateAcountInfo("parents", updatedParents);
+    setShowModal(false);
+
+    setNewParent({
+      parentFirstName: "",
+      parentLastName: "",
+      parentEmail: "",
+      parentPhoneNumber: "",
+      relationToChild: "",
+      howDidYouHear: "",
     });
-    return;
-  }
 
-  const updatedParents = [...formData, newParent];
-  setFormData(updatedParents);
-
-  handleUpdateAcountInfo("parents", updatedParents);
-  setShowModal(false);
-
-  setNewParent({
-    parentFirstName: "",
-    parentLastName: "",
-    parentEmail: "",
-    parentPhoneNumber: "",
-    relationToChild: "",
-    howDidYouHear: "",
-  });
-
-  setDialCode("+44");
-  setCountry("uk");
-};
+    setDialCode("+44");
+    setCountry("uk");
+  };
 
 
   const handleCountryChange = (index, countryData) => {
@@ -306,7 +283,7 @@ const validateNewParent = () => {
       )
     );
   };
-console.log('emergency',emergency)
+  console.log('emergency', emergency)
   useEffect(() => {
     if (emergency.sameAsAbove && formData.length > 0) {
       const firstParent = emergency[0];
@@ -319,35 +296,31 @@ console.log('emergency',emergency)
       }));
     }
   }, [emergency.sameAsAbove, formData]);
-const validateParent = (parent) => {
-  const requiredFields = [
-    "parentFirstName",
-    "parentLastName",
-    "parentEmail",
-    "parentPhoneNumber",
-    "relationToChild",
-    "howDidYouHear",
-  ];
+  const validateParent = (parent) => {
+    const requiredFields = [
+      "parentFirstName",
+      "parentLastName",
+      "parentEmail",
+      "parentPhoneNumber",
+      "relationToChild",
+      "howDidYouHear",
+    ];
 
-  for (let field of requiredFields) {
-    if (!parent[field] || parent[field].toString().trim() === "") {
-      return false; // Invalid
+    for (let field of requiredFields) {
+      if (!parent[field] || parent[field].toString().trim() === "") {
+        return false; // Invalid
+      }
     }
-  }
-  return true; // Valid
-};
+    return true; // Valid
+  };
 
   const handleUpdateParent = (index) => {
     const parent = formData[index];
 
-  if (!validateParent(parent)) {
-    Swal.fire({
-      icon: "error",
-      title: "Missing Information",
-      text: "Please fill all required fields before saving.",
-    });
-    return;
-  }
+    if (!validateParent(parent)) {
+      showError("Missing Information", "Please fill all required fields before saving.");
+      return;
+    }
 
     handleUpdateAcountInfo("parents", formData)
   }

@@ -12,7 +12,7 @@ import Loader from "../../contexts/Loader";
 import PlanTabs from "../../weekly-classes/find-a-class/PlanTabs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
-import Swal from "sweetalert2";
+
 
 import ResizeMap from "../../Common/ResizeMap";
 

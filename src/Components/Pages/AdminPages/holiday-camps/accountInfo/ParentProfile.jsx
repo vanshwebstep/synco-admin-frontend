@@ -3,9 +3,10 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Select from "react-select";
 import { useNotification } from "../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useAccountsInfo } from "../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
+import { showError, showWarning } from "../../../../../utils/swalHelper";
+import { set } from "date-fns";
 const ParentProfile = () => {
   const [editParent, setEditParent] = useState(false);
   const [editEmergency, setEditEmergency] = useState(false);
@@ -13,7 +14,7 @@ const ParentProfile = () => {
   const { adminInfo, setAdminInfo } = useNotification();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { formData, setFormData, emergency, setEmergency, handleUpdateHoliday, students } = useAccountsInfo();
-
+const [loading, setLoading] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,13 +160,8 @@ const ParentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
     }
   }, []);
 
@@ -190,56 +186,35 @@ const ParentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
+     setLoading(true);
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
 
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+      
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
+    
+    }finally {
+      setLoading(false);
     }
   }
   const showAlert = (title, text) => {
-    Swal.fire({
-      icon: "warning",
-      title,
-      text,
-      confirmButtonText: "OK",
-    });
+    showWarning(title, text);
   };
 
 
@@ -272,7 +247,7 @@ const ParentProfile = () => {
     }
     setFormData((prev) => [...prev, newParent]);
     const updatedStudents = [...formData, { ...newParent, studentId: students[0]?.id }];
-    
+
     setFormData(updatedStudents);
 
     handleUpdateHoliday('parents', updatedStudents);

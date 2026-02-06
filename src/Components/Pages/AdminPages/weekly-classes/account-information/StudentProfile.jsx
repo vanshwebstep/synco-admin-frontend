@@ -7,7 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { RxCross2 } from "react-icons/rx";
 import { useAccountsInfo } from "../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
-import Swal from "sweetalert2";
+import { showError } from '../../../../../utils/swalHelper';
 
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
@@ -37,36 +37,36 @@ const StudentProfile = () => {
   const handleModalChange = (field, value) => {
     setNewStudent((prev) => ({ ...prev, [field]: value }));
   };
-const fixTimezone = (date) => {
-  if (!date) return null;
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-};
+  const fixTimezone = (date) => {
+    if (!date) return null;
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  };
   // --- DOB change inside modal ---
-const handleDOBChange = (index, date, isModal = false) => {
-  // Fix timezone only ONCE
-  const fixedDate = date ? fixTimezone(date) : null;
+  const handleDOBChange = (index, date, isModal = false) => {
+    // Fix timezone only ONCE
+    const fixedDate = date ? fixTimezone(date) : null;
 
-  // Age calculation based on fixed date
-  const today = new Date();
-  let age = "";
+    // Age calculation based on fixed date
+    const today = new Date();
+    let age = "";
 
-  if (fixedDate) {
-    const diff = today.getFullYear() - fixedDate.getFullYear();
-    const monthDiff = today.getMonth() - fixedDate.getMonth();
-    age =
-      monthDiff < 0 || (monthDiff === 0 && today.getDate() < fixedDate.getDate())
-        ? diff - 1
-        : diff;
-  }
+    if (fixedDate) {
+      const diff = today.getFullYear() - fixedDate.getFullYear();
+      const monthDiff = today.getMonth() - fixedDate.getMonth();
+      age =
+        monthDiff < 0 || (monthDiff === 0 && today.getDate() < fixedDate.getDate())
+          ? diff - 1
+          : diff;
+    }
 
-  if (isModal) {
-    setNewStudent((prev) => ({ ...prev, dateOfBirth: fixedDate, age }));
-  } else {
-    const updated = [...students];
-    updated[index] = { ...updated[index], dateOfBirth: fixedDate, age };
-    setStudents(updated);
-  }
-};
+    if (isModal) {
+      setNewStudent((prev) => ({ ...prev, dateOfBirth: fixedDate, age }));
+    } else {
+      const updated = [...students];
+      updated[index] = { ...updated[index], dateOfBirth: fixedDate, age };
+      setStudents(updated);
+    }
+  };
 
 
   const validateStudent = (student) => {
@@ -96,11 +96,7 @@ const handleDOBChange = (index, date, isModal = false) => {
   const handleAddStudent = () => {
 
     if (!validateNewStudent(newStudent)) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Information",
-        text: "Please fill all required fields before adding the student."
-      });
+      showError("Missing Information", "Please fill all required fields before adding the student.");
       return;
     }
 
@@ -136,11 +132,7 @@ const handleDOBChange = (index, date, isModal = false) => {
     const student = students[index];
 
     if (!validateStudent(student)) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Information",
-        text: "Please fill all required fields before saving.",
-      });
+      showError("Missing Information", "Please fill all required fields before saving.");
       return;
     }
 

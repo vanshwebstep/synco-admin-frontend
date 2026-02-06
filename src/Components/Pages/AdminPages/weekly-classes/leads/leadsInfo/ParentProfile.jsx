@@ -4,10 +4,9 @@ import { useLocation } from 'react-router-dom';
 
 import "react-phone-input-2/lib/style.css";
 import { useNotification } from "../../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { Mail, MessageSquare } from "lucide-react";
-
+import { showSuccess, showError } from "../../../../../../utils/swalHelper";
 const ParentProfile = (fetchedData) => {
   const { adminInfo } = useNotification();
   const location = useLocation();
@@ -147,12 +146,7 @@ const ParentProfile = (fetchedData) => {
       setCommentsList(result?.data || []);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-      Swal.fire({
-        title: "Error",
-        text: error.message || "Failed to fetch comments.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError("Error", error.message || "Failed to fetch comments.");
     }
   }, []);
 
@@ -164,12 +158,10 @@ const ParentProfile = (fetchedData) => {
     if (!token || !comment.trim()) return;
 
     try {
-      Swal.fire({
-        title: "Creating...",
-        text: "Please Wait while we create your comment",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
+      /* Loading state handled by UI or we can add a specific loader if needed, 
+         but for now we'll skip the Swal loading popup and rely on non-blocking UI updates or let the user wait.
+         The original code used Swal.showLoading which is blocking. 
+         If blocking is desired, we might need a showLoading helper, but for now we'll stick to error/success. */
 
       const response = await fetch(`${API_BASE_URL}/api/admin/lead/comment/create`, {
         method: "POST",
@@ -183,74 +175,60 @@ const ParentProfile = (fetchedData) => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: "Comment has been added successfully!",
-        showConfirmButton: false,
-        timer: 1500,
-      });
+      showSuccess("Comment Created", "Comment has been added successfully!");
 
       setComment("");
       fetchComments();
     } catch (error) {
       console.error("Error creating comment:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text: error.message || "An error occurred while submitting.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting.");
     }
   };
-  
-const handleSendEmail = useCallback(async (bookingIds, type) => {
-  setLoading(true);
- const mybookingIds = [bookingIds];
-  const endpoints = {
-    paid: "/api/admin/book-membership/send/email",
-    free: "/api/admin/book/free-trials/send-email",
-    waiting_list: "/api/admin/waiting-list/send-email",
-  };
 
-  try {
-    const res = await fetch(API_BASE_URL + endpoints[type], {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` })
-      },
-      body: JSON.stringify({bookingIds: mybookingIds } ),
-    });
+  const handleSendEmail = useCallback(async (bookingIds, type) => {
+    setLoading(true);
+    const mybookingIds = [bookingIds];
+    const endpoints = {
+      paid: "/api/admin/book-membership/send/email",
+      free: "/api/admin/book/free-trials/send-email",
+      waiting_list: "/api/admin/waiting-list/send-email",
+    };
 
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message);
-    setLoading(false);
+    try {
+      const res = await fetch(API_BASE_URL + endpoints[type], {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ bookingIds: mybookingIds }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message);
+      setLoading(false);
 
 
-    await Swal.fire("Success!", json.message, "success");
-    return json;
+      showSuccess("Success!", json.message);
+      return json;
 
-  } catch (e) {
-    await Swal.fire("Error", e.message, "error");
-    throw e;
+    } catch (e) {
+      showError("Error", e.message);
+      throw e;
 
-  } finally {
-    setLoading(false);
-    setShowEmailPopup(false);
-  }
-}, [token, API_BASE_URL]);
+    } finally {
+      setLoading(false);
+      setShowEmailPopup(false);
+    }
+  }, [token, API_BASE_URL]);
 
-useEffect(() => {
-  fetchComments();
-}, [fetchComments]); 
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
 
   const renderPopup = useCallback(
@@ -267,7 +245,7 @@ useEffect(() => {
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
             <button
-             type="button"
+              type="button"
               onClick={onClose}
               className="text-gray-500 hover:text-red-500 transition text-xl"
             >
@@ -306,7 +284,7 @@ useEffect(() => {
                         </span>
 
                         <button
-                         type="button"
+                          type="button"
                           onClick={() => onBookClick(cls.id, leadId)}
                           className="bg-[#237FEA] hover:bg-blue-700 text-white px-4 py-1.5 text-sm rounded-lg transition font-medium"
                         >
@@ -326,7 +304,7 @@ useEffect(() => {
 
           {/* Close Button */}
           <button
-           type="button"
+            type="button"
             onClick={onClose}
             className="w-full mt-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-semibold text-gray-700 transition"
           >
@@ -346,76 +324,76 @@ useEffect(() => {
   }, {});
 
 
-function EmailPopup({ loading, grouped, handleSendEmail, close }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-      <div className={`
+  function EmailPopup({ loading, grouped, handleSendEmail, close }) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <div className={`
         bg-white rounded-2xl w-[90%] md:w-[600px] shadow-2xl border border-gray-100 
         max-h-[80vh] overflow-y-auto p-6 animate-scaleIn
         ${loading ? "opacity-50 pointer-events-none select-none" : ""}
       `}>
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-2xl font-semibold text-gray-800">Send Email</h2>
-          <button
-            onClick={close}
-            className="text-gray-500 hover:text-red-500 transition text-xl"
-          >✕</button>
-        </div>
+          {/* Header */}
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-semibold text-gray-800">Send Email</h2>
+            <button
+              onClick={close}
+              className="text-gray-500 hover:text-red-500 transition text-xl"
+            >✕</button>
+          </div>
 
-        {/* Venue groups */}
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([venue, students]) => (
-            <div
-              key={venue}
-              className="border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-lg font-bold text-[#237FEA] mb-3">{venue}</h3>
+          {/* Venue groups */}
+          <div className="space-y-6">
+            {Object.entries(grouped).map(([venue, students]) => (
+              <div
+                key={venue}
+                className="border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+              >
+                <h3 className="text-lg font-bold text-[#237FEA] mb-3">{venue}</h3>
 
-              <div className="space-y-3">
-                {students.map((stu, idx) => {
-                  const type =
-                    stu.bookingType === "waiting list"
-                      ? "waiting_list"
-                      : stu.bookingType;
+                <div className="space-y-3">
+                  {students.map((stu, idx) => {
+                    const type =
+                      stu.bookingType === "waiting list"
+                        ? "waiting_list"
+                        : stu.bookingType;
 
-                  return (
-                    <button
-                      key={idx}
-                       type="button"
-                      onClick={() => handleSendEmail(stu.bookingTrialId, type)}
-                      className="w-full p-4 rounded-xl border border-gray-200 hover:bg-gray-50 
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSendEmail(stu.bookingTrialId, type)}
+                        className="w-full p-4 rounded-xl border border-gray-200 hover:bg-gray-50 
                         transition flex flex-col text-left group"
-                    >
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold text-gray-800 group-hover:text-[#237FEA] transition capitalize">
-                          {stu.studentFirstName} {stu.studentLastName}
+                      >
+                        <div className="flex justify-between items-center">
+                          <p className="font-semibold text-gray-800 group-hover:text-[#237FEA] transition capitalize">
+                            {stu.studentFirstName} {stu.studentLastName}
+                          </p>
+
+                          <span className="bg-[#237FEA] hover:bg-blue-700 text-white px-4 py-1.5 text-sm rounded-lg transition font-medium">
+                            {type === "paid"
+                              ? "Send Membership Email"
+                              : type === "free"
+                                ? "Send Free Trial Email"
+                                : "Send Waiting List Email"}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-1">
+                          Age {stu.age} • {stu.gender}
                         </p>
-
-                        <span className="bg-[#237FEA] hover:bg-blue-700 text-white px-4 py-1.5 text-sm rounded-lg transition font-medium">
-                          {type === "paid"
-                            ? "Send Membership Email"
-                            : type === "free"
-                              ? "Send Free Trial Email"
-                              : "Send Waiting List Email"}
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-gray-500 mt-1">
-                        Age {stu.age} • {stu.gender}
-                      </p>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
   const renderAddtoWaiting = (title, onClose, onAddToWaitingList) => (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn"
@@ -429,7 +407,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
           <button
-           type="button"
+            type="button"
             onClick={onClose}
             className="text-gray-500 hover:text-red-500 transition text-xl"
           >
@@ -469,7 +447,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                       </span>
 
                       <button
-                       type="button"
+                        type="button"
                         onClick={() => onAddToWaitingList(cls.id, leadId)}
                         className="bg-[#237FEA] hover:bg-blue-700 text-white px-4 py-1.5 text-sm rounded-lg transition font-medium"
                       >
@@ -489,7 +467,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
 
         {/* Close Button */}
         <button
-         type="button"
+          type="button"
           onClick={onClose}
           className="w-full mt-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-semibold text-gray-700 transition"
         >
@@ -622,7 +600,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none"
               />
               <button
-               type="button"
+                type="button"
                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                 onClick={handleSubmitComment}
               >
@@ -660,7 +638,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center gap-2 mt-4">
                     <button
-                     type="button"
+                      type="button"
                       className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
@@ -669,7 +647,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => (
                       <button
-                       type="button"
+                        type="button"
                         key={i}
                         className={`px-3 py-1 rounded-lg border ${currentPage === i + 1
                           ? "bg-blue-500 text-white border-blue-500"
@@ -681,7 +659,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                       </button>
                     ))}
                     <button
-                     type="button"
+                      type="button"
                       className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
@@ -788,7 +766,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
             <div className="p-6 flex flex-col bg-white rounded-3xl mt-5 items-center space-y-3">
               <div className="flex w-full justify-between gap-2">
                 <button
-                 type="button"
+                  type="button"
                   className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] hover:bg-gray-50 transition"
                   onClick={() => {
                     setStudentsData(students);   // your array
@@ -797,13 +775,13 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                 >
                   <Mail className="w-4 h-4 mr-1" /> Send Email
                 </button>
-                <button  type="button" className="flex-1 flex items-center gap-2 justify-center border border-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[#717073]  hover:bg-gray-50 transition">
+                <button type="button" className="flex-1 flex items-center gap-2 justify-center border border-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[#717073]  hover:bg-gray-50 transition">
                   <MessageSquare className="w-4 h-4 mr-1" /> Send Text
                 </button>
               </div>
 
               <button
-               type="button"
+                type="button"
                 className="w-full bg-[#237FEA] text-white my-3 text-[18px] py-3 rounded-xl font-medium hover:bg-blue-600 transition flex items-center justify-center"
                 onClick={() => setShowFreeTrialPopup(true)}
               >
@@ -827,24 +805,24 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
                   () => setShowAddtoWaitingPoppup(false),
                   handleAddToWaitingList
                 )}
-{showEmailPopup && (
-  EmailPopup({
-    loading: loading,
-    grouped: grouped,
-    handleSendEmail: handleSendEmail,
-    close: () => setShowEmailPopup(false)
-  })
-)}
+              {showEmailPopup && (
+                EmailPopup({
+                  loading: loading,
+                  grouped: grouped,
+                  handleSendEmail: handleSendEmail,
+                  close: () => setShowEmailPopup(false)
+                })
+              )}
 
               <button
-               type="button"
+                type="button"
                 className="w-full bg-[#237FEA] text-white my-3 text-[18px] py-3 rounded-xl font-medium hover:bg-blue-600 transition flex items-center justify-center"
                 onClick={() => setShowMembershipPopup(true)}
               >
                 Book A Membership
               </button>
               <button
-               type="button"
+                type="button"
                 className={`w-full my-3 text-[18px] py-3 rounded-xl font-medium flex items-center justify-center transition
     ${hasWaitingListClasses
                     ? "bg-[#237FEA] text-white hover:bg-blue-600 cursor-pointer"
@@ -858,7 +836,7 @@ function EmailPopup({ loading, grouped, handleSendEmail, close }) {
               >
                 Add To Waiting List
               </button>
-        </div>
+            </div>
           </div>
         </div>
       </div>

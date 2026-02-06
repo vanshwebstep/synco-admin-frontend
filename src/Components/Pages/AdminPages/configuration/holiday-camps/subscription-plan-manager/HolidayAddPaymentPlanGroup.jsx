@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import Loader from '../../../contexts/Loader';
 import { Editor } from '@tinymce/tinymce-react';
-import Swal from 'sweetalert2'; // If not already imported
-
+import { showError, showSuccess } from "../../../../../../utils/swalHelper";
 import PlanTabs from "../../../weekly-classes/find-a-class/PlanTabs";
 import { usePermission } from "../../../Common/permission";
 import { useHolidayPayments } from "../../../contexts/HolidayPaymentContext";
@@ -159,11 +158,7 @@ const HolidayAddPaymentPlanGroup = () => {
 
     const handleSavePlan = async () => {
         if (Number(formData.price) < 100) {
-            Swal.fire({
-                icon: "warning",
-                title: "Price must be at least £100!",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Error", "Price must be at least £100!");
             return;
         }
 
@@ -171,11 +166,7 @@ const HolidayAddPaymentPlanGroup = () => {
 
         // ✅ Validation
         if (!title || !price || !interval || !duration || !students || !joiningFee) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Missing Fields',
-                text: 'Please fill in all required fields: Title, Price, Interval, Duration, Number of Students, and Joining Fee.',
-            });
+            showError("Error", "Please fill in all required fields: Title, Price, Interval, Duration, Number of Students, and Joining Fee.");
             return;
         }
 
@@ -195,13 +186,7 @@ const HolidayAddPaymentPlanGroup = () => {
         try {
             await createPackage(newPlan);
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Saved',
-                text: 'Plan saved successfully!',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            showSuccess("Success", "Plan saved successfully!");
 
             // Clear form
             setFormData({
@@ -220,11 +205,7 @@ const HolidayAddPaymentPlanGroup = () => {
             setOpenForm(false);
         } catch (err) {
             console.error('Error saving plan:', err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Save Failed',
-                text: 'There was an error saving the plan. Please try again.'
-            });
+            showError("Error", "There was an error saving the plan. Please try again.");
         } finally {
             setIsSavePlan(false);
         }
@@ -319,12 +300,7 @@ const HolidayAddPaymentPlanGroup = () => {
 
                                         // ✅ Check if at least one plan is selected
                                         if (selectedPlans.length === 0) {
-                                            Swal.fire({
-                                                icon: "warning",
-                                                title: "No Plans Selected",
-                                                text: "Please select at least one Payment Plans.",
-                                                confirmButtonText: "OK",
-                                            });
+                                            showError("Error", "Please select at least one Payment Plans.");
                                             return;
                                         }
 

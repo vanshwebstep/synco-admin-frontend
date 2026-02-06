@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../contexts/Loader";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../../utils/swalHelper";
 export default function CourseList() {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(null);
@@ -34,12 +34,7 @@ export default function CourseList() {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -52,29 +47,15 @@ export default function CourseList() {
     const handleDelete = async (id) => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire("Error", "Admin token missing", "error");
+            showError("Error", "Admin token missing");
             return;
         }
 
-        const result = await Swal.fire({
-            title: "Delete Course?",
-            text: "This action cannot be undone",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Yes, delete",
-        });
+        const result = await showConfirm("Delete Course?", "This action cannot be undone", "Yes, delete");
 
         if (!result.isConfirmed) return;
 
-        Swal.fire({
-            title: "Deleting...",
-            text: "Please wait",
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Deleting...", "Please wait");
 
         try {
             const res = await fetch(
@@ -89,21 +70,11 @@ export default function CourseList() {
             if (!res.ok) throw new Error(data?.message || "Delete failed");
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted",
-                text: "Course deleted successfully",
-                timer: 1500,
-                showConfirmButton: false,
-            });
+            showSuccess("Deleted", "Course deleted successfully");
 
             fetchData();
         } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Delete failed",
-                text: err.message || "Something went wrong",
-            });
+            showError("Delete failed", err.message || "Something went wrong");
         }
     };
 

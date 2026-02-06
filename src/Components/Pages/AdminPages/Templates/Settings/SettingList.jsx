@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FiSearch, FiMail, FiFileText, FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunicationTemplate } from "../../contexts/CommunicationContext";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { showConfirm, showSuccess,showError } from "../../../../../utils/swalHelper";
 
 export default function SettingList() {
     const { fetchCommunicationTemplate, apiTemplates, deleteCommunicationTemplate } = useCommunicationTemplate();
@@ -61,32 +61,18 @@ export default function SettingList() {
 
     const handleDelete = (id) => {
         console.log("Delete Clicked, ID:", id);
-
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-            reverseButtons: true
-        }).then((result) => {
+        showConfirm("Are you sure?", "You won't be able to revert this!", "warning").then((result) => {
             if (result.isConfirmed) {
                 deleteCommunicationTemplate(id); // ✅ delete only after confirm
-
-                Swal.fire(
-                    "Deleted!",
-                    "Your template has been deleted.",
-                    "success"
-                );
+                showSuccess("Deleted!", "Your template has been deleted.");
             } else {
-                Swal.fire(
+                showError(
                     "Cancelled",
-                    "Your template is safe 🙂",
-                    "error"
+                    "Your template is safe 🙂"
                 );
             }
         });
+
     };
     console.log(';selectedTemplate', selectedTemplate)
     return (

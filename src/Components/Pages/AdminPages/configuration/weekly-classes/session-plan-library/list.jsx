@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Pencil, Trash2, Eye, Copy, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionPlan } from '../../../contexts/SessionPlanContext';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning, showConfirm, showLoading } from "../../../../../../utils/swalHelper";
 import Loader from '../../../contexts/Loader';
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { usePermission } from '../../../Common/permission';
@@ -153,67 +153,54 @@ const List = () => {
     navigate(`/configuration/weekly-classes/session-plan-create?id=${weekId}&level=${groupId}`);
   };
 
-  const handleDeleteGroup = (weekId) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "This group will be permanently deleted.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      reverseButtons: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        deleteSessionGroup(weekId);
-        Swal.fire('Deleted!', 'The group has been deleted.', 'success');
-      }
-    });
+  const handleDeleteGroup = async (weekId) => {
+    const result = await showConfirm(
+      "Are you sure?",
+      "This group will be permanently deleted.",
+      "Yes, delete it!",
+      true
+    );
+
+    if (result.isConfirmed) {
+      deleteSessionGroup(weekId);
+      showSuccess('Deleted!', 'The group has been deleted.');
+    }
   };
 
-  const handleDuplicateGroup = (weekId) => {
-    Swal.fire({
-      title: 'Duplicate Group?',
-      text: "This group will be duplicated.",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, duplicate it!',
-      reverseButtons: true,
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          setLoading(true); // Optional, show loading
-          await duplicateSession(weekId); // Call your duplication function
-          Swal.fire('Duplicated!', 'The group has been duplicated.', 'success');
-        } catch (err) {
-          console.error(err);
-          Swal.fire('Error!', 'Failed to duplicate the group.', 'error');
-        } finally {
-          setLoading(false);
-        }
+  const handleDuplicateGroup = async (weekId) => {
+    const result = await showConfirm(
+      "Duplicate Group?",
+      "This group will be duplicated.",
+      "Yes, duplicate it!"
+    );
+
+    if (result.isConfirmed) {
+      try {
+        showLoading("Duplicating...");
+        await duplicateSession(weekId); // Call your duplication function
+        showSuccess('Duplicated!', 'The group has been duplicated.');
+      } catch (err) {
+        console.error(err);
+        showError('Error!', 'Failed to duplicate the group.');
+      } finally {
+        setLoading(false);
       }
-    });
+    }
   };
 
 
-  const handleDeleteLevel = (id, level) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "This Level will be permanently deleted.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      reverseButtons: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        deleteSessionlevel(id, level);
-        Swal.fire('Deleted!', 'The group has been deleted.', 'success');
-      }
-    });
+  const handleDeleteLevel = async (id, level) => {
+    const result = await showConfirm(
+      "Are you sure?",
+      "This Level will be permanently deleted.",
+      "Yes, delete it!",
+      true
+    );
+
+    if (result.isConfirmed) {
+      deleteSessionlevel(id, level);
+      showSuccess('Deleted!', 'The group has been deleted.');
+    }
   };
   const handleEditGroupNameOnly = (weekId, currentTitle) => {
     setEditingWeek(weekId);
@@ -252,21 +239,12 @@ const List = () => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || "Failed to update");
 
-        await Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: result.message || "Week title updated successfully.",
-          confirmButtonColor: "#237FEA",
-        });
+        showSuccess("Success", result.message || "Week title updated successfully.");
 
         await fetchSessionGroup(); // ✅ refresh list after update
       } catch (err) {
         console.error("Failed to update week title:", err);
-        await Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: err.message || "Something went wrong.",
-        });
+        showError("Error", err.message || "Something went wrong.");
       } finally {
         setLoading(false);
         setEditingWeek(null);
@@ -375,168 +353,168 @@ const List = () => {
           )}
 
       </div>
- <div className="p-6 bg-white min-h-[600px] rounded-3xl">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="weekList" direction="horizontal">
-          {(provided) => (
-            <div
-              className="grid md:grid-cols-4 gap-6"
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {tempList.map((week, index) => (
-                <Draggable
-                  key={week.id}
-                  draggableId={String(week.id)}
-                  index={index}
-                  isDragDisabled={!reorderMode}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`bg-[#FAFAFA] rounded-2xl border border-gray-300  p-4 w-full  transform ${snapshot.isDragging ? 'scale-105 shadow-xl transition-transform duration-200' : ''
-                        }`}
-                    >
-                      <div className="flex items-center justify-between p-2 w-full gap-2">
-                        {editingWeek === week.id ? (
-                          <>
-                            <input
-                              type="text"
-                              value={editedWeekTitle}
-                              onChange={(e) => setEditedWeekTitle(e.target.value)}
-                              className="border border-gray-300 w-inherit rounded px-2 py-1 text-lg font-semibold" style={{ width: "inherit" }}
-                            />
+      <div className="p-6 bg-white min-h-[600px] rounded-3xl">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="weekList" direction="horizontal">
+            {(provided) => (
+              <div
+                className="grid md:grid-cols-4 gap-6"
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                {tempList.map((week, index) => (
+                  <Draggable
+                    key={week.id}
+                    draggableId={String(week.id)}
+                    index={index}
+                    isDragDisabled={!reorderMode}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`bg-[#FAFAFA] rounded-2xl border border-gray-300  p-4 w-full  transform ${snapshot.isDragging ? 'scale-105 shadow-xl transition-transform duration-200' : ''
+                          }`}
+                      >
+                        <div className="flex items-center justify-between p-2 w-full gap-2">
+                          {editingWeek === week.id ? (
+                            <>
+                              <input
+                                type="text"
+                                value={editedWeekTitle}
+                                onChange={(e) => setEditedWeekTitle(e.target.value)}
+                                className="border border-gray-300 w-inherit rounded px-2 py-1 text-lg font-semibold" style={{ width: "inherit" }}
+                              />
 
-                            <div className="flex gap-2 items-center">
-                              <button
-                                onClick={() => handleSaveWeekTitle(week.id)}
-                                className="text-green-600 font-semibold"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={handlecancelledit}
-                                className="text-red-500 font-semibold"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <h3 className="font-semibold text-[24px] max-w-[215px] overflow-hidden">{week.title}</h3>
-                            {!reorderMode && (
                               <div className="flex gap-2 items-center">
                                 <button
-                                  onClick={() => handleEditGroupNameOnly(week.id, week.title)}
+                                  onClick={() => handleSaveWeekTitle(week.id)}
+                                  className="text-green-600 font-semibold"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={handlecancelledit}
+                                  className="text-red-500 font-semibold"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <h3 className="font-semibold text-[24px] max-w-[215px] overflow-hidden">{week.title}</h3>
+                              {!reorderMode && (
+                                <div className="flex gap-2 items-center">
+                                  <button
+                                    onClick={() => handleEditGroupNameOnly(week.id, week.title)}
+                                    className="text-gray-500 hover:text-blue-600"
+                                  >
+                                    <img
+                                      src="/images/icons/edit2.png"
+                                      alt="Edit"
+                                      className="min-w-6 h-6 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                    />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/configuration/weekly-classes/session-plan-preview?id=${week.id}`)
+                                    }
+                                    className="text-gray-800 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                  >
+                                    <Eye size={24} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDuplicateGroup(week.id)
+                                    }
+                                    className="text-gray-800 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                  >
+                                    <Copy size={24} />
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+
+                        {week.groups.map((group) => (
+                          <div
+                            key={group.id}
+                            className="bg-white border border-gray-300 p-3 mb-2 rounded-xl flex justify-between items-center"
+                          >
+                            <div>
+                              <p className="font-medium text-[16px]">{group.name}</p>
+                              <p className="text-[14px] text-gray-400">
+                                {{
+                                  Beginner: "4-5 years",
+                                  Intermediate: "6-7 years",
+                                  Advanced: "8-9 years",
+                                  Pro: "10-12 years",
+                                }[group.name] || ""}
+                              </p>                          </div>
+
+                            <div className="flex gap-2">
+                              {canEdit &&
+                                <button
+                                  onClick={() => handleEditGroup(week.id, group.name)}
                                   className="text-gray-500 hover:text-blue-600"
                                 >
                                   <img
-                                    src="/images/icons/edit2.png"
+                                    src="/images/icons/edit.png"
                                     alt="Edit"
-                                    className="min-w-6 h-6 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                    className="w-6 h-6 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
                                   />
                                 </button>
+                              }
+                              {canDelete &&
                                 <button
-                                  onClick={() =>
-                                    navigate(`/configuration/weekly-classes/session-plan-preview?id=${week.id}`)
-                                  }
-                                  className="text-gray-800 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                  onClick={() => {
+                                    if (week.groups?.length === 1) {
+                                      handleDeleteGroup(week.id);
+                                    } else {
+                                      handleDeleteLevel(week.id, group.name);
+                                    }
+                                  }}
+                                  className="text-gray-500 hover:text-red-500"
                                 >
-                                  <Eye size={24} />
+                                  <img
+                                    src="/images/icons/deleteIcon.png"
+                                    alt="Delete"
+                                    className="w-6 h-6  transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
+                                  />
                                 </button>
-                                <button
-                                  onClick={() =>
-                                    handleDuplicateGroup(week.id)
-                                  }
-                                  className="text-gray-800 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
-                                >
-                                  <Copy size={24} />
-                                </button>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-
-                      {week.groups.map((group) => (
-                        <div
-                          key={group.id}
-                          className="bg-white border border-gray-300 p-3 mb-2 rounded-xl flex justify-between items-center"
-                        >
-                          <div>
-                            <p className="font-medium text-[16px]">{group.name}</p>
-                            <p className="text-[14px] text-gray-400">
-                              {{
-                                Beginner: "4-5 years",
-                                Intermediate: "6-7 years",
-                                Advanced: "8-9 years",
-                                Pro: "10-12 years",
-                              }[group.name] || ""}
-                            </p>                          </div>
-
-                          <div className="flex gap-2">
-                            {canEdit &&
-                              <button
-                                onClick={() => handleEditGroup(week.id, group.name)}
-                                className="text-gray-500 hover:text-blue-600"
-                              >
-                                <img
-                                  src="/images/icons/edit.png"
-                                  alt="Edit"
-                                  className="w-6 h-6 transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
-                                />
-                              </button>
-                            }
-                            {canDelete &&
-                              <button
-                                onClick={() => {
-                                  if (week.groups?.length === 1) {
-                                    handleDeleteGroup(week.id);
-                                  } else {
-                                    handleDeleteLevel(week.id, group.name);
-                                  }
-                                }}
-                                className="text-gray-500 hover:text-red-500"
-                              >
-                                <img
-                                  src="/images/icons/deleteIcon.png"
-                                  alt="Delete"
-                                  className="w-6 h-6  transition-transform duration-200 transform hover:scale-110 hover:opacity-100 opacity-90 cursor-pointer"
-                                />
-                              </button>
-                            }
+                              }
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+                        ))}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
 
-              {!reorderMode && canCreate && (
-                <div
-                  onClick={() => navigate('/configuration/weekly-classes/session-plan-create')}
-                  className="border border-dashed border-gray-300 rounded-2xl min-w-[168px] max-w-xs items-center justify-center max-h-[100px] cursor-pointer text-gray-500 hover:text-black p-6 text-center text-[14px] font-semibold"
-                >
-                  <img
-                    src="/members/addblack.png"
-                    alt=""
-                    className="w-6 h-6 m-auto mb-2"
-                  />
-                  Add Group
-                </div>
-              )}
+                {!reorderMode && canCreate && (
+                  <div
+                    onClick={() => navigate('/configuration/weekly-classes/session-plan-create')}
+                    className="border border-dashed border-gray-300 rounded-2xl min-w-[168px] max-w-xs items-center justify-center max-h-[100px] cursor-pointer text-gray-500 hover:text-black p-6 text-center text-[14px] font-semibold"
+                  >
+                    <img
+                      src="/members/addblack.png"
+                      alt=""
+                      className="w-6 h-6 m-auto mb-2"
+                    />
+                    Add Group
+                  </div>
+                )}
 
 
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </div>
   );

@@ -8,11 +8,11 @@ import { RxCross2 } from "react-icons/rx";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
 import { useNotification } from "../../../contexts/NotificationContext";
-import Swal from "sweetalert2";
+import { showError, showSuccess,showConfirm, showWarning } from "../../../../../../utils/swalHelper";
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+  const [loading, setLoading] = useState(false);
   const { students, setStudents, handleUpdateBirthday, mainId } = useAccountsInfo();
   console.log('students', students)
   const { adminInfo, setAdminInfo } = useNotification();
@@ -112,13 +112,8 @@ const StudentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+     showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
+    
     }
   }, []);
 
@@ -148,13 +143,7 @@ const StudentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+     setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -162,33 +151,21 @@ const StudentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError(result.message || "Something went wrong.");
         return;
       }
 
-
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess(result.message || " Comment has been  added successfully!");
+     
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError(error.message || "An error occurred while submitting the form.");
+    }finally{
+      setLoading(false);
     }
   }
   const formatLocalDate = (date) => {
@@ -242,51 +219,38 @@ const StudentProfile = () => {
 
       // Validate name
       if (!student.studentFirstName?.trim()) {
-        return Swal.fire({ icon: 'warning', title: 'Missing First Name', text: 'Please enter first name.' });
+        showWarning("Missing First Name", "Please enter first name.");
+        return;
       }
       if (!student.studentLastName?.trim()) {
-        return Swal.fire({ icon: 'warning', title: 'Missing Last Name', text: 'Please enter last name.' });
+        showWarning("Missing Last Name", "Please enter last name.");
+        return;
       }
 
 
       // Validate dateOfBirth - expect ISO string, non-empty
       if (!student.dateOfBirth) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Missing Date of Birth in Student #${i + 1}`,
-          text: "Please select the date of birth.",
-        });
+        showWarning("Missing Date of Birth", "Please select the date of birth.");
+        return;
       }
 
       // Validate age (number > 0)
       if (!student.age || isNaN(student.age) || Number(student.age) <= 0) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Invalid Age in Student #${i + 1}`,
-          text: "Age must be a valid positive number.",
-        });
+        showWarning("Invalid Age", "Age must be a valid positive number.");
+        return;
       }
 
       // Validate gender (non-empty string)
       if (!student.gender) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Missing Gender in Student #${i + 1}`,
-          text: "Please select a gender.",
-        });
+        showWarning("Missing Gender", "Please select a gender.");
+        return;
       }
     }
     console.log('studentwweedws', students)
     // All good, update
     handleUpdateBirthday('students', students)
-
-    Swal.fire({
-      icon: "success",
-      title: "Students Updated",
-      text: "All student records updated successfully.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    showSuccess("Students Updated", "All student records updated successfully.");
+   
   };
 
 

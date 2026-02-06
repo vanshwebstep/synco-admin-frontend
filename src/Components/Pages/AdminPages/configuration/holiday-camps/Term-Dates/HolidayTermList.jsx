@@ -4,7 +4,7 @@ import Loader from '../../../contexts/Loader';
 import { useNavigate } from 'react-router-dom';
 import { usePermission } from '../../../Common/permission';
 import { useHolidayTerm } from '../../../contexts/HolidayTermsContext';
-import Swal from 'sweetalert2';
+import { showError, showSuccess, showConfirm } from "../../../../../../utils/swalHelper";
 
 const HolidayTermList = () => {
   const navigate = useNavigate();
@@ -25,22 +25,12 @@ const HolidayTermList = () => {
   };
 
   const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will delete the Term Group.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteCampDate(id);
-          Swal.fire('Deleted!', 'Term Group has been deleted.', 'success');
-        } catch (error) {
-          Swal.fire('Error!', 'Failed to delete Term Group.', 'error');
-        }
+    showConfirm("Are you sure?", "This action will delete the Term Group.", async () => {
+      try {
+        await deleteCampDate(id);
+        showSuccess("Success", "Term Group has been deleted.");
+      } catch (error) {
+        showError("Error", "Failed to delete Term Group.");
       }
     });
   };

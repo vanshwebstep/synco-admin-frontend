@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import Loader from '../../../contexts/Loader';
 import { Editor } from '@tinymce/tinymce-react';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning, showConfirm, showLoading, ThemeSwal } from "../../../../../../utils/swalHelper";
 import { Mic, StopCircle, Copy, Play } from "lucide-react";
 
 import { useSessionPlan } from '../../../contexts/SessionPlanContext';
@@ -106,10 +106,7 @@ const Create = () => {
             }, 1000);
         } catch (err) {
             console.error("Error accessing microphone:", err);
-            Swal.fire({
-                icon: 'warning',
-                title: 'Microphone access denied or not available.',
-            });
+            showWarning("Permissions Denied", "Microphone access denied or not available.");
         }
     };
 
@@ -175,12 +172,7 @@ const Create = () => {
 
         if (file) {
             if (file.size > MAX_FILE_SIZE) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'File too large',
-                    text: 'Video size should not exceed 10 MB.',
-                    confirmButtonText: 'OK',
-                });
+                showError("File too large", "Video size should not exceed 10 MB.");
                 e.target.value = null; // Reset file input
                 return;
             }
@@ -223,12 +215,7 @@ const Create = () => {
         if (!file) return;
         // Inside your event handler
         if (file.size > MAX_FILE_SIZE) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Banner image size should not exceed 10 MB.',
-                confirmButtonText: 'OK',
-            });
+            showError("Oops...", "Banner image size should not exceed 10 MB.");
             e.target.value = null;
             return;
         }
@@ -304,10 +291,7 @@ const Create = () => {
 
 
         if (!groupNameSection || !player || !skillOfTheDay || !descriptionSession || selectedPlans.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Please fill out all required fields before proceeding.',
-            });
+            showWarning("Missing Fields", "Please fill out all required fields before proceeding.");
             return;
         }
 
@@ -427,7 +411,7 @@ const Create = () => {
 
             // console.log('nextTab', nextTab)
             const existingLevel = updatedLevels.find((lvl) => lvl.level === nextTab);
-            // console.log('existingLevel', existingLevel)
+            console.log('existinasasagLevel', existingLevel)
 
             if (existingLevel) {
                 setPlayer(existingLevel.player || "");
@@ -486,6 +470,7 @@ const Create = () => {
 
 
     useEffect(() => {
+        console.log('level from URL:', level);
         if (level) {
             const matchedTab = tabs.find(
                 tab => tab.toLowerCase() == level.toLowerCase()
@@ -502,6 +487,7 @@ const Create = () => {
             if (id) {
                 setIsEditMode(true);
                 // Wait for group data to be fetched first
+
                 await fetchGroupById();
             }
 
@@ -603,10 +589,12 @@ const Create = () => {
             });
 
             setLevels(loadedLevels);
+            console.log('loadedLevelsloadedLevels', loadedLevels)
+            console.log('activeTabadedLevels', activeTab)
 
             // Safe access to existing level
             const existingLevel = loadedLevels.find(
-                (lvl) => lvl.level?.toLowerCase() === activeTab?.toLowerCase()
+                (lvl) => lvl.level?.toLowerCase() === level?.toLowerCase()
             );
 
             if (!existingLevel) {
@@ -618,9 +606,7 @@ const Create = () => {
             setDescriptionSession(existingLevel?.descriptionSession || '');
             setSessionExerciseId(existingLevel?.sessionExerciseId || []);
             setGroupNameSection(data.groupName || '');
-
-
-            const currentLevelData = loadedLevels.find((item) => item.level === activeTab);
+            const currentLevelData = loadedLevels.find((item) => item.level === level?.toLowerCase());
             setSelectedPlans(
                 (currentLevelData?.sessionExercises || []).map((exercise) => ({
                     id: exercise.id,
@@ -725,24 +711,21 @@ const Create = () => {
 
 
     const handleDeletePlan = async (index, id) => {
-        const result = await Swal.fire({
-            title: 'Choose an action for this plan',
-            showCancelButton: true,
-            showDenyButton: true,
-            showConfirmButton: true,
-            confirmButtonText: 'Permanent Delete',
-            denyButtonText: 'Just Remove',
-            cancelButtonText: 'Do Nothing',
-        });
+        const result = await showConfirm(
+            "Choose an action for this plan",
+            "This action cannot be undone",
+            "Permanent Delete",
+            true
+        );
 
         if (result.isConfirmed) {
             // Permanent Delete
             try {
                 await deleteExercise(id); // your API call
                 removeFromUI(index);      // remove from UI after backend success
-                Swal.fire('Deleted!', '', 'success');
+                showSuccess('Deleted!', 'Exercise deleted successfully');
             } catch (error) {
-                Swal.fire('Error deleting!', '', 'error');
+                showError('Error deleting!', 'Failed to delete exercise.');
             }
         } else if (result.isDenied) {
             // Just Remove from UI
@@ -777,13 +760,15 @@ const Create = () => {
         // console.log('formData---(35)', formData)
 
         const showAlert = ({ type = "info", message = "", title = "" }) => {
-            Swal.fire({
-                icon: type,
-                title: title || type.charAt(0).toUpperCase() + type.slice(1),
-                text: message,
-                timer: type === "success" ? 1500 : undefined,
-                showConfirmButton: type !== "success",
-            });
+            if (type === "success") {
+                showSuccess(title || "Success", message);
+            } else if (type === "error") {
+                showError(title || "Error", message);
+            } else if (type === "warning") {
+                showWarning(title || "Warning", message);
+            } else {
+                showSuccess(title || "Info", message);
+            }
         };
 
         if (!title?.trim()) {
@@ -945,30 +930,20 @@ const Create = () => {
         return typeof bannerFile === "string" ? bannerFile : null;
     }, [bannerFile]);
 
-    const handleDuplicateExercise = (weekId) => {
-        Swal.fire({
-            title: 'Duplicate Exercise?',
-            text: "This Exercise will be duplicated.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, duplicate it!',
-            reverseButtons: true,
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    setLoading(true); // Optional, show loading
-                    await duplicatePlan(weekId); // Call your duplication function
-                    Swal.fire('Duplicated!', 'The Exercise has been duplicated.', 'success');
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('Error!', 'Failed to duplicate the Exercise.', 'error');
-                } finally {
-                    setLoading(false);
-                }
+    const handleDuplicateExercise = async (weekId) => {
+        const result = await showConfirm("Duplicate Exercise?", "This Exercise will be duplicated.", "Yes, duplicate it!");
+        if (result.isConfirmed) {
+            try {
+                showLoading("Duplicating...");
+                await duplicatePlan(weekId); // Call your duplication function
+                showSuccess('Duplicated!', 'The Exercise has been duplicated.');
+            } catch (err) {
+                console.error(err);
+                showError('Error!', 'Failed to duplicate the Exercise.');
+            } finally {
+                setLoading(false);
             }
-        });
+        }
     };
     console.log('removedImages', removedImages)
     if (loading) {

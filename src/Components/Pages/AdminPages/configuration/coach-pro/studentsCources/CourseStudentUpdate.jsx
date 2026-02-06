@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading } from "../../../../../../utils/swalHelper";
 import Loader from "../../../contexts/Loader";
 export default function CourseStudentUpdate() {
     const fileInputRef = useRef(null);
@@ -149,61 +149,52 @@ export default function CourseStudentUpdate() {
 
         /* ---------------- Videos JSON (metadata only) ---------------- */
 
-       const videosPayload = [];
-let uploadIndex = 0;
+        const videosPayload = [];
+        let uploadIndex = 0;
 
-// build JSON + track file keys
-formData.videos.forEach((video) => {
-    // new upload
-    if (video.videoFile) {
-        const fileKey = `video_${uploadIndex}`;
+        // build JSON + track file keys
+        formData.videos.forEach((video) => {
+            // new upload
+            if (video.videoFile) {
+                const fileKey = `video_${uploadIndex}`;
 
-        videosPayload.push({
-            name: video.videoName,
-            childFeatures: video.childFeatures.filter(Boolean),
-            videoUrl: video.videoUrl || "",   // keep or empty
-            fileKey: fileKey,                 // 👈 IMPORTANT
+                videosPayload.push({
+                    name: video.videoName,
+                    childFeatures: video.childFeatures.filter(Boolean),
+                    videoUrl: video.videoUrl || "",   // keep or empty
+                    fileKey: fileKey,                 // 👈 IMPORTANT
+                });
+
+                uploadIndex++;
+            }
+            // existing video only
+            else {
+                videosPayload.push({
+                    name: video.videoName,
+                    childFeatures: video.childFeatures.filter(Boolean),
+                    videoUrl: video.videoUrl,          // existing URL
+                });
+            }
         });
 
-        uploadIndex++;
-    }
-    // existing video only
-    else {
-        videosPayload.push({
-            name: video.videoName,
-            childFeatures: video.childFeatures.filter(Boolean),
-            videoUrl: video.videoUrl,          // existing URL
+        // append JSON
+        fd.append("videos", JSON.stringify(videosPayload));
+
+        // append files (same order)
+        let fileIndex = 0;
+        formData.videos.forEach((video) => {
+            if (video.videoFile) {
+                fd.append(`video_${fileIndex}`, video.videoFile);
+                fileIndex++;
+            }
         });
-    }
-});
-
-// append JSON
-fd.append("videos", JSON.stringify(videosPayload));
-
-// append files (same order)
-let fileIndex = 0;
-formData.videos.forEach((video) => {
-    if (video.videoFile) {
-        fd.append(`video_${fileIndex}`, video.videoFile);
-        fileIndex++;
-    }
-});
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire({
-                icon: "error",
-                title: "Unauthorized",
-                text: "Admin session expired. Please login again.",
-            });
+            showError("Unauthorized", "Admin session expired. Please login again.");
             return;
         }
 
-        Swal.fire({
-            title: "Uploading Course...",
-            text: "Please wait while the student course is being uploaded",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Uploading Course...", "Please wait while the student course is being uploaded");
 
 
         try {
@@ -221,24 +212,14 @@ formData.videos.forEach((video) => {
             const data = await res.json();
             if (!res.ok) throw new Error(data?.message || "Course upload failed");
 
-            Swal.fire({
-                icon: "success",
-                title: "Course Uploaded",
-                text: "Student course has been uploaded successfully",
-                timer: 1800,
-                showConfirmButton: false,
-            });
+            showSuccess("Course Uploaded", "Student course has been uploaded successfully");
 
             navigate(`/configuration/coach-pro/student`)
 
 
 
         } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Upload Failed",
-                text: err.message || "Unable to upload student course",
-            });
+            showError("Upload Failed", err.message || "Unable to upload student course");
         }
     };
     const fetchDataById = useCallback(async () => {
@@ -288,12 +269,7 @@ formData.videos.forEach((video) => {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }

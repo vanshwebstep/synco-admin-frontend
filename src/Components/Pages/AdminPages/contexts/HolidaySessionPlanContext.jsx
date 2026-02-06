@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
 import { useNavigate } from 'react-router-dom';
+import { showSuccess } from "../../../../utils/swalHelper";
 
 const HolidaySessionPlanContext = createContext();
 
@@ -78,33 +78,18 @@ export const HolidaySessionPlanContextProvider = ({ children }) => {
                 const data = await response.json();
 
                 if (response.ok && data.status) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: data.message || 'Group created successfully.',
-                        confirmButtonColor: '#237FEA',
-                    });
+                    await showSuccess("Success", data.message || "Group created successfully.");
 
                     if (shouldRedirect) {
                         navigate('/configuration/holiday-camp/session-plan/list');
                     }
                 } else {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to create session group.',
-                        confirmButtonColor: '#d33',
-                    });
+                    await showError("Error", data.message || "Failed to create session group.");
                     console.error("API Error:", data.message || "Unknown error");
                 }
             } catch (err) {
                 console.error("Failed to create session group:", err);
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Something went wrong while creating the session group.',
-                    confirmButtonColor: '#d33',
-                });
+                await showError("Error", "Something went wrong while creating the session group.");
             } finally {
                 setLoading(false);
             }
@@ -294,21 +279,11 @@ export const HolidaySessionPlanContextProvider = ({ children }) => {
 
             await fetchSessionGroup();
 
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: result.message || 'Discount created successfully.',
-                confirmButtonColor: '#237FEA'
-            });
+            await showSuccess("Success", result.message || "Discount created successfully.");
 
             navigate('/weekly-classes/sessionGroup/list');
         } catch (err) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to Create Discount',
-                text: err.message || 'An unexpected error occurred.',
-                confirmButtonColor: '#d33'
-            });
+            await showError("Error", err.message || "Failed to create discount.");
 
             console.error("Failed to create discount:", err);
         } finally {
@@ -385,22 +360,13 @@ export const HolidaySessionPlanContextProvider = ({ children }) => {
 
             if (!response.ok) throw new Error(result.message || "Failed to update");
 
-            await Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: result.message || "Level updated successfully.",
-                confirmButtonColor: "#237FEA",
-            });
+            await showSuccess("Success", result.message || "Level updated successfully.");
 
             navigate("/configuration/holiday-camp/session-plan/list");
             await fetchSessionGroup();
         } catch (err) {
             console.error("Failed to update discount:", err);
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong.",
-            });
+            await showError("Error", err.message || "Something went wrong.");
         } finally {
             setLoading(false); // 🔵 End loading
         }

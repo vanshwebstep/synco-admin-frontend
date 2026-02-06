@@ -19,7 +19,7 @@ import PhoneInput from "react-phone-input-2";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
-import Swal from "sweetalert2";
+import { showConfirm, showWarning } from "../../../../../utils/swalHelper";
 const FranchiseLeads = () => {
 
     const [loading, setLoading] = useState(false);
@@ -111,12 +111,7 @@ const FranchiseLeads = () => {
             const value = formData[field.key];
 
             if (!value || String(value).trim() === "") {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Missing Field",
-                    text: `${field.label} is required.`,
-                    confirmButtonColor: "#237FEA",
-                });
+                showWarning("Missing Field", `${field.label} is required.`);
                 return;
             }
         }
@@ -125,23 +120,13 @@ const FranchiseLeads = () => {
         // Valid email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Email",
-                text: "Please enter a valid email address.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Invalid Email", "Please enter a valid email address.");
             return;
         }
 
         // Phone number validation (optional)
         if (formData.phoneNumber.length < 8) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Phone Number",
-                text: "Phone number must be at least 8 digits.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Invalid Phone Number", "Phone number must be at least 8 digits.");
             return;
         }
 
@@ -255,18 +240,9 @@ const FranchiseLeads = () => {
         }
     };
     const handleFranchiseMail = async (selectedIds) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to send the mail?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, send it',
-            cancelButtonText: 'Cancel',
-        });
-
+        const result = await showConfirm("Are you sure?", "Do you want to send the mail?");
         if (result.isConfirmed) {
             await sendFranchiseMail(selectedIds);
-
         }
     };
     const calculateAge = (dob) => {

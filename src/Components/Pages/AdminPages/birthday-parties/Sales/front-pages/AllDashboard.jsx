@@ -18,13 +18,13 @@ import {
     CirclePoundSterling, X, CircleDollarSign
 } from "lucide-react";
 import { TiUserAdd } from "react-icons/ti";
-import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { PiUsersThreeBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
+import { showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 const AllDashboard = () => {
     const navigate = useNavigate();
     const [noLoaderShow, setNoLoaderShow] = useState(false);
@@ -205,7 +205,7 @@ const AllDashboard = () => {
         { icon: "/reportsIcons/money-receive-circle.png", iconStyle: "text-[#3DAFDB] bg-[#E6F7FB]", title: "Total Revenue", value: summary?.totalRevenue?.amount, change: summary?.totalRevenue?.percentage },
         { icon: "/reportsIcons/pound.png", iconStyle: "text-[#099699] bg-[#FEF6FB]", title: "Revenue Gold Package", value: summary?.goldPackageRevenue?.amount, change: summary?.goldPackageRevenue?.percentage },
         { icon: "/reportsIcons/orange-user-group.png", iconStyle: "text-[#F38B4D] bg-[#FFF2E8]", title: "Revenue Silver Package", value: summary?.silverPackageRevenue?.amount, change: summary?.silverPackageRevenue?.percentage },
-        { icon: "/reportsIcons/purple-user-multiple.png", iconStyle: "text-[#6F65F1] bg-[#E9E8FF]", title: "Top Sales Agent", value: `${summary?.topSalesAgent?.name || ""}`,change: summary?.topSalesAgent?.totalLeads  },
+        { icon: "/reportsIcons/purple-user-multiple.png", iconStyle: "text-[#6F65F1] bg-[#E9E8FF]", title: "Top Sales Agent", value: `${summary?.topSalesAgent?.name || ""}`, change: summary?.topSalesAgent?.totalLeads },
     ]
     const [formData, setFormData] = useState({
         parentName: "",
@@ -255,24 +255,18 @@ const AllDashboard = () => {
             if (!formData.packageInterest) missingFields.push("Package Interest");
             if (!formData.availability) missingFields.push("Availability");
             if (!formData.source) missingFields.push("Source");
-
-            Swal.fire({
-                icon: "warning",
-                title: "Missing Fields",
-                html: `
+            showWarning("Missing Fields", `
       <div style="text-align:left;">
         <p>Please fill out the following required field(s):</p>
         <ul style="margin-top:8px;">
           ${missingFields.map(f => `<li>• ${f}</li>`).join("")}
         </ul>
       </div>
-    `,
-            });
+    `)
+
             return;
         }
 
-
-        console.log("Submitting lead:", formData);
 
         setLoading(true); // 🌀 optional loader state
 
@@ -294,13 +288,8 @@ const AllDashboard = () => {
             }
 
             // ✅ Success alert
-            Swal.fire({
-                icon: "success",
-                title: "Lead Created",
-                text: "The lead has been successfully added.",
-                timer: 2000,
-                showConfirmButton: false,
-            });
+            showSuccess("Lead Created", "The lead has been successfully added.");
+           
             setCurrentPage(1);
             await fetchLeads(); // refresh roles or data
             setIsOpen(false);   // close modal or form
@@ -308,12 +297,8 @@ const AllDashboard = () => {
 
         } catch (error) {
             console.error("Create lead error:", error);
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while creating the lead.",
-            });
+             showError("Error", "Failed to create lead.");
+            
         } finally {
             setLoading(false);
         }
@@ -502,12 +487,8 @@ const AllDashboard = () => {
 
         // ✅ Show SweetAlert if only one date is selected
         if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
-            Swal.fire({
-                icon: "warning",
-                title: "Incomplete Date Range",
-                text: "Please select both From Date and To Date to apply the filter.",
-                confirmButtonColor: "#3085d6",
-            });
+            showWarning("Incomplete Date Range", "Please select both From Date and To Date to apply the filter.");
+           
             return; // stop further execution
         }
         const selectedVenueParam = Array.isArray(selectedVenue)
@@ -1223,12 +1204,8 @@ const AllDashboard = () => {
                                 if (selectedUserIds && selectedUserIds.length > 0) {
                                     sendOnetoOneMail(selectedUserIds);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
+                                   
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"

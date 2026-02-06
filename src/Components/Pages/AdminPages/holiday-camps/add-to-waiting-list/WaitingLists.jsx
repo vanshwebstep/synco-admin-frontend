@@ -9,9 +9,9 @@ import Loader from '../../contexts/Loader';
 import { usePermission } from '../../Common/permission';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import Swal from "sweetalert2";
 import StatsGrid from '../../Common/StatsGrid';
 import DynamicTable from '../../Common/DynamicTable';
+import { showWarning } from '../../../../../utils/swalHelper';
 
 const WaitingLists = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -778,11 +778,8 @@ const WaitingLists = () => {
                         <button
                             onClick={() => {
                                 if (!selectedStudents || selectedStudents.length === 0) {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No students selected",
-                                        text: "Please select at least one student before sending an email.",
-                                    });
+                                    showWarning("No students selected", "Please select at least one student before sending an email.");
+                                    
                                     return;
                                 }
 

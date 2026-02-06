@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Pencil, Trash2, Eye, Copy, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning, showConfirm, showLoading } from "../../../../../../utils/swalHelper";
 import Loader from '../../../contexts/Loader';
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { usePermission } from '../../../Common/permission';
@@ -101,67 +101,54 @@ const HolidaySessionPlan = () => {
     navigate(`/configuration/holiday-camp/session-plan/create?id=${weekId}&level=${groupId}`);
   };
 
-  const handleDeleteGroup = (weekId) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "This group will be permanently deleted.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      reverseButtons: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        deleteSessionGroup(weekId);
-        Swal.fire('Deleted!', 'The group has been deleted.', 'success');
-      }
-    });
+  const handleDeleteGroup = async (weekId) => {
+    const result = await showConfirm(
+      "Are you sure?",
+      "This group will be permanently deleted.",
+      "Yes, delete it!",
+      true
+    );
+
+    if (result.isConfirmed) {
+      deleteSessionGroup(weekId);
+      showSuccess('Deleted!', 'The group has been deleted.');
+    }
   };
 
-  const handleDuplicateGroup = (weekId) => {
-    Swal.fire({
-      title: 'Duplicate Group?',
-      text: "This group will be duplicated.",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, duplicate it!',
-      reverseButtons: true,
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          setLoading(true); // Optional, show loading
-          await duplicateSession(weekId); // Call your duplication function
-          Swal.fire('Duplicated!', 'The group has been duplicated.', 'success');
-        } catch (err) {
-          console.error(err);
-          Swal.fire('Error!', 'Failed to duplicate the group.', 'error');
-        } finally {
-          setLoading(false);
-        }
+  const handleDuplicateGroup = async (weekId) => {
+    const result = await showConfirm(
+      "Duplicate Group?",
+      "This group will be duplicated.",
+      "Yes, duplicate it!"
+    );
+
+    if (result.isConfirmed) {
+      try {
+        showLoading("Duplicating...");
+        await duplicateSession(weekId); // Call your duplication function
+        showSuccess('Duplicated!', 'The group has been duplicated.');
+      } catch (err) {
+        console.error(err);
+        showError('Error!', 'Failed to duplicate the group.');
+      } finally {
+        setLoading(false);
       }
-    });
+    }
   };
 
 
-  const handleDeleteLevel = (id, level) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "This Level will be permanently deleted.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      reverseButtons: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        deleteSessionlevel(id, level);
-        Swal.fire('Deleted!', 'The group has been deleted.', 'success');
-      }
-    });
+  const handleDeleteLevel =async (id, level) => {
+    const result = await showConfirm(
+      "Are you sure?",
+      "This Level will be permanently deleted.",
+      "Yes, delete it!",
+      true
+    );
+
+    if (result.isConfirmed) {
+      deleteSessionlevel(id, level);
+      showSuccess('Deleted!', 'The group has been deleted.');
+    }
   };
   const handleEditGroupNameOnly = (weekId, currentTitle) => {
     setEditingWeek(weekId);
@@ -200,21 +187,12 @@ const HolidaySessionPlan = () => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || "Failed to update");
 
-        await Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: result.message || "Week title updated successfully.",
-          confirmButtonColor: "#237FEA",
-        });
+        showSuccess("Success", result.message || "Week title updated successfully.");
 
         await fetchSessionGroup(); // ✅ refresh list after update
       } catch (err) {
         console.error("Failed to update week title:", err);
-        await Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: err.message || "Something went wrong.",
-        });
+        showError("Error", err.message || "Something went wrong.");
       } finally {
         setLoading(false);
         setEditingWeek(null);

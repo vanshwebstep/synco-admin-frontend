@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Check } from "lucide-react";
 
 // import Loader from '../../../../contexts/Loader';
-import Swal from "sweetalert2"; // make sure it's installed
 import { format, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import { X } from "lucide-react"; // Optional: Use any icon or ✖️ if no icon lib
@@ -31,6 +30,7 @@ import { useMembers } from '../../../contexts/MemberContext';
 import { useNotification } from '../../../contexts/NotificationContext';
 import { usePayments } from '../../../contexts/PaymentPlanContext';
 import { useVenue } from '../../../contexts/VenueContext';
+import { showError, showWarning } from '../../../../../../utils/swalHelper';
 
 const BirthdayBookingForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -331,13 +331,7 @@ const BirthdayBookingForm = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
   useEffect(() => {
@@ -391,23 +385,12 @@ const BirthdayBookingForm = () => {
     }
   };
   const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the venue.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
+    showConfirm("Are you sure?", "This action will permanently delete the venue.", "warning").then((result) => {
       if (result.isConfirmed) {
-        // console.log('DeleteId:', id);
-
-        deleteVenue(id); // Call your delete function here
-
+        deleteVenue(id);
       }
     });
+   
   };
 
   const formatLocalDate = (date) => {
@@ -469,20 +452,12 @@ const BirthdayBookingForm = () => {
     );
   };
   const handleCancel = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Your changes will not be saved!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, leave",
-      cancelButtonText: "Stay here",
-    }).then((result) => {
+    showConfirm("Are you sure?", "Your changes will not be saved!", "warning").then((result) => {
       if (result.isConfirmed) {
         navigate("/weekly-classes/find-a-class");
       }
     });
+
   };
 
   const handleDateClick = (date) => {
@@ -715,11 +690,7 @@ const BirthdayBookingForm = () => {
   // console.log('selectedDiscount', selectedDiscount)
   const handleSubmit = async () => {
     if (!selectedDate) {
-      Swal.fire({
-        icon: "warning",
-        title: "Trial Date Required",
-        text: "Please select a trial date before submitting.",
-      });
+      showWarning("Trial Date Required", "Please select a trial date before submitting.");
       return;
     }
 
@@ -934,13 +905,7 @@ const BirthdayBookingForm = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+     setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -948,33 +913,20 @@ const BirthdayBookingForm = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      setLoading(false);
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
     }
   }
   // Function to convert HTML to plain text while preserving list structure
@@ -2046,12 +1998,7 @@ const BirthdayBookingForm = () => {
                     if (!selectedPackage && !selectedDate) msg = "Please select Package and Date";
                     else if (!selectedPackage) msg = "Please select package";
                     else if (!selectedDate) msg = "Please select Date";
-
-                    Swal.fire({
-                      icon: "warning",
-                      title: "Required Fields",
-                      text: msg,
-                    });
+                     showWarning("Required Fields", msg);
                     return;
                   }
 

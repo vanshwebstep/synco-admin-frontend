@@ -6,13 +6,13 @@ import { Check, } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 // import { useBookFreeTrial } from '../../../contexts/BookAFreeTrialContext';
 import Loader from '../contexts/Loader';
-import Swal from "sweetalert2";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import StatsGrid from '../Common/StatsGrid';
 import DynamicTable from '../Common/DynamicTable';
 import { useBookFreeTrial } from '../contexts/BookAFreeTrialContext';
 import debounce from "lodash.debounce";
+import { showWarning } from '../../../../utils/swalHelper';
 
 const MembersList = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -715,12 +715,8 @@ const MembersList = () => {
                                 if (selectedStudents && selectedStudents.length > 0) {
                                     sendBookMembershipMail(selectedStudents);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
+                                    
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"

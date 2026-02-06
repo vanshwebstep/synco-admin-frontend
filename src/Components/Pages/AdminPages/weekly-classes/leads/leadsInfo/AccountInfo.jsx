@@ -7,7 +7,7 @@ import Rewards from "./Rewards";
 import Events from "./Events";
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
-import Swal from "sweetalert2";
+import { showError } from "../../../../../../utils/swalHelper";
 import { useLeads } from "../../../contexts/LeadsContext";
 
 const tabs = [
@@ -45,73 +45,68 @@ const AccountInfo = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // ---- Fetch by ID ----
-const fetchLeadById = useCallback(
-  async (leadId) => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) return null;
+  const fetchLeadById = useCallback(
+    async (leadId) => {
+      const token = localStorage.getItem("adminToken");
+      if (!token) return null;
 
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/lead/${leadId}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to fetch lead");
-      }
-
-      const result = await response.json();
-
-      const mapped = {
-        firstName: result?.data?.firstName || "",
-        lastName: result?.data?.lastName || "",
-        email: result?.data?.email || "",
-        mobile: result?.data?.phone || "",
-        postalCode: result?.data?.postcode || "",
-        childAge: result?.data?.childAge || "",
-      };
-
-      setLeadData(result?.data);
-      setFormData(mapped);
-
-      setLoading(false);
-      return result?.data || null;
-    } catch (error) {
-      console.error("Failed to fetch lead:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || "Failed to fetch lead.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-
-      setLoading(false);
-      return null;
-    }
-  },
-  [API_BASE_URL]
-);
-
-// ---- Initial data load ----
-useEffect(() => {
-  if (!leadId) return;
-
-  (async () => {
-    try {
       setLoading(true);
-      await fetchDataById(leadId);
-      await fetchLeadById(leadId);
-    } catch (error) {
-      console.error("Error loading lead data:", error);
-    } finally {
-      setLoading(false);
-    }
-  })();
-}, [fetchDataById, fetchLeadById, leadId]);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/lead/${leadId}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to fetch lead");
+        }
+
+        const result = await response.json();
+
+        const mapped = {
+          firstName: result?.data?.firstName || "",
+          lastName: result?.data?.lastName || "",
+          email: result?.data?.email || "",
+          mobile: result?.data?.phone || "",
+          postalCode: result?.data?.postcode || "",
+          childAge: result?.data?.childAge || "",
+        };
+
+        setLeadData(result?.data);
+        setFormData(mapped);
+
+        setLoading(false);
+        return result?.data || null;
+      } catch (error) {
+        console.error("Failed to fetch lead:", error);
+
+        showError("Error", error.message || "Failed to fetch lead.");
+
+        setLoading(false);
+        return null;
+      }
+    },
+    [API_BASE_URL]
+  );
+
+  // ---- Initial data load ----
+  useEffect(() => {
+    if (!leadId) return;
+
+    (async () => {
+      try {
+        setLoading(true);
+        await fetchDataById(leadId);
+        await fetchLeadById(leadId);
+      } catch (error) {
+        console.error("Error loading lead data:", error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [fetchDataById, fetchLeadById, leadId]);
 
   if (loading) return <Loader />;
   if (!leads) return <div>Loading...</div>;
@@ -138,11 +133,10 @@ useEffect(() => {
           <button
             key={tab.name}
             onClick={() => setActiveTab(tab.name)}
-            className={`w-max relative flex-1 whitespace-nowrap px-4 text-[16px] font-semibold py-3 rounded-xl transition-all ${
-              activeTab === tab.name
+            className={`w-max relative flex-1 whitespace-nowrap px-4 text-[16px] font-semibold py-3 rounded-xl transition-all ${activeTab === tab.name
                 ? "bg-[#237FEA] shadow text-white"
                 : "text-[#282829] hover:text-[#282829]"
-            }`}
+              }`}
           >
             {tab.name}
           </button>

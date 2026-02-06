@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { FiSearch } from "react-icons/fi";
 import { motion } from "framer-motion";
-import Swal from "sweetalert2";
+import { showWarning,showConfirm } from "../../../../../../utils/swalHelper";  
 import { format } from "date-fns";
 import { evaluate } from "mathjs";
 import PhoneInput from "react-phone-input-2";
@@ -308,16 +308,11 @@ const List = () => {
         }
     };
     const handleDelete = (id) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will permanently delete the venue.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
-        }).then((result) => {
+        showConfirm(
+            'Are you sure?',
+            'This action will permanently delete the venue.',
+            'Yes, delete it!'
+        ).then((result) => {
             if (result.isConfirmed) {
                 // console.log('DeleteId:', id);
 
@@ -394,16 +389,11 @@ const List = () => {
         );
     };
     const handleCancel = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Your changes will not be saved!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, leave",
-            cancelButtonText: "Stay here",
-        }).then((result) => {
+        showConfirm(
+            "Are you sure?",
+            "Your changes will not be saved!",
+            "Yes, leave"
+        ).then((result) => {
             if (result.isConfirmed) {
                 navigate("/weekly-classes/find-a-class");
             }
@@ -606,11 +596,7 @@ const List = () => {
     };
     const handleSubmit = async () => {
         if (!selectedDate) {
-            Swal.fire({
-                icon: "warning",
-                title: "Trial Date Required",
-                text: "Please select a trial date before submitting.",
-            });
+            showWarning("Trial Date Required", "Please select a trial date before submitting.");
             return;
         }
 

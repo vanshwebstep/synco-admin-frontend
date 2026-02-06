@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Check } from "lucide-react";
 
 // import Loader from '../../../../contexts/Loader';
-import Swal from "sweetalert2"; // make sure it's installed
 import { format, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import { X } from "lucide-react"; // Optional: Use any icon or ✖️ if no icon lib
@@ -31,13 +30,14 @@ import { useMembers } from '../../../contexts/MemberContext';
 import { useNotification } from '../../../contexts/NotificationContext';
 import { usePayments } from '../../../contexts/PaymentPlanContext';
 import { useVenue } from '../../../contexts/VenueContext';
+import { showConfirm, showError, showSuccess, showWarning } from '../../../../../../utils/swalHelper';
 
 const List = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-
+ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createBookMembership, createBookLeads, createBookMembershipByfreeTrial } = useBookFreeTrial()
@@ -307,12 +307,8 @@ const List = () => {
     } catch (error) {
       console.error("Failed to fetch comments:", error);
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError("Fetch Failed", error.message || "Failed to fetch comments. Please try again later.");
+      
     }
   }, []);
   useEffect(() => {
@@ -352,8 +348,7 @@ const List = () => {
 
 
   const [clickedIcon, setClickedIcon] = useState(null);
-  const [selectedKeyInfo, setSelectedKeyInfo] = useState(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [loadingData, setLoadingData] = useState(false);
   const { venues, isEditVenue, setIsEditVenue, deleteVenue, fetchVenues } = useVenue() || {};
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const isAllSelected = venues.length > 0 && selectedUserIds.length === venues.length;
@@ -365,25 +360,7 @@ const List = () => {
       setSelectedUserIds(allIds);
     }
   };
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the venue.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        //// console.log('DeleteId:', id);
-
-        deleteVenue(id); // Call your delete function here
-
-      }
-    });
-  };
+  
 
   const formatLocalDate = (date) => {
     if (!date) return null;
@@ -425,7 +402,7 @@ const List = () => {
   };
 
   const handleCancel = () => {
-    Swal.fire({
+    showConfirm({
       title: "Are you sure?",
       text: "Your changes will not be saved!",
       icon: "warning",
@@ -631,11 +608,7 @@ const List = () => {
 
   const handleSubmit = async () => {
     if (!selectedDate) {
-      Swal.fire({
-        icon: "warning",
-        title: "Trial Date Required",
-        text: "Please select a trial date before submitting.",
-      });
+      showWarning("Trial Date Required", "Please select a trial date before submitting.");
       return;
     }
 
@@ -831,13 +804,7 @@ const List = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+    setLoadingData(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -845,33 +812,23 @@ const List = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong. Please try again.");
+        
         return;
       }
 
-
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+showSuccess("Comment Added", result.message || "Comment has been added successfully!");
+      
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
+       
+    }finally {
+      setLoadingData(false);
     }
   }
   // Function to convert HTML to plain text while preserving list structure
@@ -1976,21 +1933,14 @@ const List = () => {
                     else if (!parentEmail) msg = "Please enter Parent email";
                     else if (!selectedDate) msg = "Please select Date";
 
-                    Swal.fire({
-                      icon: "warning",
-                      title: "Required Fields",
-                      text: msg,
-                    });
+                    showWarning("Required Fields", msg);
                     return;
                   }
 
                   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail.trim());
                   if (!isValidEmail) {
-                    Swal.fire({
-                      icon: "error",
-                      title: "Invalid Email",
-                      text: "Please enter a valid email address",
-                    });
+                    showWarning("Invalid Email", "Please enter a valid email address");
+                    
                     return;
                   }
 

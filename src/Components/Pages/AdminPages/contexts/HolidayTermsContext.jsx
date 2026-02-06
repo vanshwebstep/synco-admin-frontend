@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
 import { useNavigate } from 'react-router-dom';
+import { showSuccess, showError } from "../../../../utils/swalHelper";
 
 const HolidayTermsContext = createContext();
 
@@ -37,24 +37,14 @@ export const HolidayTermsProvider = ({ children }) => {
       const result = await response.json();
 
       if (!response.ok || result.status === false) {
-        await Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: result.message || "Failed to load camp list.",
-          confirmButtonColor: "#237FEA",
-        });
+        await showError("Error", result.message || "Failed to load camp list.");
         return;
       }
 
       setTermGroup(result.data || []);
     } catch (err) {
       console.error("Failed to fetch termGroup:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text: err.message || "Something went wrong. Please try again.",
-        confirmButtonColor: "#237FEA",
-      });
+      await showError("Network Error", err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -85,12 +75,7 @@ export const HolidayTermsProvider = ({ children }) => {
     } catch (err) {
       console.error("Failed to fetch holiday camp date:", err);
 
-      Swal.fire({
-        icon: "error",
-        title: "Failed to Load Data",
-        text: err?.message || "Something went wrong while fetching camp dates.",
-        confirmButtonColor: "#d33",
-      });
+      showError("Failed to Load Data", err?.message || "Something went wrong while fetching camp dates.");
     } finally {
       setLoading(false);
     }
@@ -196,85 +181,65 @@ export const HolidayTermsProvider = ({ children }) => {
   // Fetch single discount
 
 
-const fetchCampGroupId = useCallback(async (id) => {
-  if (!token) return;
+  const fetchCampGroupId = useCallback(async (id) => {
+    if (!token) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/holiday/camp/listBy/${id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/holiday/camp/listBy/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.status === false) {
+        await showError("Error", result.message || "Failed to load camp group details.");
+        return;
       }
-    );
 
-    const result = await response.json();
-
-    if (!response.ok || result.status === false) {
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: result.message || "Failed to load camp group details.",
-        confirmButtonColor: "#237FEA",
-      });
-      return;
+      setSelectedTermGroup(result.data || null);
+    } catch (err) {
+      console.error("Failed to fetch camp group:", err);
+      await showError("Network Error", err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setSelectedTermGroup(result.data || null);
-  } catch (err) {
-    console.error("Failed to fetch camp group:", err);
-    await Swal.fire({
-      icon: "error",
-      title: "Network Error",
-      text: err.message || "Something went wrong. Please try again.",
-      confirmButtonColor: "#237FEA",
-    });
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
+  }, [token]);
 
 
   // Create discount
-const fetchCampDateId = useCallback(async (id) => {
-  if (!token) return;
+  const fetchCampDateId = useCallback(async (id) => {
+    if (!token) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/holiday/campDate/listBy/${id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/holiday/campDate/listBy/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.status === false) {
+        await showError("Error", result.message || "Failed to load camp date details.");
+        return;
       }
-    );
 
-    const result = await response.json();
-
-    if (!response.ok || result.status === false) {
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: result.message || "Failed to load camp date details.",
-        confirmButtonColor: "#237FEA",
-      });
-      return;
+      setSelectedTerm(result.data || null);
+    } catch (err) {
+      console.error("Failed to fetch camp date:", err);
+      await showError("Network Error", err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setSelectedTerm(result.data || null);
-  } catch (err) {
-    console.error("Failed to fetch camp date:", err);
-    await Swal.fire({
-      icon: "error",
-      title: "Network Error",
-      text: err.message || "Something went wrong. Please try again.",
-      confirmButtonColor: "#237FEA",
-    });
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
+  }, [token]);
 
 
   const updateHolidayCampDate = useCallback(
@@ -323,14 +288,7 @@ const fetchCampDateId = useCallback(async (id) => {
       if (!token) return;
 
       // Loading popup
-      Swal.fire({
-        title: "Deleting Holiday Camp Date...",
-        text: "Please wait",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Deleting Holiday Camp Date...", "Please wait");
 
       try {
         const response = await fetch(
@@ -354,23 +312,13 @@ const fetchCampDateId = useCallback(async (id) => {
         }
 
         // Success message
-        Swal.fire({
-          icon: "success",
-          title: "Holiday Camp Date Deleted!",
-          text: result?.message || "Holiday camp date removed successfully.",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        showSuccess("Holiday Camp Date Deleted!", result?.message || "Holiday camp date removed successfully.");
 
         await fetchHolidayCampDate();
       } catch (err) {
         console.error("Delete failed:", err);
 
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Delete Holiday Camp Date",
-          text: err.message || "Something went wrong. Please try again.",
-        });
+        showError("Failed to Delete Holiday Camp Date", err.message || "Something went wrong. Please try again.");
       }
     },
     [token, fetchHolidayCampDate]

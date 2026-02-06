@@ -7,7 +7,7 @@ import { usePermission } from '../../Common/permission';
 import { useAccountsInfo } from '../../contexts/AccountsInfoContext';
 import { useSearchParams } from "react-router-dom";
 import Select from "react-select";
-import Swal from "sweetalert2";
+import { showSuccess, showError, showWarning } from '../../../../../utils/swalHelper';
 
 import { useMemo } from "react";
 const Feedback = () => {
@@ -78,11 +78,7 @@ const Feedback = () => {
       const resultRaw = await response.json();
 
       if (!resultRaw?.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: resultRaw.message || "Something went wrong while fetching Feedback.",
-        });
+        showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching Feedback.");
         return;
       }
 
@@ -94,11 +90,7 @@ const Feedback = () => {
       );
 
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching account information.",
-      });
+      showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
     } finally {
     }
   }, []);
@@ -124,21 +116,13 @@ const Feedback = () => {
       const resultRaw = await response.json();
 
       if (!resultRaw?.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: resultRaw.message || "Something went wrong while fetching Feedback.",
-        });
+        showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching Feedback.");
         return;
       }
 
       setAgentAndClassesData(resultRaw.data || []);
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching account information.",
-      });
+      showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
     }
   }, [serviceType]);
   // ✅ stable forever
@@ -232,12 +216,7 @@ const Feedback = () => {
 
     // Check for required fields
     if (!classScheduleId || !feedbackType || !category || !notes || !agentId || !displayServiceType) {
-      return Swal.fire({
-        title: "Error",
-        text: "Please fill in all required fields.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      return showError("Error", "Please fill in all required fields.");
     }
     setCreateLoading(true);
     console.log("Submitted Feedback:", formData);
@@ -262,14 +241,14 @@ const Feedback = () => {
     }
 
     // Show Swal loading
-    Swal.fire({
-      title: 'Submitting...',
-      text: 'Please wait while we save your feedback.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
+    // Swal.fire({
+    //   title: 'Submitting...',
+    //   text: 'Please wait while we save your feedback.',
+    //   allowOutsideClick: false,
+    //   didOpen: () => {
+    //     Swal.showLoading();
+    //   },
+    // });
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/feedback/create`, {
@@ -285,13 +264,8 @@ const Feedback = () => {
       }
 
       // Close loading Swal and show success
-      Swal.close();
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Feedback has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      // Swal.close();
+      await showSuccess("Success!", result.message || "Feedback has been created successfully.");
       setFormData({
         className: "",
         agentId: null,
@@ -307,14 +281,9 @@ const Feedback = () => {
       return result;
 
     } catch (error) {
-      Swal.close();
+      // Swal.close();
       console.error("Error creating feedback:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating feedback.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating feedback.");
       throw error;
     } finally {
       fetchFeedback();
@@ -323,7 +292,7 @@ const Feedback = () => {
   };
   const handleSaves = async (id) => {
     if (!selectedAgent.id) {
-      Swal.fire("Error", "Please select an agent!", "error");
+      showError("Error", "Please select an agent!");
       return;
     }
 
@@ -336,23 +305,22 @@ const Feedback = () => {
       // Call your API here
       // await updateAgent(payload);
 
-      Swal.fire("Success", "Agent updated successfully", "success");
+      showSuccess("Success", "Agent updated successfully");
       console.log('payload', payload)
       // onAgentChange(selectedAgent); // update parent card if needed
       // setShowAgentModal(false); // close modal
     } catch (err) {
-      Swal.fire("Error", "Something went wrong", "error");
+      showError("Error", "Something went wrong");
     }
   };
   console.log('feedbackData', feedbackData)
 
   const handleSave = async (id, successCallback) => {
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+    if (!token) return showError("Error", "Token not found. Please login again.");
     if (!selectedAgent?.id) {
-      return Swal.fire(
+      return showWarning(
         "Agent Required",
-        "Please select an agent before saving.",
-        "warning"
+        "Please select an agent before saving."
       );
     }
     const myHeaders = new Headers({
@@ -373,12 +341,12 @@ const Feedback = () => {
 
     try {
       // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
+      // Swal.fire({
+      //   title: "Updating...",
+      //   text: "Please wait while we save changes.",
+      //   allowOutsideClick: false,
+      //   didOpen: () => Swal.showLoading(),
+      // });
 
       const response = await fetch(`${API_BASE_URL}/api/admin/feedback/resolve/${id}`, requestOptions);
 
@@ -389,16 +357,10 @@ const Feedback = () => {
       }
 
       // Close loading
-      Swal.close();
+      // Swal.close();
 
       // Show success message from API response
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: result?.message || "Information updated successfully.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      showSuccess("Updated!", result?.message || "Information updated successfully.");
       fetchFeedback();
       setShowAgentModal(false)
       setOpenResolve(false);
@@ -410,13 +372,9 @@ const Feedback = () => {
 
       return result;
     } catch (error) {
-      Swal.close();
+      // Swal.close();
       console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
 

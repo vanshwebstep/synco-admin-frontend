@@ -6,7 +6,7 @@ import { Check, } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 // import { useBookFreeTrial } from '../../../contexts/BookAFreeTrialContext';
 import Loader from '../../contexts/Loader';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning } from '../../../../../utils/swalHelper';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import StatsGrid from '../../Common/StatsGrid';
@@ -262,17 +262,11 @@ const trialLists = () => {
     const handleAgentSubmit = async (id) => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            return Swal.fire({
-                icon: "error",
-                title: "Not authorized.",
-            });
+            return showError("Not authorized.");
         }
 
         if (!selectedStudents || selectedStudents.length === 0) {
-            return Swal.fire({
-                icon: "warning",
-                title: "Please select at least one student.",
-            });
+            return showWarning("Please select at least one student.");
         }
 
         setAgentsLoading(true);
@@ -301,12 +295,7 @@ const trialLists = () => {
             const result = await response.json();
             console.log("Booking assigned successfully:", result);
 
-            await Swal.fire({
-                icon: "success",
-                title: "Booking assigned successfully!",
-                timer: 2000,
-                showConfirmButton: false,
-            });
+            showSuccess("Booking assigned successfully!");
 
             fetchBookMemberships();   // refresh the list
             setSelectedStudents([]); // reset selection, or [] if you prefer
@@ -315,11 +304,7 @@ const trialLists = () => {
 
         } catch (error) {
             console.error("Error assigning booking:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong.",
-            });
+            showError("Error", error.message || "Something went wrong.");
         } finally {
             setAgentsLoading(false);
         }
@@ -417,10 +402,7 @@ const trialLists = () => {
 
     const handleClick = () => {
         if (selectedStudents.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Please select at least 1 student',
-            });
+            showWarning('Please select at least 1 student');
             return;
         }
         fetchAllAgents();
@@ -866,12 +848,7 @@ const trialLists = () => {
                                 if (selectedStudents && selectedStudents.length > 0) {
                                     sendBookMembershipMail(selectedStudents);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"

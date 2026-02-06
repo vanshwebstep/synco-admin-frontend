@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Select from "react-select";
 import { FaEye } from "react-icons/fa";
 import { Trash2, Copy } from 'lucide-react';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../../utils/swalHelper";
 import { Editor } from '@tinymce/tinymce-react';
 import Loader from "../../contexts/Loader";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -83,12 +83,7 @@ export default function BirthdayUpdate() {
             setSessionGroup(result.data || []);
         } catch (err) {
             console.error("Failed to fetch sessionGroup:", err);
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong while fetching session groups",
-                confirmButtonColor: "#d33",
-            });
+            await showError("Error", err.message || "Something went wrong while fetching session groups");
         } finally {
             setLoading(false);
         }
@@ -128,7 +123,7 @@ export default function BirthdayUpdate() {
                 skill: levelData?.skillOfTheDay || "",
                 description: levelData?.description || "",
                 exercises: formattedExercises, // ✅ formatted array
-                
+
                 video: sessionGroup[`${activeTab}_video`]
                     ? {
                         url: sessionGroup[`${activeTab}_video`],
@@ -167,7 +162,7 @@ export default function BirthdayUpdate() {
     const removeImage = (id) => {
         setPhotoPreview((prev) => {
             const toDelete = prev.find((img) => img.id === id);
-            console.log('toDelete',toDelete)
+            console.log('toDelete', toDelete)
             const urlToRemove = toDelete ? toDelete.url : null;
             // Revoke the object URL to avoid memory leaks
             URL.revokeObjectURL(urlToRemove);
@@ -249,23 +244,16 @@ export default function BirthdayUpdate() {
             setLoading(false);
         }
     }, [token]);
-                console.log('removedImages1111', removedImages)
+    console.log('removedImages1111', removedImages)
 
     const saveExercise = useCallback(
         async (id) => {
             if (!token) return;
-                console.log('removedImages222', removedImages)
+            console.log('removedImages222', removedImages)
 
             try {
 
-                Swal.fire({
-                    title: isEditExcercise ? "Updating Exercise..." : "Saving Exercise...",
-                    text: "Please wait while we process your request.",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
+                showLoading(isEditExcercise ? "Updating Exercise..." : "Saving Exercise...");
 
 
                 const formdata = new FormData();
@@ -273,7 +261,7 @@ export default function BirthdayUpdate() {
                 formdata.append("title", exercise.title);
                 formdata.append("description", exercise.description);
                 formdata.append("duration", exercise.duration);
-            formdata.append("removedImages", JSON.stringify(removedImages || []));
+                formdata.append("removedImages", JSON.stringify(removedImages || []));
                 if (exercise.imageToSend && exercise.imageToSend.length > 0) {
                     exercise.imageToSend.forEach((file) => {
                         formdata.append("images", file);
@@ -300,16 +288,12 @@ export default function BirthdayUpdate() {
 
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: "success",
-                    text: "Your Exercise Has Been Saved Succesfylly!",
-
-                    title: isEditExcercise
+                showSuccess(
+                    isEditExcercise
                         ? "Exercise updated successfully!"
                         : "Exercise created successfully!",
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                    "Your Exercise Has Been Saved Succesfylly!"
+                );
                 emptyExcerCises();
                 setShowExerciseModal(false);
                 setRemovedImages([]);
@@ -317,15 +301,11 @@ export default function BirthdayUpdate() {
                 return result;
             } catch (err) {
                 // Show error alert
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: err.message || "Failed to save exercise. Please try again.",
-                });
+                showError("Error", err.message || "Failed to save exercise. Please try again.");
                 throw err;
             }
         },
-        [token, fetchExercises, exercise, isEditExcercise,removedImages]
+        [token, fetchExercises, exercise, isEditExcercise, removedImages]
     );
 
     const handleDuplicateExercise = useCallback(
@@ -334,12 +314,7 @@ export default function BirthdayUpdate() {
 
             try {
                 // Show loading Swal
-                Swal.fire({
-                    title: "Duplicating Exercise...",
-                    text: "Please wait while the exercise is being duplicated.",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
+                showLoading("Duplicating Exercise...");
 
                 const response = await fetch(
                     `${API_BASE_URL}/api/admin/birthday-party/session-exercise/${id}/duplicate`,
@@ -352,19 +327,13 @@ export default function BirthdayUpdate() {
                 const result = await response.json();
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: response.ok ? "success" : "error",
-                    title: response.ok ? "Exercise Duplicated!" : "Failed to Duplicate",
-                    text: result.message || (response.ok ? "Exercise duplicated successfully." : "Something went wrong."),
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                if (response.ok) {
+                    showSuccess("Exercise Duplicated!", result.message || "Exercise duplicated successfully.");
+                } else {
+                    showError("Failed to Duplicate", result.message || "Something went wrong.");
+                }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Duplicate",
-                    text: err.message || "Something went wrong while duplicating the exercise.",
-                });
+                showError("Failed to Duplicate", err.message || "Something went wrong while duplicating the exercise.");
                 console.error("Failed :", err);
             }
         },
@@ -376,23 +345,13 @@ export default function BirthdayUpdate() {
             if (!token) return;
 
             try {
-                const result = await Swal.fire({
-                    title: "Delete Exercise",
-                    html: `
-                    <div class="text-[15px] text-gray-700">
-                        Choose how you want to delete this exercise.
-                    </div>
-                `,
-                    icon: "warning",
-                    showCancelButton: true,
-                    showDenyButton: true,
-                    confirmButtonText: "Permanent Delete",
-                    denyButtonText: "Just Remove",
-                    cancelButtonText: "Cancel",
-                    confirmButtonColor: "#d33",
-                    denyButtonColor: "#3b82f6",
-                    cancelButtonColor: "#6b7280",
-                });
+                const result = await showConfirm(
+                    "Delete Exercise",
+                    "Choose how you want to delete this exercise.",
+                    "Permanent Delete",
+                    true
+                );
+
 
                 // ------------------------------
                 // ❌ CANCEL — DO NOTHING
@@ -408,13 +367,7 @@ export default function BirthdayUpdate() {
                         exercises: prev.exercises.filter((ex) => ex.value !== id),
                     }));
 
-                    Swal.fire({
-                        icon: "info",
-                        title: "Removed",
-                        text: "Exercise removed from this group only.",
-                        showConfirmButton: false,
-                        timer: 1400,
-                    });
+                    showSuccess("Removed", "Exercise removed from this group only.");
 
                     return;
                 }
@@ -423,12 +376,7 @@ export default function BirthdayUpdate() {
                 // 🔴 PERMANENT DELETE (API DELETE)
                 // ------------------------------
                 if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Deleting Exercise...",
-                        text: "Please wait while your exercise is being deleted",
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading(),
-                    });
+                    showLoading("Deleting Exercise...");
 
                     const response = await fetch(
                         `${API_BASE_URL}/api/admin/birthday-party/session-exercise/delete/${id}`,
@@ -449,26 +397,14 @@ export default function BirthdayUpdate() {
                         exercises: prev.exercises.filter((ex) => ex.value !== id),
                     }));
 
-                    Swal.fire({
-                        icon: response.ok ? "success" : "error",
-                        title: response.ok ? "Deleted!" : "Failed to Delete",
-                        text:
-                            data.message ||
-                            (response.ok
-                                ? "Exercise deleted successfully."
-                                : "Something went wrong."),
-                        showConfirmButton: false,
-                        timer: 1500,
-                    });
+                    if (response.ok) {
+                        showSuccess("Deleted!", data.message || "Exercise deleted successfully.");
+                    } else {
+                        showError("Failed to Delete", data.message || "Something went wrong.");
+                    }
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Delete",
-                    text:
-                        err.message ||
-                        "Something went wrong while deleting the exercise.",
-                });
+                showError("Failed to Delete", err.message || "Something went wrong while deleting the exercise.");
                 console.error("Failed to delete Exercise:", err);
             }
         },
@@ -554,30 +490,15 @@ export default function BirthdayUpdate() {
             console.log("📦 API Response:", data);
 
             if (response.ok && data.status) {
-                await Swal.fire({
-                    icon: "success",
-                    title: "Success",
-                    text: data.message || "Group updated successfully.",
-                    confirmButtonColor: "#237FEA",
-                });
+                showSuccess("Success", data.message || "Group updated successfully.");
                 emptySession();
                 navigate('/birthday-party/session-plan')
             } else {
-                await Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: data.message || "Failed to update session group.",
-                    confirmButtonColor: "#d33",
-                });
+                showError("Error", data.message || "Failed to update session group.");
             }
         } catch (err) {
             console.error("❌ Failed to create session group:", err);
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Something went wrong while creating the session group.",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", "Something went wrong while creating the session group.");
         } finally {
             setLoading(false);
         }
@@ -962,7 +883,7 @@ export default function BirthdayUpdate() {
                                                 'fontsizeselect capitalize bold italic underline alignleft aligncenter bullist  ',
                                             height: 200,
                                             branding: false,
-                                              content_style: `
+                                            content_style: `
   body {
     background-color: #f3f4f6;
  font-family: "Poppins", sans-serif !important;

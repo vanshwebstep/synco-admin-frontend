@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from 'sweetalert2';
+import { showSuccess, showError } from "../../../../utils/swalHelper";
 import { useNavigate } from "react-router-dom";
 
 const MemberContext = createContext();
@@ -174,23 +174,13 @@ export const MemberProvider = ({ children }) => {
             await fetchRoles();
 
             // Dynamic SweetAlert2
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: `${rolePermissions.length} role(s) updated successfully!`,
-                showConfirmButton: true,
-                timer: 2500
-            });
+            showSuccess("Success!", `${rolePermissions.length} role(s) updated successfully!`);
 
         } catch (error) {
             console.error("Create role error:", error);
 
             // Error alert
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: error.message || "Something went wrong",
-            });
+            showError("Oops!", error.message || "Something went wrong");
         }
     }, [token, fetchRoles, fetchPermission]);
 

@@ -7,7 +7,7 @@ import Loader from '../../contexts/Loader';
 import { usePermission } from '../../Common/permission';
 import { useSearchParams } from "react-router-dom";
 import Select from "react-select";
-import Swal from "sweetalert2";
+import { showError, showLoading, showSuccess } from '../../../../../utils/swalHelper';
 
 const Feedback = () => {
   const { checkPermission } = usePermission();
@@ -83,14 +83,14 @@ const Feedback = () => {
       const result = await response.json();
 
       if (!result?.status) {
-        Swal.fire("Error", result.message, "error");
+        showError("Error", result.message);
         return;
       }
 
       // 🎯 ONLY BIRTHDAY PARTY DATA
       setFeedbackData(result.data?.[DISPLAY_SERVICE_TYPE] || []);
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   }, []);
 
@@ -109,13 +109,13 @@ const Feedback = () => {
       const result = await response.json();
 
       if (!result?.status) {
-        Swal.fire("Error", result.message, "error");
+        showError("Error", result.message);
         return;
       }
 
       setAgentAndClassesData(result.data || {});
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   }, []);
 
@@ -180,7 +180,7 @@ const Feedback = () => {
     const { holidayClassScheduleId, agentId, feedbackType, category, notes } = formData;
 
     if (!holidayClassScheduleId || !agentId || !feedbackType || !category || !notes) {
-      return Swal.fire("Error", "All fields are required", "error");
+      return showError("Error", "All fields are required");
     }
     // holidayClassScheduleId
     const payload = {
@@ -192,12 +192,8 @@ const Feedback = () => {
       notes,
       agentAssigned: agentId,
     };
+    showLoading("Submitting...", "");
 
-    Swal.fire({
-      title: "Submitting...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
 
     try {
       const response = await fetch(
@@ -215,7 +211,7 @@ const Feedback = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      Swal.fire("Success", result.message, "success");
+      showLoading("Success", result.message);
       setOpenForm(false);
       setFormData({
         holidayClassScheduleId: null,
@@ -227,17 +223,14 @@ const Feedback = () => {
 
       fetchFeedback();
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   };
   const handleSave = async (id, successCallback) => {
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+    if (!token) return showError("Error", "Token not found. Please login again.");
     if (!selectedAgent?.id) {
-      return Swal.fire(
-        "Agent Required",
-        "Please select an agent before saving.",
-        "warning"
-      );
+      return showError("Agent Required", "Please select an agent before saving.");
+
     }
     const myHeaders = new Headers({
       "Content-Type": "application/json",
@@ -257,12 +250,7 @@ const Feedback = () => {
 
     try {
       // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
+      setCreateLoading(true);
 
       const response = await fetch(`${API_BASE_URL}/api/admin/feedback/resolve/${id}`, requestOptions);
 
@@ -272,17 +260,9 @@ const Feedback = () => {
         throw new Error(result?.message || "Something went wrong");
       }
 
-      // Close loading
-      Swal.close();
-
       // Show success message from API response
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: result?.message || "Information updated successfully.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      showSuccess("Updated!", result?.message || "Information updated successfully.");
+
       fetchFeedback();
       setShowAgentModal(false)
       setOpenResolve(false);
@@ -295,13 +275,12 @@ const Feedback = () => {
 
       return result;
     } catch (error) {
-      Swal.close();
+
       console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      showError("Error", error.message || "Something went wrong while updating.");
+
+    } finally {
+      setCreateLoading(false);
     }
   };
 

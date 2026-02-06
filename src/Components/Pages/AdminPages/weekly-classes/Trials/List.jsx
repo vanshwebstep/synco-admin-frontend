@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from '../../contexts/Loader';
 import { usePermission } from '../../Common/permission';
 import * as XLSX from "xlsx";
-import Swal from "sweetalert2";
+import { showWarning } from '../../../../../utils/swalHelper';
 
 import { saveAs } from "file-saver";
 import StatsGrid from '../../Common/StatsGrid';
@@ -386,28 +386,27 @@ const trialLists = () => {
         },
         {
             header: "Source",
-             render: (item) => {
-    const source = item?.source?.trim();
+            render: (item) => {
+                const source = item?.source?.trim();
 
-    const adminName = item?.bookedByAdmin?.firstName
-      ? `${item.bookedByAdmin.firstName}${
-          item.bookedByAdmin.lastName &&
-          item.bookedByAdmin.lastName !== "null"
-            ? ` ${item.bookedByAdmin.lastName}`
-            : ""
-        }`
-      : "";
+                const adminName = item?.bookedByAdmin?.firstName
+                    ? `${item.bookedByAdmin.firstName}${item.bookedByAdmin.lastName &&
+                        item.bookedByAdmin.lastName !== "null"
+                        ? ` ${item.bookedByAdmin.lastName}`
+                        : ""
+                    }`
+                    : "";
 
-    if (source && adminName) {
-      return `${source} (${adminName})`;
-    }
+                if (source && adminName) {
+                    return `${source} (${adminName})`;
+                }
 
-    if (source) {
-      return source;
-    }
+                if (source) {
+                    return source;
+                }
 
-    return adminName || "-";
-  },
+                return adminName || "-";
+            },
         },
         {
             header: "Attempts",
@@ -766,11 +765,7 @@ const trialLists = () => {
 
                             onClick={() => {
                                 if (!selectedStudents || selectedStudents.length === 0) {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No students selected",
-                                        text: "Please select at least one student before sending an email.",
-                                    });
+                                    showWarning("No students selected", "Please select at least one student before sending an email.");
                                     return;
                                 }
 

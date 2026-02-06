@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { showSuccess, showError, showWarning } from '../utils/swalHelper';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -24,18 +24,12 @@ const ResetPassword = () => {
     myHeaders.append("Content-Type", "application/json");
 
     if (!newPassword || !confirmPassword) {
-      Swal.fire({
-        icon: "warning",
-        title: "Both fields are required.",
-      });
+      showWarning("Both fields are required.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "Passwords do not match.",
-      });
+      showError("Passwords do not match.");
       return;
     }
 
@@ -58,26 +52,15 @@ const ResetPassword = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Password successfully reset.",
-          showConfirmButton: false,
-          timer: 2000, // auto close after 2s
-        }).then(() => {
+        showSuccess("Password successfully reset.").then(() => {
           navigate("/admin-login"); // redirect after popup closes
         });
       } else {
-        Swal.fire({
-          icon: "error",
-          title: result.message || "Reset failed",
-        });
+        showError(result.message || "Reset failed");
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Server error. Please try again later.",
-      });
+      showError("Server error. Please try again later.");
     } finally {
       setLoading(false);
     }

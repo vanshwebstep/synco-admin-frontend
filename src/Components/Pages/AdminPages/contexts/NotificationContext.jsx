@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
+import { showError } from "../../../../utils/swalHelper";
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
@@ -9,7 +9,7 @@ export const NotificationProvider = ({ children }) => {
   const [customNotification, setCustomNotification] = useState([]);
   const [customnotificationAll, setCustomnotificationAll] = useState([]);
   const navigate = useNavigate();
-const [stopFetching, setStopFetching] = useState(false);
+  const [stopFetching, setStopFetching] = useState(false);
   const [adminInfo, setAdminInfo] = useState({ firstName: "", lastName: "", role: "", profile: "" });
 
   const [loadingNotification, setLoadingNotification] = useState(null);
@@ -31,12 +31,7 @@ const [stopFetching, setStopFetching] = useState(false);
 
       // If account is suspended
       if (resultRaw.status === false && resultRaw.code === "ACCOUNT_SUSPENDED") {
-        await Swal.fire({
-          icon: "error",
-          title: "Account Suspended",
-          text: resultRaw.message || "Your account is suspended. Please contact support.",
-          confirmButtonText: "OK",
-        });
+        await showError("Account Suspended", resultRaw.message || "Your account is suspended. Please contact support.");
         localStorage.clear();
         navigate("/admin-login");
         return false;
@@ -81,7 +76,7 @@ const [stopFetching, setStopFetching] = useState(false);
       });
 
       const resultRaw = await response.json();
-       console.log("Mark as read response:", resultRaw);
+      console.log("Mark as read response:", resultRaw);
     } catch (error) {
       console.error("Failed to fetch notification:", error);
     }
@@ -112,7 +107,7 @@ const [stopFetching, setStopFetching] = useState(false);
   }, []);
 
   return (
-    <NotificationContext.Provider value={{ stopFetching,fetchCustomNotification, fetchMarkAsRead, loadingCustomNotification, setLoadingCustomNotification, notification, setNotification, fetchNotification, loadingNotification, customnotificationAll, customNotification, setCustomnotificationAll, setCustomNotification,setAdminInfo,adminInfo }}>
+    <NotificationContext.Provider value={{ stopFetching, fetchCustomNotification, fetchMarkAsRead, loadingCustomNotification, setLoadingCustomNotification, notification, setNotification, fetchNotification, loadingNotification, customnotificationAll, customNotification, setCustomnotificationAll, setCustomNotification, setAdminInfo, adminInfo }}>
       {children}
     </NotificationContext.Provider>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CreatableSelect from "react-select/creatable";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from "framer-motion";
 import { useDiscounts } from "../../../contexts/DiscountContext";
@@ -95,7 +95,7 @@ const HolidayDiscountCreate = () => {
             endDateTime < startDateTime
         ) {
             // Optional: show SweetAlert2 or toast instead
-            alert("End date/time cannot be earlier than start date/time.");
+            showWarning("Invalid Component", "End date/time cannot be earlier than start date/time.");
 
             // ❌ Don't update the field if invalid
             return;
@@ -119,13 +119,13 @@ const HolidayDiscountCreate = () => {
         setFormData((prev) => ({ ...prev, code: random }));
     };
 
- const handleTypeSelect = (type) => {
-  setFormData((prev) => ({
-    ...prev,
-    type,
-    code: type === "code" ? "" : prev.code, // clear when switching to manual
-  }));
-};
+    const handleTypeSelect = (type) => {
+        setFormData((prev) => ({
+            ...prev,
+            type,
+            code: type === "code" ? "" : prev.code, // clear when switching to manual
+        }));
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -141,10 +141,11 @@ const HolidayDiscountCreate = () => {
 
         try {
             await createDiscount(payload); // ✅ send to server
-            // Optionally show a success toast/modal here
+            showSuccess("Discount Created", "Discount code has been created successfully!");
         } catch (err) {
             console.error("Submit error:", err);
             // Optionally show an error message here
+            showError("Creation Failed", err.message || "Something went wrong.");
         }
     };
     const combineDateTime = (date, time) => {
@@ -174,7 +175,7 @@ const HolidayDiscountCreate = () => {
         const start = combineDateTime(formData.startDate, formData.startTime);
 
         if (start && newEnd && newEnd < start) {
-            alert("End time cannot be before start time");
+            showWarning("Invalid Time", "End time cannot be before start time");
             return;
         }
 
@@ -207,61 +208,61 @@ const HolidayDiscountCreate = () => {
                         <h4 className="text-base font-semibold mb-2">Amount off products</h4>
 
                         {/* Checkbox-looking radio logic */}
-                       {/* Checkbox-looking radio logic */}
-<div className="text-[16px] mb-2 flex gap-2 items-center">
-  <input
-    type="checkbox"
-    checked={formData.type === "code"}
-    onChange={() => handleTypeSelect("code")}
-  />
-  Discount Code
-</div>
+                        {/* Checkbox-looking radio logic */}
+                        <div className="text-[16px] mb-2 flex gap-2 items-center">
+                            <input
+                                type="checkbox"
+                                checked={formData.type === "code"}
+                                onChange={() => handleTypeSelect("code")}
+                            />
+                            Discount Code
+                        </div>
 
-<div className="text-[16px] mb-4 flex gap-2 items-center">
-  <input
-    type="checkbox"
-    checked={formData.type === "automatic"}
-    onChange={() => handleTypeSelect("automatic")}
-  />
-  Automatic Discount
-</div>
+                        <div className="text-[16px] mb-4 flex gap-2 items-center">
+                            <input
+                                type="checkbox"
+                                checked={formData.type === "automatic"}
+                                onChange={() => handleTypeSelect("automatic")}
+                            />
+                            Automatic Discount
+                        </div>
 
-{/* Discount Code Input */}
-<div>
-  <h3 className="text-sm font-semibold mb-2">Discount code</h3>
+                        {/* Discount Code Input */}
+                        <div>
+                            <h3 className="text-sm font-semibold mb-2">Discount code</h3>
 
-  <div className="flex flex-col md:flex-row gap-4 w-full">
-    <input
-      type="text"
-      value={formData.code}
-      disabled={formData.type === "automatic"}
-      onChange={(e) =>
-        setFormData((prev) => ({ ...prev, code: e.target.value }))
-      }
-      placeholder={
-        formData.type === "automatic"
-          ? "Click generate to create code"
-          : "Enter discount code"
-      }
-      className={`w-full md:flex-1 border rounded-xl px-3 py-3 
+                            <div className="flex flex-col md:flex-row gap-4 w-full">
+                                <input
+                                    type="text"
+                                    value={formData.code}
+                                    disabled={formData.type === "automatic"}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, code: e.target.value }))
+                                    }
+                                    placeholder={
+                                        formData.type === "automatic"
+                                            ? "Click generate to create code"
+                                            : "Enter discount code"
+                                    }
+                                    className={`w-full md:flex-1 border rounded-xl px-3 py-3 
         ${formData.type === "automatic"
-          ? "bg-gray-100 cursor-not-allowed"
-          : "border-[#E2E1E5]"}`}
-    />
+                                            ? "bg-gray-100 cursor-not-allowed"
+                                            : "border-[#E2E1E5]"}`}
+                                />
 
-    <button
-      type="button"
-      onClick={generateCode}
-      disabled={formData.type !== "automatic"}
-      className={`w-full md:w-auto px-6 py-3 rounded-xl text-[16px] transition
+                                <button
+                                    type="button"
+                                    onClick={generateCode}
+                                    disabled={formData.type !== "automatic"}
+                                    className={`w-full md:w-auto px-6 py-3 rounded-xl text-[16px] transition
         ${formData.type === "automatic"
-          ? "bg-[#237FEA] text-white hover:bg-blue-700"
-          : "bg-gray-300 text-gray-600 cursor-not-allowed"}`}
-    >
-      Generate
-    </button>
-  </div>
-</div>
+                                            ? "bg-[#237FEA] text-white hover:bg-blue-700"
+                                            : "bg-gray-300 text-gray-600 cursor-not-allowed"}`}
+                                >
+                                    Generate
+                                </button>
+                            </div>
+                        </div>
 
 
 
@@ -479,7 +480,7 @@ const HolidayDiscountCreate = () => {
                                     dateFormat="P"
                                     minDate={new Date()}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl"
-                                withPortal
+                                    withPortal
                                 />
                             </div>
                             <div className="flex flex-col w-full md:w-3/12">
@@ -493,7 +494,7 @@ const HolidayDiscountCreate = () => {
                                     dateFormat="h:mm aa"
                                     timeCaption="Time"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl"
-                                withPortal
+                                    withPortal
                                 />
                             </div>
                         </div>
@@ -528,7 +529,7 @@ const HolidayDiscountCreate = () => {
                                                 minDate={formData.startDate || new Date()}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                                                 disabled={!formData.startDate}
-                                            withPortal
+                                                withPortal
                                             />
                                         </div>
                                         <div className="flex flex-col w-full md:w-3/12">
@@ -543,7 +544,7 @@ const HolidayDiscountCreate = () => {
                                                 timeCaption="Time"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                                                 x disabled={!formData.endDate}
-                                            withPortal
+                                                withPortal
                                             />
                                         </div>
                                     </div>

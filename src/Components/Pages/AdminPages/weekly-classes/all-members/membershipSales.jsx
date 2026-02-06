@@ -6,7 +6,7 @@ import { Check, } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useBookFreeTrial } from '../../contexts/BookAFreeTrialContext';
 import Loader from '../../contexts/Loader';
-import Swal from "sweetalert2";
+import { showWarning } from '../../../../../utils/swalHelper';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import StatsGrid from '../../Common/StatsGrid';
@@ -209,14 +209,14 @@ const trialLists = () => {
             title: "Total Sales",
             value: statsMembership?.totalSales?.value || "0",
             icon: "/members/allmemberTotalRevenue.png",
-            change: `${(statsMembership?.totalSales?.change )}%`,
+            change: `${(statsMembership?.totalSales?.change)}%`,
             color: "text-green-500",
             bg: "bg-[#F3FAF5]"
         },
         {
             title: "Monthly revenue",
             value: `£${statsMembership?.totalRevenue?.value} `,
-            change: `${(statsMembership?.totalRevenue?.change )}%`,
+            change: `${(statsMembership?.totalRevenue?.change)}%`,
 
             icon: "/members/allmemberMonthlyRevenue.png",
             color: "text-green-500",
@@ -227,7 +227,7 @@ const trialLists = () => {
 
             value: `£${statsMembership?.avgMonthlyFee?.value} `,
             icon: "/members/allmemberMonthlyFee.png",
-            change: `${(statsMembership?.avgMonthlyFee?.change )}%`,
+            change: `${(statsMembership?.avgMonthlyFee?.change)}%`,
             color: "text-green-500",
             bg: "bg-[#FEF6FB]"
         },
@@ -235,7 +235,7 @@ const trialLists = () => {
             title: "Top Sales Agent",
             value: statsMembership?.topSaleAgent?.value || "0.00",
             icon: "/members/allmemberLifeCycle.png",
-            change: `${(statsMembership?.topSaleAgent?.change )}%`,
+            change: `${(statsMembership?.topSaleAgent?.change)}%`,
             color: "text-green-500",
             bg: "bg-[#F0F9F9]"
         }
@@ -800,12 +800,7 @@ const trialLists = () => {
                                 if (selectedStudents && selectedStudents.length > 0) {
                                     sendActiveBookMembershipMail(selectedStudents);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-3 py-2 rounded-xl text-[16px]"

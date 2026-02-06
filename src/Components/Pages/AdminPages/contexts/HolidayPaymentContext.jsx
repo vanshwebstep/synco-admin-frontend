@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
 import { useNavigate } from 'react-router-dom';
+import { showError, showSuccess } from "../../../../utils/swalHelper";
 
 const HolidayPaymentPlanContext = createContext();
 
@@ -169,32 +169,20 @@ const fetchGroupById = useCallback(async (id) => {
 
         await fetchGroups();
 
-        await Swal.fire({
-          icon: 'success',
-          title: `${result.message}`,
-        
-        });
+        await showSuccess("Success!", result.message || "Payment group has been created successfully.");
         navigate('/configuration/holiday-camp/subscription-plan-group');
 
       } else {
         const errorText = await response.text();
         console.error("Server Error:", errorText);
 
-        await Swal.fire({
-          icon: 'error',
-          title: 'Failed!',
-          text: 'Could not create the payment group. Please check your input.',
-        });
+        await showError("Failed!", "Could not create the payment group. Please check your input.");
       }
 
     } catch (error) {
       console.error("Failed to create group:", error);
 
-      await Swal.fire({
-        icon: 'error',
-        title: 'Oops!',
-        text: 'Something went wrong while creating the group.',
-      });
+      await showError("Error", "Something went wrong while creating the group.");
     }
   }, [token, fetchGroups, navigate]);
 
@@ -214,10 +202,7 @@ const updateGroup = useCallback(async (id, data) => {
     if (response.ok) {
       const result = await response.json();
 
-      await Swal.fire({
-        icon: 'success',
-        title: result.message || 'Group updated successfully!',
-      });
+      await showSuccess("Success!", result.message || "Group updated successfully!");
 
       navigate('/configuration/holiday-camp/subscription-plan-group');
     } else {
@@ -225,21 +210,13 @@ const updateGroup = useCallback(async (id, data) => {
 
       console.error("Server Error:", errorData);
 
-      await Swal.fire({
-        icon: 'error',
-        title: 'Failed!',
-        text: errorData.message || 'Could not update the group. Please try again.',
-      });
+      await showError("Failed!", errorData.message || "Could not update the group. Please try again.");
     }
 
   } catch (err) {
     console.error("Failed to update package:", err);
 
-    await Swal.fire({
-      icon: 'error',
-      title: 'Oops!',
-      text: 'Something went wrong while updating the group.',
-    });
+    await showError("Error", "Something went wrong while updating the group.");
   }
 }, [token, navigate]);
 

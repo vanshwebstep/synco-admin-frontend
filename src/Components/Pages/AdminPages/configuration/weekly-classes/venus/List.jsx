@@ -5,12 +5,12 @@ import { Check } from "lucide-react";
 import Loader from '../../../contexts/Loader';
 import { useVenue } from '../../../contexts/VenueContext';
 import { usePayments } from '../../../contexts/PaymentPlanContext';
-import Swal from "sweetalert2"; // make sure it's installed
 import PlanTabs from '../../../weekly-classes/find-a-class/PlanTabs';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { usePermission } from '../../../Common/permission';
 import { useTermContext } from '../../../contexts/TermDatesSessionContext';
+import { showError, showConfirm } from '../../../../../../utils/swalHelper';
 const List = () => {
   const navigate = useNavigate();
   const formRef = useRef(null);
@@ -34,11 +34,7 @@ const List = () => {
 
     // 🔴 Validation checks with Swal alerts
     if (!icon) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Icon",
-        text: "❌ Icon is missing!",
-      });
+      showError("Missing Icon", "❌ Icon is missing!");
       console.error("❌ Icon is missing!");
       return;
     }
@@ -47,11 +43,7 @@ const List = () => {
       (icon === "currency" && (!plan || plan.length === 0)) ||
       (icon === "calendar" && !plan)
     ) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Data",
-        text: `❌ Required plan data is missing `,
-      });
+      showError("Missing Data", `❌ Required plan data is missing `);
       console.error(`❌ Required plan data is missing for icon: ${icon}`);
       return;
     }
@@ -110,16 +102,7 @@ const List = () => {
 
   const handleDelete = (id) => {
     setOpenForm(null);
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the venue.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
+    showConfirm("Are you sure?", "This action will permanently delete the venue.", "Yes, delete it!").then((result) => {
       if (result.isConfirmed) {
         // console.log('DeleteId:', id);
 
@@ -127,6 +110,7 @@ const List = () => {
 
       }
     });
+
   };
 
 
@@ -167,13 +151,13 @@ const List = () => {
 
   const calendarDays = getDaysArray();
 
- const goToPreviousMonth = () => {
-  setCurrentDate(new Date(year, month - 1, 1));
-};
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
 
-const goToNextMonth = () => {
-  setCurrentDate(new Date(year, month + 1, 1)); 
- };
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
 
   const getDateStatus = (date) => {
     if (!date) return {};

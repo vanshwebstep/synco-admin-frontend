@@ -14,8 +14,8 @@ import { usePermission } from '../../../Common/permission';
 import { addDays } from "date-fns";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { useNotification } from '../../../contexts/NotificationContext';
-import Swal from "sweetalert2";
 import { useNavigate } from 'react-router-dom';
+import { showConfirm, showError, showSuccess, showWarning } from '../../../../../../utils/swalHelper';
 const StudentProfile = ({ profile }) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const {
@@ -24,6 +24,7 @@ const StudentProfile = ({ profile }) => {
         sendWaitingListMail, transferMembershipSubmit,
         freezerMembershipSubmit, reactivateDataSubmit, cancelWaitingListSpot, updateWaitingListFamily
     } = useBookFreeTrial() || {};
+    const [loadingData, setLoadingData] = useState(false);
     const classSchedule = profile?.classSchedule;
     const bookingId = profile?.id;
     const id = profile?.id;
@@ -122,13 +123,8 @@ const StudentProfile = ({ profile }) => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
+            showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
         }
     }, []);
 
@@ -155,13 +151,7 @@ const StudentProfile = ({ profile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+          setLoadingData(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
@@ -169,33 +159,24 @@ const StudentProfile = ({ profile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
+             
                 return;
             }
 
-
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+showSuccess("Comment Created", result.message || "Comment has been added successfully!");
+         
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
+        
+        }finally{
+            setLoadingData(false);
         }
     }
 
@@ -267,16 +248,8 @@ const StudentProfile = ({ profile }) => {
     };
 
     const handleBookMembership = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to book a membership?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#237FEA",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Book it!",
-            cancelButtonText: "Cancel",
-        }).then((result) => {
+        showConfirm("Confirm Booking", "Do you want to book a membership?", "question").then((result) => {
+
             if (result.isConfirmed) {
                 // Navigate to your component/route
                 navigate("/weekly-class/find-a-camp/book-a-membership", {
@@ -747,7 +720,7 @@ const StudentProfile = ({ profile }) => {
 
                                     <div className="text-[20px] text-white">Membership Tenure</div>
                                     <div className="text-[1s6px] mt-1 text-gray-400">
-                                        {MembershipTenure  || 'N/A'}
+                                        {MembershipTenure || 'N/A'}
                                     </div>
 
                                 </div>
@@ -1231,29 +1204,27 @@ const StudentProfile = ({ profile }) => {
                                         onClick={() => {
                                             // Validation
                                             if (!cancelData.cancellationType) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a cancellation type.",
-                                                });
+                                                showWarning("Missing Field", "Please select a cancellation type.");
                                                 return;
                                             }
 
                                             if (cancelData.cancellationType !== "immediate" && !cancelData.cancelDate) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a cancellation effective date.",
-                                                });
+                                                showWarning("Missing Field", "Please select a cancellation effective date.");
                                                 return;
                                             }
 
                                             if (!cancelData.cancelReason) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a reason for cancellation.",
-                                                });
+                                                showWarning("Missing Field", "Please select a reason for cancellation.");
+                                                return;
+                                            }
+
+                                            if (cancelData.cancellationType !== "immediate" && !cancelData.cancelDate) {
+                                                showWarning("Missing Field", "Please select a cancellation effective date.");
+                                                return;
+                                            }
+
+                                            if (!cancelData.cancelReason) {
+                                                showWarning("Missing Field", "Please select a reason for cancellation.");
                                                 return;
                                             }
 
@@ -1527,22 +1498,8 @@ const StudentProfile = ({ profile }) => {
                                         className="w-1/2 bg-[#237FEA] text-white rounded-xl py-3 text-[18px] font-medium hover:shadow-md transition-shadow"
                                         onClick={() => {
                                             if (!freezeData.freezeStartDate || !freezeData.freezeDurationMonths || !freezeData.reactivateOn) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Incomplete Form",
-                                                    html: `
-                                           <div style="font-size:16px; text-align:left; line-height:1.6;">
-                                             Please fill in all the required fields before submitting:
-                                             <ul style="margin-top:10px; list-style-type:disc; margin-left:20px;">
-                                               ${!freezeData.freezeStartDate ? "<li><b>Freeze Start Date</b> is missing.</li>" : ""}
-                                               ${!freezeData.freezeDurationMonths ? "<li><b>Freeze Duration</b> is missing.</li>" : ""}
-                                               ${!freezeData.reactivateOn ? "<li><b>Reactivate On</b> date is missing.</li>" : ""}
-                                             </ul>
-                                           </div>
-                                         `,
-                                                    confirmButtonText: "Okay",
-                                                    confirmButtonColor: "#237FEA",
-                                                });
+                                                showWarning("Incomplete Form", "Please fill in all the required fields before submitting.");
+                                             
                                                 return;
                                             }
 

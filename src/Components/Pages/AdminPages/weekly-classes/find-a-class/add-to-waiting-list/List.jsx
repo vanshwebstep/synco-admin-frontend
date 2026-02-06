@@ -9,7 +9,7 @@ import Loader from '../../../contexts/Loader';
 import { usePermission } from '../../../Common/permission';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import Swal from "sweetalert2";
+import { showWarning } from '../../../../../../utils/swalHelper';
 import StatsGrid from '../../../Common/StatsGrid';
 import DynamicTable from '../../../Common/DynamicTable';
 
@@ -217,7 +217,7 @@ const WaitingList = () => {
 
     const modalRef = useRef(null);
     const PRef = useRef(null);
-    console.log('statsFreeTrial',statsFreeTrial)
+    console.log('statsFreeTrial', statsFreeTrial)
     const stats = [
         {
             title: "Top Referrer",
@@ -392,28 +392,27 @@ const WaitingList = () => {
         },
         {
             header: "Added By",
-           render: (item) => {
-    const source = item?.source?.trim();
+            render: (item) => {
+                const source = item?.source?.trim();
 
-    const adminName = item?.bookedByAdmin?.firstName
-      ? `${item.bookedByAdmin.firstName}${
-          item.bookedByAdmin.lastName &&
-          item.bookedByAdmin.lastName !== "null"
-            ? ` ${item.bookedByAdmin.lastName}`
-            : ""
-        }`
-      : "";
+                const adminName = item?.bookedByAdmin?.firstName
+                    ? `${item.bookedByAdmin.firstName}${item.bookedByAdmin.lastName &&
+                        item.bookedByAdmin.lastName !== "null"
+                        ? ` ${item.bookedByAdmin.lastName}`
+                        : ""
+                    }`
+                    : "";
 
-    if (source && adminName) {
-      return `${source} (${adminName})`;
-    }
+                if (source && adminName) {
+                    return `${source} (${adminName})`;
+                }
 
-    if (source) {
-      return source;
-    }
+                if (source) {
+                    return source;
+                }
 
-    return adminName || "-";
-  },
+                return adminName || "-";
+            },
         },
         {
             header: "Days Waiting",
@@ -787,11 +786,10 @@ const WaitingList = () => {
                         <button
                             onClick={() => {
                                 if (!selectedStudents || selectedStudents.length === 0) {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No students selected",
-                                        text: "Please select at least one student before sending an email.",
-                                    });
+                                    showWarning(
+                                        "No students selected",
+                                        "Please select at least one student before sending an email."
+                                    );
                                     return;
                                 }
 

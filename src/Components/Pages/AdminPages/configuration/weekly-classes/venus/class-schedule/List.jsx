@@ -9,10 +9,9 @@ import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useClassSchedule } from '../../../../contexts/ClassScheduleContent';
 import { useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2"; // make sure it's installed
 import { usePermission } from '../../../../Common/permission';
 import Select from 'react-select';
-
+import { showError, showSuccess, showConfirm } from '../../../../../../../utils/swalHelper';
 const List = () => {
     const navigate = useNavigate();
 
@@ -220,27 +219,27 @@ const List = () => {
 
         // --- Validation ---
         if (!formData.className?.trim()) {
-            Swal.fire("Validation Error", "Class Name is required", "error");
+            showError("Validation Error", "Class Name is required");
             return;
         }
 
         if (!formData.capacity || isNaN(formData.capacity) || Number(formData.capacity) <= 0) {
-            Swal.fire("Validation Error", "Capacity must be a positive number", "error");
+            showError("Validation Error", "Capacity must be a positive number");
             return;
         }
 
         if (!formData.day) {
-            Swal.fire("Validation Error", "Please select a day", "error");
+            showError("Validation Error", "Please select a day");
             return;
         }
 
         if (!formData.startTime || !formData.endTime) {
-            Swal.fire("Validation Error", "Please select both start and end times", "error");
+            showError("Validation Error", "Please select both start and end times");
             return;
         }
 
         if (formData.startTime === formData.endTime) {
-            Swal.fire("Validation Error", "Start and End time cannot be the same", "error");
+            showError("Validation Error", "Start and End time cannot be the same");
             return;
         }
 
@@ -248,12 +247,12 @@ const List = () => {
         const endMinutes = parseTimeToMinutes(formData.endTime);
 
         if (startMinutes === endMinutes) {
-            Swal.fire("Validation Error", "Start and End time cannot be the same", "error");
+            showError("Validation Error", "Start and End time cannot be the same");
             return;
         }
 
         if (startMinutes > endMinutes) {
-            Swal.fire("Validation Error", "End time must be after start time", "error");
+            showError("Validation Error", "End time must be after start time");
             return;
         }
 
@@ -303,24 +302,14 @@ const List = () => {
         fetchVenues();
     }, [fetchVenues]);
     const handleDeleteClick = (item) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will delete the schedule permanently!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
+        showConfirm(
+            'Are you sure?',
+            'This action will delete the schedule permanently!',
+            'Yes, delete it!'
+        ).then((result) => {
             if (result.isConfirmed) {
                 deleteClassSchedule(item); // only called after confirmation
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'The class schedule has been deleted.',
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+               
             }
         });
     };
@@ -388,7 +377,7 @@ const List = () => {
 
     const cancelSession =
         checkPermission({ module: 'cancel-session', action: 'view-listing' });
-        const dayOptions = days.map((day) => ({ value: day, label: day }));
+    const dayOptions = days.map((day) => ({ value: day, label: day }));
 
     return (
         <div className="pt-1 bg-gray-50 min-h-screen">
@@ -689,16 +678,16 @@ const List = () => {
 
             {
                 openForm && (
-                   <form
-  onKeyDown={(e) => {
-    if (e.key === 'Enter') e.preventDefault();
-  }}
-  onSubmit={(e) => {
-    e.preventDefault();
-    if (isEditing) handleEdit(formData.id);
-    else handleSave();
-  }}
->
+                    <form
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.preventDefault();
+                        }}
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (isEditing) handleEdit(formData.id);
+                            else handleSave();
+                        }}
+                    >
 
                         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                             <div className="bg-white rounded-3xl w-[90%] md:w-[900px] p-6 relative shadow-xl">
@@ -741,15 +730,15 @@ const List = () => {
                                     <div className="flex gap-4">
                                         <div className='w-1/2'>
                                             <label htmlFor="">Day</label>
-                                             <Select
-    id="day"
-    value={dayOptions.find(option => option.value === formData.day) || null}
-    onChange={(selectedOption) => handleChange('day', selectedOption?.value || '')}
-    options={dayOptions}
-    isClearable
-    className="w-full text-sm"
-    classNamePrefix="react-select"
-  />
+                                            <Select
+                                                id="day"
+                                                value={dayOptions.find(option => option.value === formData.day) || null}
+                                                onChange={(selectedOption) => handleChange('day', selectedOption?.value || '')}
+                                                options={dayOptions}
+                                                isClearable
+                                                className="w-full text-sm"
+                                                classNamePrefix="react-select"
+                                            />
                                         </div>
                                         <div className='flex md:w-1/2 gap-4'>
                                             <div className="flex gap-4">

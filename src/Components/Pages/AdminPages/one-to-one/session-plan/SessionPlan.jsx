@@ -3,13 +3,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Eye, User, Edit2, Trash2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../contexts/Loader";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../../utils/swalHelper";
 import { Loader2 } from "lucide-react";
 
 import { usePermission } from "../../Common/permission";
 const SessionPlan = () => {
-    const MySwal = withReactContent(Swal);
+
     const [sessionGroup, setSessionGroup] = useState([]);
     const [loading, setLoading] = useState(false);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -41,12 +40,7 @@ const SessionPlan = () => {
             setSessionGroup(result.data || []);
         } catch (err) {
             console.error("Failed to fetch sessionGroup:", err);
-            await Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: err.message || "Something went wrong while fetching session groups",
-                confirmButtonColor: '#d33',
-            });
+            showError('Error', err.message || "Something went wrong while fetching session groups");
         } finally {
             setLoading(false);
         }
@@ -55,41 +49,21 @@ const SessionPlan = () => {
         const myLevel = level?.toLowerCase();
         if (!groupId || !myLevel) return;
 
-        const confirm = await Swal.fire({
-            title: "Delete Session Plan?",
-            html: `
-      <p class="text-gray-700 text-sm">
+        const confirm = await showConfirm(
+            "Delete Session Plan?",
+            `<p class="text-gray-700 text-sm">
         You’re about to delete the <b>${level}</b> session plan.<br/>
         This action cannot be undone.
-      </p>
-    `,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it",
-            cancelButtonText: "Cancel",
-            reverseButtons: true,
-            confirmButtonColor: "#e53935",
-            cancelButtonColor: "#6c757d",
-            customClass: {
-                popup: "rounded-2xl shadow-xl",
-                confirmButton: "px-4 py-2 font-semibold",
-                cancelButton: "px-4 py-2 font-semibold",
-            },
-        });
+      </p>`,
+            "Yes, delete it",
+            true
+        );
 
         if (!confirm.isConfirmed) return;
 
         try {
             // show loading modal
-            Swal.fire({
-                title: "Deleting...",
-                html: `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan.</div>`,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            showLoading("Deleting...", `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan.</div>`);
 
             const response = await fetch(
                 `${API_BASE_URL}/api/admin/one-to-one/session-plan-structure/${groupId}/level/${myLevel}`,
@@ -108,66 +82,34 @@ const SessionPlan = () => {
                 throw new Error(data.message || "Failed to delete session plan");
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted!",
-                text: `${level} session plan has been successfully removed.`,
-                showConfirmButton: false,
-                timer: 1800,
-                timerProgressBar: true,
-            });
+            showSuccess("Deleted!", `${level} session plan has been successfully removed.`);
 
             fetchSessionGroup(); // refresh list
 
         } catch (error) {
             console.error("Delete error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while deleting.",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", error.message || "Something went wrong while deleting.");
         }
     };
     const handleDeleteGroup = async (groupId, level) => {
         const myLevel = level?.toLowerCase();
         if (!groupId || !myLevel) return;
 
-        const confirm = await Swal.fire({
-            title: "Delete Session Plan Group?",
-            html: `
-      <p class="text-gray-700 text-sm">
+        const confirm = await showConfirm(
+            "Delete Session Plan Group?",
+            `<p class="text-gray-700 text-sm">
         You’re about to delete the session plan Group.<br/>
         This action cannot be undone.
-      </p>
-    `,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it",
-            cancelButtonText: "Cancel",
-            reverseButtons: true,
-            confirmButtonColor: "#e53935",
-            cancelButtonColor: "#6c757d",
-            customClass: {
-                popup: "rounded-2xl shadow-xl",
-                confirmButton: "px-4 py-2 font-semibold",
-                cancelButton: "px-4 py-2 font-semibold",
-            },
-        });
+      </p>`,
+            "Yes, delete it",
+            true
+        );
 
         if (!confirm.isConfirmed) return;
 
         try {
             // show loading modal
-            Swal.fire({
-                title: "Deleting...",
-                html: `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan group.</div>`,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            showLoading("Deleting...", `<div class="text-gray-600 text-sm mt-2">Please wait while we remove the session plan group.</div>`);
 
             const response = await fetch(
                 `${API_BASE_URL}/api/admin/one-to-one/session-plan-structure/delete/${groupId}`,
@@ -186,25 +128,13 @@ const SessionPlan = () => {
                 throw new Error(data.message || "Failed to delete session plan group");
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted!",
-                text: data.message || `session plan group has been successfully removed.`,
-                showConfirmButton: false,
-                timer: 1800,
-                timerProgressBar: true,
-            });
+            showSuccess("Deleted!", data.message || `session plan group has been successfully removed.`);
 
             fetchSessionGroup(); // refresh list
 
         } catch (error) {
             console.error("Delete error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while deleting.",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", error.message || "Something went wrong while deleting.");
         }
     };
     const handlePinToggle = async (groupId, pinned = false, forceRePin = false) => {

@@ -7,7 +7,7 @@ import PlanTabs from '../PlanTabs';
 // import Loader from '../../../../contexts/Loader';
 import { useVenue } from '../../../contexts/VenueContext';
 import { usePayments } from '../../../contexts/PaymentPlanContext';
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError, showWarning, showConfirm } from '../../../../../../utils/swalHelper';
 import { format, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import { X } from "lucide-react"; // Optional: Use any icon or ✖️ if no icon lib
@@ -120,16 +120,11 @@ const List = () => {
         });
     };
     const handleCancel = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Your changes will not be saved!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, leave",
-            cancelButtonText: "Stay here",
-        }).then((result) => {
+        showConfirm(
+            "Are you sure?",
+            "Your changes will not be saved!",
+            "Yes, leave"
+        ).then((result) => {
             if (result.isConfirmed) {
                 navigate("/weekly-classes/find-a-class");
             }
@@ -239,16 +234,11 @@ const List = () => {
 
 
     const handleDelete = (id) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will permanently delete the venue.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
-        }).then((result) => {
+        showConfirm(
+            'Are you sure?',
+            'This action will permanently delete the venue.',
+            'Yes, delete it!'
+        ).then((result) => {
             if (result.isConfirmed) {
                 // console.log('DeleteId:', id);
 
@@ -544,12 +534,7 @@ const List = () => {
         } catch (error) {
             console.error("Failed to fetch comments:", error);
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
         }
     }, []);
     const handleSubmitComment = async (e) => {
@@ -572,13 +557,7 @@ const List = () => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            // Loader skipped
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book/free-trials/comment/create`, requestOptions);
@@ -586,33 +565,19 @@ const List = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
         }
     }
 
@@ -669,11 +634,7 @@ const List = () => {
     };
     const handleSubmit = async () => {
         if (!selectedDate) {
-            Swal.fire({
-                icon: "warning",
-                title: "Trial Date Required",
-                text: "Please select a trial date before submitting.",
-            });
+            showWarning("Trial Date Required", "Please select a trial date before submitting.");
             return;
         }
         setIsSubmitting(true); // Start loading
@@ -859,11 +820,7 @@ const List = () => {
     const handleSubmitClick = (e) => {
         if (!selectedDate) {
             e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Please select a trial date",
-                confirmButtonColor: "#237FEA",
-            });
+            showWarning("Please select a trial date");
             return;
         }
         handleSubmit();

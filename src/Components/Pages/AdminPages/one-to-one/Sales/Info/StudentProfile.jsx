@@ -8,8 +8,8 @@ import { RxCross2 } from "react-icons/rx";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
 import { useNotification } from "../../../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { formatDate } from "date-fns";
+import { showError, showSuccess, showConfirm, showWarning } from "../../../../../../utils/swalHelper";
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -139,13 +139,7 @@ const StudentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
 
@@ -175,13 +169,7 @@ const StudentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -189,33 +177,20 @@ const StudentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Error creating member", error.message || error.error || "An error occurred while submitting the form.");
+
     }
   }
 
@@ -231,45 +206,25 @@ const StudentProfile = () => {
   const handleAddStudent = () => {
     // Validate first or last name
     if (!newStudent.studentFirstName.trim() && !newStudent.studentLastName.trim()) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Missing Name",
-        text: "Please enter at least first or last name.",
-      });
+      return showError("Missing Name", "Please enter at least first or last name.");
     }
 
     // Validate date of birth (optional: must be a date)
     if (!newStudent.dateOfBirth) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Missing Date of Birth",
-        text: "Please select the date of birth.",
-      });
+      return showError("Missing Date of Birth", "Please select the date of birth.");
     }
 
     // Validate age (must be a positive number)
     if (!newStudent.age || isNaN(newStudent.age) || Number(newStudent.age) <= 0) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Invalid Age",
-        text: "Age must be a valid positive number.",
-      });
+      return showError("Invalid Age", "Age must be a valid positive number.");
     }
 
     // Validate gender
     if (!newStudent.gender) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Missing Gender",
-        text: "Please select a gender.",
-      });
+      return showError("Missing Gender", "Please select a gender.");
     }
     if (!newStudent.medicalInfo) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Missing Medical info",
-        text: "Please Add Medical info",
-      });
+      return showError("Missing Medical info", "Please Add Medical info");
     }
     // Medical Info - optional, no validation needed unless you want max length or something
 
@@ -297,13 +252,7 @@ const StudentProfile = () => {
     });
 
     // Optionally, show success alert
-    Swal.fire({
-      icon: "success",
-      title: "Student Added",
-      text: "The student was added successfully.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    showSuccess("Student Added", "The student was added successfully.");
   };
 
 
@@ -320,51 +269,33 @@ const StudentProfile = () => {
 
       // Validate name
       if (!student.studentFirstName?.trim()) {
-        return Swal.fire({ icon: 'warning', title: 'Missing First Name', text: 'Please enter first name.' });
+        return showWarning('Missing First Name', 'Please enter first name.');
       }
       if (!student.studentLastName?.trim()) {
-        return Swal.fire({ icon: 'warning', title: 'Missing Last Name', text: 'Please enter last name.' });
+        return showWarning('Missing Last Name', 'Please enter last name.');
       }
 
 
       // Validate dateOfBirth - expect ISO string, non-empty
       if (!student.dateOfBirth) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Missing Date of Birth in Student ${i + 1}`,
-          text: "Please select the date of birth.",
-        });
+        return showWarning('Missing Date of Birth', 'Please select the date of birth.');
       }
 
       // Validate age (number > 0)
       if (!student.age || isNaN(student.age) || Number(student.age) <= 0) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Invalid Age in Student ${i + 1}`,
-          text: "Age must be a valid positive number.",
-        });
+        return showWarning('Invalid Age', 'Age must be a valid positive number.');
       }
 
       // Validate gender (non-empty string)
       if (!student.gender) {
-        return Swal.fire({
-          icon: "warning",
-          title: `Missing Gender in Student ${i + 1}`,
-          text: "Please select a gender.",
-        });
+        return showWarning('Missing Gender', 'Please select a gender.');
       }
     }
     console.log('studentwweedws', students)
     // All good, update
     handleUpdate('students', students);
 
-    Swal.fire({
-      icon: "success",
-      title: "Students Updated",
-      text: "All student records updated successfully.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    showSuccess("Students Updated", "All student records updated successfully.");
   };
 
   return (
@@ -582,8 +513,8 @@ const StudentProfile = () => {
                 <label className="block text-[15px] mb-1 font-semibold">Date of birth</label>
                 <DatePicker
                   withPortal
-                 selected={newStudent.dateOfBirth ? parseYMDToDate(newStudent.dateOfBirth) : null}
-  onChange={(date) => handleDOBChange(null, date, true)}
+                  selected={newStudent.dateOfBirth ? parseYMDToDate(newStudent.dateOfBirth) : null}
+                  onChange={(date) => handleDOBChange(null, date, true)}
                   className="w-full mt-1 border border-gray-300 rounded-xl px-3 py-3 text-base"
                   showYearDropdown
                   scrollableYearDropdown

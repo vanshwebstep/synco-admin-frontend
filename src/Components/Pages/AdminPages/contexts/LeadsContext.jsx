@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2";
+import { showSuccess, showError } from "../../../../utils/swalHelper";
 // import Facebook from "../one-to-one/leads/Facebook";
 import Facebook from "../weekly-classes/leads/Facebook";
 const LeadsContext = createContext();
@@ -74,14 +74,7 @@ export const LeadsContextProvider = ({ children }) => {
         const resultRaw = await response.json();
 
         if (!response.ok || !resultRaw.status) {
-          Swal.fire({
-            icon: "error",
-            title: "Fetch Failed",
-            text:
-              resultRaw.message ||
-              "Something went wrong while fetching lead data.",
-            confirmButtonText: "OK",
-          });
+          showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching lead data.");
           return;
         }
 
@@ -89,12 +82,7 @@ export const LeadsContextProvider = ({ children }) => {
         setAnalytics(resultRaw.analytics || []);
       } catch (error) {
         console.error("Failed to fetch leads:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: error.message || "Something went wrong while fetching data.",
-          confirmButtonText: "OK",
-        });
+        showError("Fetch Failed", error.message || "Something went wrong while fetching data.");
       } finally {
         setLoading(false);
       }
@@ -126,23 +114,13 @@ export const LeadsContextProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       // navigate(`/weekly-classes/all-members/list`);
@@ -191,14 +169,7 @@ export const LeadsContextProvider = ({ children }) => {
       const resultRaw = await response.json();
 
       if (!response.ok || !resultRaw.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text:
-            resultRaw.message ||
-            "Something went wrong while fetching lead data.",
-          confirmButtonText: "OK",
-        });
+        showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching lead data.");
         return;
       }
 
@@ -206,12 +177,7 @@ export const LeadsContextProvider = ({ children }) => {
       setAnalytics(resultRaw.analytics || []);
     } catch (error) {
       console.error("Failed to fetch leads:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching data.",
-        confirmButtonText: "OK",
-      });
+      showError("Fetch Failed", error.message || "Something went wrong while fetching data.");
     } finally {
       setLoading(false);
     }

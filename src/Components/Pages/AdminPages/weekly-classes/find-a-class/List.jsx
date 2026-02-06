@@ -18,13 +18,13 @@ import PlanTabs from './PlanTabs';
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import Swal from "sweetalert2";
 import { usePermission } from '../../Common/permission';
 const customIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
+import { showWarning } from '../../../../../utils/swalHelper';
 
 const List = () => {
   const { fetchFindClasses, findClasses, loading } = useFindClass();
@@ -182,13 +182,13 @@ const List = () => {
 
   const calendarDays = getDaysArray();
 
- const goToPreviousMonth = () => {
-  setCurrentDate(new Date(year, month - 1, 1));
-};
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
 
-const goToNextMonth = () => {
-  setCurrentDate(new Date(year, month + 1, 1)); 
- };
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
 
   const getDateStatus = (date) => {
     let isStartOrEnd = false;
@@ -417,7 +417,7 @@ const goToNextMonth = () => {
 
     console.log("✅ Completed handleIconClick for", type);
   };
-console.log('calendarData', calendarData)
+  console.log('calendarData', calendarData)
 
 
 
@@ -818,25 +818,23 @@ console.log('calendarData', calendarData)
                                         <div className="flex gap-2 flex-wrap  md:justify-end">
                                           {s.capacity === 0 && canAddToWaitingList ? (
                                             <button
-                                             onClick={() => {
-                                                    const hasTermGroups =
-                                                      Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
+                                              onClick={() => {
+                                                const hasTermGroups =
+                                                  Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
 
-                                                    const hasTerms =
-                                                      Array.isArray(venue.terms) && venue.terms.length > 0;
+                                                const hasTerms =
+                                                  Array.isArray(venue.terms) && venue.terms.length > 0;
 
-                                                    if (!hasTermGroups || !hasTerms) {
-                                                      Swal.fire({
-                                                        icon: "warning",
-                                                        title: "Please select term groups first",
-                                                        text: "Term groups and terms are required to book a free trial.",
-                                                        confirmButtonText: "OK",
-                                                      });
-                                                      return;
-                                                    }
+                                                if (!hasTermGroups || !hasTerms) {
+                                                  showWarning(
+                                                    "Please select term groups first",
+                                                    "Term groups and terms are required to book a free trial."
+                                                  );
+                                                  return;
+                                                }
 
-                                                    handleAddToWaitingList(s.classId);
-                                                  }}
+                                                handleAddToWaitingList(s.classId);
+                                              }}
                                               className=" z-10 bg-[#237FEA] text-white border border-[#237FEA] px-3 py-2 rounded-xl text-sm font-medium"
                                             >
                                               Add to Waiting List
@@ -853,12 +851,10 @@ console.log('calendarData', calendarData)
                                                       Array.isArray(venue.terms) && venue.terms.length > 0;
 
                                                     if (!hasTermGroups || !hasTerms) {
-                                                      Swal.fire({
-                                                        icon: "warning",
-                                                        title: "Please select term groups first",
-                                                        text: "Term groups and terms are required to book a free trial.",
-                                                        confirmButtonText: "OK",
-                                                      });
+                                                      showWarning(
+                                                        "Please select term groups first",
+                                                        "Term groups and terms are required to book a free trial."
+                                                      );
                                                       return;
                                                     }
 
@@ -880,12 +876,10 @@ console.log('calendarData', calendarData)
                                                       Array.isArray(venue.terms) && venue.terms.length > 0;
 
                                                     if (!hasTermGroups || !hasTerms) {
-                                                      Swal.fire({
-                                                        icon: "warning",
-                                                        title: "Please select term groups first",
-                                                        text: "Term groups and terms are required to book a free trial.",
-                                                        confirmButtonText: "OK",
-                                                      });
+                                                      showWarning(
+                                                        "Please select term groups first",
+                                                        "Term groups and terms are required to book a free trial."
+                                                      );
                                                       return;
                                                     }
 

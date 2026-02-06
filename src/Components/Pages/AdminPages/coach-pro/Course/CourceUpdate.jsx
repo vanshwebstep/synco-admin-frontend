@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { GripVertical, MoreVertical, Plus } from "lucide-react";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading } from "../../../../../utils/swalHelper";
 import {
     DragDropContext,
     Droppable,
@@ -240,12 +240,7 @@ export default function CourseUpdate() {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -364,152 +359,128 @@ export default function CourseUpdate() {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
     }, [API_BASE_URL, id]);
 
     console.log('formData', formData)
-const handleUpdate = async () => {
-    const isValid = validateStep();
-    if (!isValid) return;
+    const handleUpdate = async () => {
+        const isValid = validateStep();
+        if (!isValid) return;
 
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-        Swal.fire({
-            icon: "error",
-            title: "Unauthorized",
-            text: "Admin token missing",
-        });
-        return;
-    }
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+            showError("Unauthorized", "Admin token missing");
+            return;
+        }
 
-    try {
-        Swal.fire({
-            title: "Updating course...",
-            text: "Please wait",
-            allowOutsideClick: true,
-            allowEscapeKey: true,
-            didOpen: () => Swal.showLoading(),
-        });
+        try {
+            showLoading("Updating course...", "Please wait");
 
-        const fd = new FormData();
+            const fd = new FormData();
 
-        // =========================
-        // BASIC DETAILS
-        // =========================
-        fd.append("title", formData?.title || "");
-        fd.append("description", formData?.description || "");
+            // =========================
+            // BASIC DETAILS
+            // =========================
+            fd.append("title", formData?.title || "");
+            fd.append("description", formData?.description || "");
 
-        // =========================
-        // MODULES (EXISTING MEDIA ONLY)
-        // =========================
-        const modulesPayload = formData.modules.map((mod) => ({
-            id: mod.id,
-            title: mod.title || "",
-            uploadFiles: mod.media?.filter((f) => !(f instanceof File)) || [],
-        }));
+            // =========================
+            // MODULES (EXISTING MEDIA ONLY)
+            // =========================
+            const modulesPayload = formData.modules.map((mod) => ({
+                id: mod.id,
+                title: mod.title || "",
+                uploadFiles: mod.media?.filter((f) => !(f instanceof File)) || [],
+            }));
 
-        fd.append("modules", JSON.stringify(modulesPayload));
+            fd.append("modules", JSON.stringify(modulesPayload));
 
-        // =========================
-        // MODULE FILE UPLOADS (NEW FILES)
-        // =========================
-        formData.modules.forEach((mod, index) => {
-            mod.media?.forEach((file) => {
-                if (file instanceof File) {
-                    fd.append(`uploadFilesModule_${index + 1}`, file);
-                }
+            // =========================
+            // MODULE FILE UPLOADS (NEW FILES)
+            // =========================
+            formData.modules.forEach((mod, index) => {
+                mod.media?.forEach((file) => {
+                    if (file instanceof File) {
+                        fd.append(`uploadFilesModule_${index + 1}`, file);
+                    }
+                });
             });
-        });
 
-        // =========================
-        // ASSESSMENT
-        // =========================
-        const questionsPayload = formData.assessment.map((q) => ({
-            question: q.question || "",
-            options: q.options.map((o) => o.text),
-            answer: q.options.find((o) => o.correct)?.text || "",
-        }));
+            // =========================
+            // ASSESSMENT
+            // =========================
+            const questionsPayload = formData.assessment.map((q) => ({
+                question: q.question || "",
+                options: q.options.map((o) => o.text),
+                answer: q.options.find((o) => o.correct)?.text || "",
+            }));
 
-        fd.append("questions", JSON.stringify(questionsPayload));
+            fd.append("questions", JSON.stringify(questionsPayload));
 
-        // =========================
-        // SETTINGS
-        // =========================
-        fd.append(
-            "duration",
-            `${formData.settings.duration} ${formData.settings.durationType}`
-        );
-        fd.append("reTakeCourse", formData.settings.retake || "");
-        fd.append("passingConditionValue", formData.settings.passValue || "");
-        fd.append(
-            "setReminderEvery",
-            `${formData.settings.reminderValue} ${formData.settings.reminderType}`
-        );
-        fd.append("isCompulsory", "true");
+            // =========================
+            // SETTINGS
+            // =========================
+            fd.append(
+                "duration",
+                `${formData.settings.duration} ${formData.settings.durationType}`
+            );
+            fd.append("reTakeCourse", formData.settings.retake || "");
+            fd.append("passingConditionValue", formData.settings.passValue || "");
+            fd.append(
+                "setReminderEvery",
+                `${formData.settings.reminderValue} ${formData.settings.reminderType}`
+            );
+            fd.append("isCompulsory", "true");
 
-        // =========================
-        // CERTIFICATE
-        // =========================
-        fd.append("certificateTitle", formData.certificate.title || "");
+            // =========================
+            // CERTIFICATE
+            // =========================
+            fd.append("certificateTitle", formData.certificate.title || "");
 
-        if (formData.certificate.file instanceof File) {
-            fd.append("uploadCertificate", formData.certificate.file);
-        }
-
-        // =========================
-        // NOTIFIED USERS
-        // =========================
-        fd.append(
-            "notifiedUsers",
-            JSON.stringify(selectedCoachIds.map(Number))
-        );
-
-        // =========================
-        // API CALL
-        // =========================
-        const res = await fetch(
-            `${API_BASE_URL}/api/admin/course/update/${id}`,
-            {
-                method: "PUT",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: fd,
+            if (formData.certificate.file instanceof File) {
+                fd.append("uploadCertificate", formData.certificate.file);
             }
-        );
 
-        const result = await res.json();
+            // =========================
+            // NOTIFIED USERS
+            // =========================
+            fd.append(
+                "notifiedUsers",
+                JSON.stringify(selectedCoachIds.map(Number))
+            );
 
-        if (!res.ok) {
-            throw new Error(result?.message || "Course update failed");
+            // =========================
+            // API CALL
+            // =========================
+            const res = await fetch(
+                `${API_BASE_URL}/api/admin/course/update/${id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: fd,
+                }
+            );
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                throw new Error(result?.message || "Course update failed");
+            }
+
+            showSuccess("Course updated", "Your course has been updated successfully");
+
+            navigate("/configuration/coach-pro/courses");
+        } catch (error) {
+            showError("Failed", error.message || "Something went wrong");
+
+            console.error("ERROR:", error);
         }
-
-        Swal.fire({
-            icon: "success",
-            title: "Course updated",
-            text: "Your course has been updated successfully",
-            confirmButtonText: "OK",
-        });
-
-        navigate("/configuration/coach-pro/courses");
-    } catch (error) {
-        Swal.fire({
-            icon: "error",
-            title: "Failed",
-            text: error.message || "Something went wrong",
-        });
-
-        console.error("ERROR:", error);
-    }
-};
+    };
 
     useEffect(() => {
         fetchData();

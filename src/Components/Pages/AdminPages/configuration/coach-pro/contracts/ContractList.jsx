@@ -1,7 +1,7 @@
 import { Download, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback, useEffect } from "react";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../../../utils/swalHelper";
 import Loader from "../../../contexts/Loader";
 
 const ContractList = () => {
@@ -46,12 +46,7 @@ const ContractList = () => {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Failed to fetch contracts",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Failed to fetch contracts");
         } finally {
             setLoading(false);
         }
@@ -73,11 +68,7 @@ const ContractList = () => {
 
         try {
             setLoading(true);
-            Swal.fire({
-                title: "Creating Template...",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            showLoading("Creating Template...", "Please wait");
 
             const token = localStorage.getItem("adminToken");
 
@@ -106,14 +97,10 @@ const ContractList = () => {
                 throw new Error(json?.message || "Failed to create contract");
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: json?.message || "Contract template created successfully",
-            });
+            showSuccess("Success", json?.message || "Contract template created successfully");
 
             setOpenModal(false);
-            
+
             setFormData({
                 pdfFile: null,
                 title: "",
@@ -123,11 +110,7 @@ const ContractList = () => {
             });
             fetchData();
         } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -139,11 +122,7 @@ const ContractList = () => {
 
         setLoading(true);
 
-        Swal.fire({
-            title: "Downloading PDF...",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Downloading PDF...");
 
         try {
             const res = await fetch(
@@ -181,20 +160,12 @@ const ContractList = () => {
             // Cleanup
             a.remove();
             window.URL.revokeObjectURL(downloadUrl);
-            Swal.fire({
-                icon: "success",
-                title: "Downloaded",
-                text: "PDF downloaded successfully",
-            });
+            showSuccess("Downloaded", "PDF downloaded successfully");
 
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Download Failed",
-                text: err.message || "Something went wrong",
-            });
+            showError("Download Failed", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -208,29 +179,15 @@ const ContractList = () => {
     const handleDelete = async (id) => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire("Error", "Admin token missing", "error");
+            showError("Error", "Admin token missing");
             return;
         }
 
-        const result = await Swal.fire({
-            title: "Delete contract?",
-            text: "This action cannot be undone",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Yes, delete",
-        });
+        const result = await showConfirm("Delete contract?", "This action cannot be undone", "Yes, delete");
 
         if (!result.isConfirmed) return;
 
-        Swal.fire({
-            title: "Deleting...",
-            text: "Please wait",
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Deleting...", "Please wait");
 
         try {
             const res = await fetch(
@@ -245,21 +202,11 @@ const ContractList = () => {
             if (!res.ok) throw new Error(data?.message || "Delete failed");
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Deleted",
-                text: "Contract deleted successfully",
-                timer: 1500,
-                showConfirmButton: false,
-            });
+            showSuccess("Deleted", "Contract deleted successfully");
 
             fetchData();
         } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Delete failed",
-                text: err.message || "Something went wrong",
-            });
+            showError("Delete failed", err.message || "Something went wrong");
         }
     };
 

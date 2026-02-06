@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from '../../contexts/Loader';
 import { usePermission } from '../../Common/permission';
 import * as XLSX from "xlsx";
-import Swal from "sweetalert2";
+import { showError } from '../../../../../utils/swalHelper'; 
 import { useLocation } from "react-router-dom";
 
 import { saveAs } from "file-saver";
@@ -49,7 +49,7 @@ const CancellationList = () => {
     };
     const exportFreeTrials = () => {
         const dataToExport = [];
-console.log('bookFreeTrials', bookFreeTrials)
+        console.log('bookFreeTrials', bookFreeTrials)
         bookFreeTrials?.forEach((item) => {
             if (selectedStudents.length > 0 && !selectedStudents.includes(item.bookingId)) return;
 
@@ -268,12 +268,7 @@ console.log('bookFreeTrials', bookFreeTrials)
         const bookedDatesChecked = checkedStatuses.dateBooked;
         const trialDatesChecked = checkedStatuses.dateOfTrial;
         if ((fromDate && !toDate) || (!fromDate && toDate)) {
-            Swal.fire({
-                icon: "error",
-                title: "Missing Date",
-                text: "Please select both Start Date and End Date.",
-                confirmButtonColor: "#3085d6",
-            });
+            showError("Missing Date", "Please select both Start Date and End Date.");
             return; // Stop further execution
         }
         if (fromDate && toDate) {

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Select from "react-select";
 import { FaEye } from "react-icons/fa";
 import { Trash2, Copy } from 'lucide-react';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading, ThemeSwal } from "../../../../../utils/swalHelper";
 import { Editor } from '@tinymce/tinymce-react';
 import Loader from "../../contexts/Loader";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -116,12 +116,7 @@ export default function OnetoOneUpdate() {
             setSessionGroup(result.data || []);
         } catch (err) {
             console.error("Failed to fetch sessionGroup:", err);
-            await Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: err.message || "Something went wrong while fetching session groups",
-                confirmButtonColor: '#d33',
-            });
+            showError('Error', err.message || "Something went wrong while fetching session groups");
         } finally {
             setLoading(false);
         }
@@ -249,14 +244,7 @@ export default function OnetoOneUpdate() {
 
             try {
 
-                Swal.fire({
-                    title: isEditExcercise ? "Updating Exercise..." : "Saving Exercise...",
-                    text: "Please wait while we process your request.",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
+                showLoading(isEditExcercise ? "Updating Exercise..." : "Saving Exercise...", "Please wait while we process your request.");
 
 
                 const formdata = new FormData();
@@ -292,16 +280,7 @@ export default function OnetoOneUpdate() {
 
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: "success",
-                    text: "Your Exercise Has Been Saved Succesfylly!",
-
-                    title: isEditExcercise
-                        ? "Exercise updated successfully!"
-                        : "Exercise created successfully!",
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                showSuccess(isEditExcercise ? "Exercise updated successfully!" : "Exercise created successfully!", "Your Exercise Has Been Saved Succesfylly!");
                 emptyExcerCises();
                 setShowExerciseModal(false)
                 setRemovedImages([])
@@ -309,11 +288,7 @@ export default function OnetoOneUpdate() {
                 return result;
             } catch (err) {
                 // Show error alert
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: err.message || "Failed to save exercise. Please try again.",
-                });
+                showError("Error", err.message || "Failed to save exercise. Please try again.");
                 throw err;
             }
         },
@@ -326,12 +301,7 @@ export default function OnetoOneUpdate() {
 
             try {
                 // Show loading Swal
-                Swal.fire({
-                    title: "Duplicating Exercise...",
-                    text: "Please wait while the exercise is being duplicated.",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
+                showLoading("Duplicating Exercise...", "Please wait while the exercise is being duplicated.");
 
                 const response = await fetch(
                     `${API_BASE_URL}/api/admin/one-to-one/session-exercise-struture/${id}/duplicate`,
@@ -344,19 +314,13 @@ export default function OnetoOneUpdate() {
                 const result = await response.json();
                 await fetchExercises();
 
-                Swal.fire({
-                    icon: response.ok ? "success" : "error",
-                    title: response.ok ? "Exercise Duplicated!" : "Failed to Duplicate",
-                    text: result.message || (response.ok ? "Exercise duplicated successfully." : "Something went wrong."),
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
+                if (response.ok) {
+                    showSuccess("Exercise Duplicated!", result.message || "Exercise duplicated successfully.");
+                } else {
+                    showError("Failed to Duplicate", result.message || "Something went wrong.");
+                }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Duplicate",
-                    text: err.message || "Something went wrong while duplicating the exercise.",
-                });
+                showError("Failed to Duplicate", err.message || "Something went wrong while duplicating the exercise.");
                 console.error("Failed :", err);
             }
         },
@@ -368,7 +332,7 @@ export default function OnetoOneUpdate() {
             if (!token) return;
 
             try {
-                const result = await Swal.fire({
+                const result = await ThemeSwal.fire({
                     title: "Delete Exercise",
                     html: `
                     <div class="text-[15px] text-gray-700">
@@ -381,7 +345,7 @@ export default function OnetoOneUpdate() {
                     confirmButtonText: "Permanent Delete",
                     denyButtonText: "Just Remove",
                     cancelButtonText: "Cancel",
-                    confirmButtonColor: "#d33",
+                    confirmButtonColor: "#be185d", // Keeping specific colors if needed, or remove to use theme
                     denyButtonColor: "#3b82f6",
                     cancelButtonColor: "#6b7280",
                 });
@@ -396,7 +360,7 @@ export default function OnetoOneUpdate() {
                         exercises: prev.exercises.filter((ex) => ex.value !== id),
                     }));
 
-                    Swal.fire({
+                    ThemeSwal.fire({
                         icon: "info",
                         title: "Removed",
                         text: "Exercise removed from this group only.",
@@ -408,11 +372,7 @@ export default function OnetoOneUpdate() {
 
                 // 🔴 PERMANENT DELETE → Delete from database & remove from list
                 if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Deleting Exercise...",
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading(),
-                    });
+                    showLoading("Deleting Exercise...");
 
                     const response = await fetch(
                         `${API_BASE_URL}/api/admin/one-to-one/session-exercise-struture/delete/${id}`,
@@ -432,20 +392,14 @@ export default function OnetoOneUpdate() {
                         }));
                     }
 
-                    Swal.fire({
-                        icon: response.ok ? "success" : "error",
-                        title: response.ok ? "Deleted!" : "Failed",
-                        text: data.message || "Something went wrong.",
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
+                    if (response.ok) {
+                        showSuccess("Deleted!", data.message || "Something went wrong.");
+                    } else {
+                        showError("Failed", data.message || "Something went wrong.");
+                    }
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Delete",
-                    text: err.message || "Something went wrong.",
-                });
+                showError("Failed to Delete", err.message || "Something went wrong.");
                 console.error("Failed to delete Exercise:", err);
             }
         },
@@ -529,30 +483,15 @@ export default function OnetoOneUpdate() {
             console.log("📦 API Response:", data);
 
             if (response.ok && data.status) {
-                await Swal.fire({
-                    icon: "success",
-                    title: "Success",
-                    text: data.message || "Group updated successfully.",
-                    confirmButtonColor: "#237FEA",
-                });
+                await showSuccess("Success", data.message || "Group updated successfully.");
                 emptySession();
                 navigate('/one-to-one/session-plan')
             } else {
-                await Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: data.message || "Failed to update session group.",
-                    confirmButtonColor: "#d33",
-                });
+                await showError("Error", data.message || "Failed to update session group.");
             }
         } catch (err) {
             console.error("❌ Failed to create session group:", err);
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Something went wrong while creating the session group.",
-                confirmButtonColor: "#d33",
-            });
+            await showError("Error", "Something went wrong while creating the session group.");
         } finally {
             setLoading(false);
         }

@@ -18,16 +18,16 @@ import * as XLSX from "xlsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
-import Swal from "sweetalert2";
+import { showError, showWarning, showConfirm } from "../../../../../utils/swalHelper";
 const Coach = () => {
     const [selectedVenue, setSelectedVenue] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    const { recruitment, fetchRecruitment, fetchVenueNames, venues, statsRecruitment,createCoachRecruitment, sendCoachMail } = useRecruitmentTemplate() || {};
-    
-    
+    const { recruitment, fetchRecruitment, fetchVenueNames, venues, statsRecruitment, createCoachRecruitment, sendCoachMail } = useRecruitmentTemplate() || {};
+
+
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
@@ -56,7 +56,7 @@ const Coach = () => {
             Telephone: coach.phoneNumber,
             Email: coach.email,
             Experience: coach.managementExperience || "-",
-            qualification:coach.qualification||[],
+            qualification: coach.qualification || [],
             Status: coach.status
                 ? coach.status.charAt(0).toUpperCase() + coach.status.slice(1)
                 : "-"
@@ -155,12 +155,7 @@ const Coach = () => {
 
         for (let field of requiredFields) {
             if (!formData[field.key] || formData[field.key].toString().trim() === "") {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Missing Field",
-                    text: `${field.label} is required.`,
-                    confirmButtonColor: "#237FEA",
-                });
+                showWarning("Missing Field", `${field.label} is required.`);
                 return;
             }
         }
@@ -168,23 +163,13 @@ const Coach = () => {
         // ✅ Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Email",
-                text: "Please enter a valid email address.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Invalid Email", "Please enter a valid email address.");
             return;
         }
 
         // ✅ Phone validation
         if (formData.phoneNumber.length < 8) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Phone Number",
-                text: "Phone number must be at least 8 digits.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Invalid Phone Number", "Phone number must be at least 8 digits.");
             return;
         }
 
@@ -205,7 +190,7 @@ const Coach = () => {
             email: "",
             postcode: "",
             managementExperience: "",
-           qualification :[]
+            qualification: []
         });
 
         setIsOpen(false);
@@ -342,14 +327,11 @@ const Coach = () => {
     };
 
     const handleCoachMail = async (selectedIds) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to send the mail?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, send it',
-            cancelButtonText: 'Cancel',
-        });
+        const result = await showConfirm(
+            "Are you sure?",
+            "Do you want to send the mail?",
+            "Yes, send it"
+        );
 
         if (result.isConfirmed) {
             await sendCoachMail(selectedIds);
@@ -512,7 +494,7 @@ const Coach = () => {
     );
 
 
-    console.log('venues',venues)
+    console.log('venues', venues)
     if (loading) return <Loader />;
     return (
         <div className="flex gap-2">

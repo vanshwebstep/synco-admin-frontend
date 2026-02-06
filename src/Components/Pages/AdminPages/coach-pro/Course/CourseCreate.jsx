@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { GripVertical, MoreVertical, Plus } from "lucide-react";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading } from "../../../../../utils/swalHelper";
 import {
     DragDropContext,
     Droppable,
@@ -241,12 +241,7 @@ export default function CourseCreateForm() {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -259,22 +254,12 @@ export default function CourseCreateForm() {
 
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire({
-                icon: "error",
-                title: "Unauthorized",
-                text: "Admin token missing",
-            });
+            showError("Unauthorized", "Admin token missing");
             return;
         }
 
         try {
-            Swal.fire({
-                title: "Creating course...",
-                text: "Please wait",
-                allowOutsideClick: true,
-                allowEscapeKey: true,
-                didOpen: () => Swal.showLoading(),
-            });
+            showLoading("Creating course...", "Please wait");
 
             const fd = new FormData();
 
@@ -342,21 +327,12 @@ export default function CourseCreateForm() {
                 throw new Error(result?.message || "Course creation failed");
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Course Created",
-                text: result?.message || "Your course has been created successfully",
-                confirmButtonText: "OK",
-            });
+            showSuccess("Course Created", result?.message || "Your course has been created successfully");
 
             navigate("/configuration/coach-pro/courses");
 
         } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Failed",
-                text: error.message || "Something went wrong",
-            });
+            showError("Failed", error.message || "Something went wrong");
 
             console.error("ERROR:", error);
         }
@@ -792,24 +768,24 @@ export default function CourseCreateForm() {
                                                 />
 
 
-                                                    <select
-                                                        value={formData.settings.durationType}
-                                                        onChange={(e) =>
-                                                            setFormData({
-                                                                ...formData,
-                                                                settings: { ...formData.settings, durationType: e.target.value },
-                                                            })
-                                                        }
-                                                        className={`${inputClass}  ${errors.duration ? "border-red-500" : ""}`}
-                                                    >
-                                                        <option value=''>Select Duration</option>
-                                                        <option value='Minutes'>Minutes</option>
-                                                        <option value='Hours'>Hours</option>
-                                                        <option value='Days'>Days</option>
-                                                    </select>
-                                                    {errors.durationType && (
-                                                        <p className="text-red-500 text-sm pt-1">{errors.durationType}</p>
-                                                    )}
+                                                <select
+                                                    value={formData.settings.durationType}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            settings: { ...formData.settings, durationType: e.target.value },
+                                                        })
+                                                    }
+                                                    className={`${inputClass}  ${errors.duration ? "border-red-500" : ""}`}
+                                                >
+                                                    <option value=''>Select Duration</option>
+                                                    <option value='Minutes'>Minutes</option>
+                                                    <option value='Hours'>Hours</option>
+                                                    <option value='Days'>Days</option>
+                                                </select>
+                                                {errors.durationType && (
+                                                    <p className="text-red-500 text-sm pt-1">{errors.durationType}</p>
+                                                )}
                                             </div>
 
                                             <p className="text-gray-500 text-sm mt-2">
@@ -966,9 +942,9 @@ export default function CourseCreateForm() {
                                                     <option value='Hours'>Hours</option>
                                                     <option value='Days'>Days</option>
                                                 </select>
-   {errors.reminderType && (
-                                                <p className="text-red-500 text-sm mt-1">{errors.reminderType}</p>
-                                            )}
+                                                {errors.reminderType && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.reminderType}</p>
+                                                )}
                                             </div>
 
                                             {errors.reminderType && (

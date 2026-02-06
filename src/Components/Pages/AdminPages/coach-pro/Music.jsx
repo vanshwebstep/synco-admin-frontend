@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward, Upload, MoreVertical, Repeat, Trash2, Edit } from "lucide-react";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../utils/swalHelper";
 import Loader from "../contexts/Loader";
 export default function MusicPlayer() {
     const audioRef = useRef(null);
@@ -24,7 +24,7 @@ export default function MusicPlayer() {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     /* ===================== AUDIO INIT ===================== */
-    
+
     const handleFileSelect = (e, type) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -134,12 +134,7 @@ export default function MusicPlayer() {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -177,18 +172,18 @@ export default function MusicPlayer() {
 
     const handleSaveUpload = async () => {
         if (!audioFile) {
-            Swal.fire("Error", "Please select an audio file", "error");
+            showError("Error", "Please select an audio file");
             return;
         }
 
         if (!coverFile) {
-            Swal.fire("Error", "Please select a cover photo", "error");
+            showError("Error", "Please select a cover photo");
             return;
         }
 
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire("Error", "Admin token missing", "error");
+            showError("Error", "Admin token missing");
             return;
         }
 
@@ -196,12 +191,7 @@ export default function MusicPlayer() {
         formData.append("uploadMusic", audioFile);   // 🎵 audio
         formData.append("musicImage", coverFile);    // 🖼 cover photo
 
-        Swal.fire({
-            title: "Uploading...",
-            text: "Please wait",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Uploading...", "Please wait");
 
         try {
             const res = await fetch(
@@ -218,13 +208,7 @@ export default function MusicPlayer() {
             const data = await res.json();
             if (!res.ok) throw new Error(data?.message || "Upload failed");
 
-            Swal.fire({
-                icon: "success",
-                title: "Uploaded",
-                text: "Music uploaded successfully",
-                timer: 1500,
-                showConfirmButton: false,
-            });
+            showSuccess("Uploaded", "Music uploaded successfully");
 
             // cleanup
             setAudioFile(null);
@@ -234,7 +218,7 @@ export default function MusicPlayer() {
             fetchData();
 
         } catch (err) {
-            Swal.fire("Error", err.message || "Upload failed", "error");
+            showError("Error", err.message || "Upload failed");
         }
     };
 
@@ -242,31 +226,17 @@ export default function MusicPlayer() {
     const handleDelete = async (id) => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            Swal.fire("Error", "Admin token missing", "error");
+            showError("Error", "Admin token missing");
             return;
         }
 
         // 🔴 Confirmation
-        const result = await Swal.fire({
-            title: "Delete music?",
-            text: "This action cannot be undone",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6b7280",
-            confirmButtonText: "Yes, delete",
-        });
+        const result = await showConfirm("Delete music?", "This action cannot be undone", "Yes, delete");
 
         if (!result.isConfirmed) return;
 
         // 🔵 Loading
-        Swal.fire({
-            title: "Deleting...",
-            text: "Please wait",
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Deleting...", "Please wait");
 
         try {
             const res = await fetch(
@@ -286,22 +256,12 @@ export default function MusicPlayer() {
             }
 
             // ✅ Success
-            Swal.fire({
-                icon: "success",
-                title: "Deleted",
-                text: "Music deleted successfully",
-                timer: 1500,
-                showConfirmButton: false,
-            });
+            showSuccess("Deleted", "Music deleted successfully");
 
             fetchData();
         } catch (err) {
             // ❌ Error
-            Swal.fire({
-                icon: "error",
-                title: "Delete failed",
-                text: err.message || "Something went wrong",
-            });
+            showError("Delete failed", err.message || "Something went wrong");
         }
     };
 
@@ -319,14 +279,7 @@ export default function MusicPlayer() {
 
         try {
             // Loading alert
-            Swal.fire({
-                title: "Updating...",
-                text: "Please wait",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            showLoading("Updating...", "Please wait");
 
             const res = await fetch(
                 `${API_BASE_URL}/api/admin/music-player/update/${id}`,
@@ -347,13 +300,7 @@ export default function MusicPlayer() {
             }
 
             // Success alert
-            Swal.fire({
-                icon: "success",
-                title: "Updated",
-                text: "Music title updated successfully",
-                timer: 2000,
-                showConfirmButton: false,
-            });
+            showSuccess("Updated", "Music title updated successfully");
 
             setTitle("");
             setId("");
@@ -361,11 +308,7 @@ export default function MusicPlayer() {
 
         } catch (error) {
             // Error alert
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong",
-            });
+            showError("Error", error.message || "Something went wrong");
         }
     };
 

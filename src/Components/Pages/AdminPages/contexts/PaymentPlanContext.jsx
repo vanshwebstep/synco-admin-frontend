@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError } from '../../../../utils/swalHelper';
 import { useNavigate } from 'react-router-dom';
 
 const PaymentPlanContext = createContext();
@@ -119,24 +119,24 @@ export const PaymentPlanContextProvider = ({ children }) => {
   }, [token]);
 
   // Fetch group by ID
-const fetchGroupById = useCallback(async (id) => {
-  if (!token) return null;
-  setLoading(true);
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/admin/payment-group/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const result = await res.json();
-    const group = result.data || null;
-    setSelectedGroup(group);
-    return group; // ✅ RETURN the group data
-  } catch (err) {
-    console.error("Failed to fetch group:", err);
-    return null;
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
+  const fetchGroupById = useCallback(async (id) => {
+    if (!token) return null;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/payment-group/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      const group = result.data || null;
+      setSelectedGroup(group);
+      return group; // ✅ RETURN the group data
+    } catch (err) {
+      console.error("Failed to fetch group:", err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
 
   // Create group
@@ -165,83 +165,60 @@ const fetchGroupById = useCallback(async (id) => {
 
       if (response.ok) {
         const result = await response.json();
-         console.log(result);
+        console.log(result);
 
         await fetchGroups();
 
-        await Swal.fire({
-          icon: 'success',
-          title: `${result.message}`,
-        
-        });
+        showSuccess(result.message);
         navigate('/configuration/weekly-classes/subscription-planManager');
 
       } else {
         const errorText = await response.text();
         console.error("Server Error:", errorText);
 
-        await Swal.fire({
-          icon: 'error',
-          title: 'Failed!',
-          text: 'Could not create the payment group. Please check your input.',
-        });
+        showError('Failed!', 'Could not create the payment group. Please check your input.');
       }
 
     } catch (error) {
       console.error("Failed to create group:", error);
 
-      await Swal.fire({
-        icon: 'error',
-        title: 'Oops!',
-        text: 'Something went wrong while creating the group.',
-      });
+      showError('Oops!', 'Something went wrong while creating the group.');
     }
   }, [token, fetchGroups, navigate]);
 
-const updateGroup = useCallback(async (id, data) => {
-  if (!token) return;
+  const updateGroup = useCallback(async (id, data) => {
+    if (!token) return;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/payment-group/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-
-      await Swal.fire({
-        icon: 'success',
-        title: result.message || 'Group updated successfully!',
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/payment-group/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
       });
 
-      navigate('/configuration/weekly-classes/subscription-planManager');
-    } else {
-      const errorData = await response.json(); // ✅ Parse JSON error body
+      if (response.ok) {
+        const result = await response.json();
 
-      console.error("Server Error:", errorData);
+        showSuccess(result.message || 'Group updated successfully!');
 
-      await Swal.fire({
-        icon: 'error',
-        title: 'Failed!',
-        text: errorData.message || 'Could not update the group. Please try again.',
-      });
+        navigate('/configuration/weekly-classes/subscription-planManager');
+      } else {
+        const errorData = await response.json(); // ✅ Parse JSON error body
+
+        console.error("Server Error:", errorData);
+
+        showError('Failed!', errorData.message || 'Could not update the group. Please try again.');
+      }
+
+    } catch (err) {
+      console.error("Failed to update package:", err);
+
+      showError('Oops!', 'Something went wrong while updating the group.');
     }
-
-  } catch (err) {
-    console.error("Failed to update package:", err);
-
-    await Swal.fire({
-      icon: 'error',
-      title: 'Oops!',
-      text: 'Something went wrong while updating the group.',
-    });
-  }
-}, [token, navigate]);
+  }, [token, navigate]);
 
   // Assign plans to group
   const assignPlansToGroup = useCallback(async (groupId, planIds) => {
@@ -263,6 +240,7 @@ const updateGroup = useCallback(async (id, data) => {
   // Delete group
   const deleteGroup = useCallback(async (id) => {
     if (!token) return;
+    setLoading(true);
     try {
       await fetch(`${API_BASE_URL}/api/admin/payment-group/${id}`, {
         method: "DELETE",
@@ -271,6 +249,8 @@ const updateGroup = useCallback(async (id, data) => {
       await fetchGroups();
     } catch (err) {
       console.error("Failed to delete group:", err);
+    } finally {
+      setLoading(false);
     }
   }, [token, fetchGroups]);
 
@@ -281,6 +261,7 @@ const updateGroup = useCallback(async (id, data) => {
         packages,
         setPackages,
         loading,
+        setLoading,
         selectedPackage,
         fetchPackages,
         fetchPackageById,

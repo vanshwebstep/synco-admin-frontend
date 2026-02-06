@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from "lucide-react";
-import Swal from "sweetalert2"; // make sure it's installed
 import Loader from '../../../contexts/Loader';
 import { usePermission } from '../../../Common/permission';
 import { useHolidayPayments } from '../../../contexts/HolidayPaymentContext';
+import { showConfirm, showError } from '../../../../../../utils/swalHelper';
 const HolidaySubscriptionPlanManager = () => {
   const { fetchGroups, groups, deleteGroup, fetchGroupById, selectedGroup, loading } = useHolidayPayments();
   const navigate = useNavigate();
@@ -51,25 +51,18 @@ const HolidaySubscriptionPlanManager = () => {
   };
 
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This action will permanently delete the group.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#aaa",
-      confirmButtonText: "Yes, delete it",
-    });
+    showConfirm("Are you sure you want to delete this group? This action cannot be undone.").then(async (result) => {
 
-    if (result.isConfirmed) {
-      try {
-        await deleteGroup(id); // from usePayments()
-        Swal.fire("Deleted!", "The group has been deleted.", "success");
-      } catch (err) {
-        Swal.fire("Error", "Failed to delete the group.", "error");
+      if (result.isConfirmed) {
+        try {
+          await deleteGroup(id); // from usePayments()
+          showError("Group deleted successfully");
+        } catch (err) {
+          showError("Failed to delete the group.");
+        }
       }
-    }
-  };
+    });
+  }
   if (loading) {
     return (
       <>

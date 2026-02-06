@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2";
-
+import { showSuccess, showError, showLoading } from "../../../../utils/swalHelper";
 const AccountsInfoContext = createContext();
 
 export const AccountsInfoProvider = ({ children }) => {
@@ -20,97 +19,73 @@ export const AccountsInfoProvider = ({ children }) => {
   const [historyActiveTab, setHistoryActiveTab] = useState('General');
 
   const handleUpdate = async (title, mainData) => {
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", `Bearer ${token}`);
-    let raw;
-    console.log('mainData', mainData)
-    if (title == "students") {
-      raw = JSON.stringify({
-        'student': mainData,
-      });
-
+    if (!token) {
+      return showError("Error", "Token not found. Please login again.");
     }
-    if (title == "parents") {
-      raw = JSON.stringify({
-        'parentDetails': mainData,
-      });
-
-    }
-    if (title == "emergency") {
-      raw = JSON.stringify({
-        'emergencyDetails': mainData,
-      });
-
-    }
-    const requestOptions = {
-      method: "PUT",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow",
-    };
 
     try {
-      // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Updating...", "Please wait while we save changes.");
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/one-to-one/booking/update/${oneToOneData?.id}`, requestOptions);
-      const result = await response.json();
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      let raw = {};
+
+      if (title === "students") {
+        raw = { student: mainData };
+      } else if (title === "parents") {
+        raw = { parentDetails: mainData };
+      } else if (title === "emergency") {
+        raw = { emergencyDetails: mainData };
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/one-to-one/leads/update/${oneToOneData?.id}`,
+        {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(raw),
+        }
+      );
 
       if (!response.ok) {
-        const errorText = await result.message;
+        const errorText = await response.text();
         throw new Error(errorText || "Something went wrong");
       }
 
+      const result = await response.json();
 
-      // Close loading
-      Swal.close();
+      await showSuccess(
+        "Updated!",
+        "Student information has been successfully updated."
+      );
 
-      // Show success
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Student information has been successfully updated.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
       fetchOneToOneMembers(oneToOneData?.id);
 
-      console.log("Update Result:", result);
       return result;
     } catch (error) {
-      Swal.close();
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      await showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
-  const handleUpdateAcountInfo = async (title, mainData) => {
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+
+
+  const handleUpdateAccountInfo = async (title, mainData) => {
+    if (!token) return showError("Error", "Token not found. Please login again.");
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", `Bearer ${token}`);
     let raw;
-    if (title == "students") {
+    if (title === "students") {
       raw = JSON.stringify({
         bookingTrialId: data.id,
         'students': mainData,
       });
 
     }
-    if (title == "parents") {
+    if (title === "parents") {
       raw = JSON.stringify({
         bookingTrialId: data.id,
 
@@ -118,7 +93,7 @@ export const AccountsInfoProvider = ({ children }) => {
       });
 
     }
-    if (title == "emergency") {
+    if (title === "emergency") {
       raw = JSON.stringify({
         bookingTrialId: data.id,
         'emergency': mainData,
@@ -135,15 +110,7 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Updating...", "Please wait while we save changes.");
 
       const response = await fetch(`${API_BASE_URL}/api/admin/account-information/${mainId}`, requestOptions);
 
@@ -154,52 +121,39 @@ export const AccountsInfoProvider = ({ children }) => {
 
       const result = await response.json();
 
-      // Close loading
-      Swal.close();
 
       // Show success
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Student information has been successfully updated.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      await showSuccess("Updated!", "Information has been successfully updated.");
+
       fetchMembers(mainId);
       console.log("Update Result:", result);
       return result;
     } catch (error) {
-      Swal.close();
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      await showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
   const handleUpdateBirthday = async (title, mainData) => {
 
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+    if (!token) return showError("Error", "Token not found. Please login again.");
     console.log('mainData', mainData)
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", `Bearer ${token}`);
     let raw;
-    if (title == "students") {
+    if (title === "students") {
       raw = JSON.stringify({
         'student': mainData,
       });
 
     }
-    if (title == "parents") {
+    if (title === "parents") {
       raw = JSON.stringify({
 
         'parentDetails': mainData,
       });
 
     }
-    if (title == "emergency") {
+    if (title === "emergency") {
       raw = JSON.stringify({
         'emergencyDetails': mainData,
       });
@@ -215,15 +169,7 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Updating...", "Please wait while we save changes.");
 
       const response = await fetch(`${API_BASE_URL}/api/admin/birthday-party/booking/update/${data.id}`, requestOptions);
 
@@ -234,51 +180,38 @@ export const AccountsInfoProvider = ({ children }) => {
 
       const result = await response.json();
 
-      // Close loading
-      Swal.close();
 
       // Show success
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Student information has been successfully updated.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      await showSuccess("Updated!", "Information has been successfully updated.");
+
       fetchBirthdyPartiesMembers(data.id);
       return result;
     } catch (error) {
-      Swal.close();
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      await showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
   const handleUpdateHoliday = async (title, mainData) => {
 
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+    if (!token) return showError("Error", "Token not found. Please login again.");
     console.log('mainData', mainData)
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", `Bearer ${token}`);
     let raw;
-    if (title == "students") {
+    if (title === "students") {
       raw = JSON.stringify({
         'students': mainData,
       });
 
     }
-    if (title == "parents") {
+    if (title === "parents") {
       raw = JSON.stringify({
 
         'parents': mainData,
       });
 
     }
-    if (title == "emergencyContacts") {
+    if (title === "emergencyContacts") {
       raw = JSON.stringify({
         'emergencyContacts': mainData,
       });
@@ -294,15 +227,7 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Updating...", "Please wait while we save changes.");
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/booking/update/${data.id}`, requestOptions);
 
@@ -319,27 +244,14 @@ export const AccountsInfoProvider = ({ children }) => {
 
       const result = await response.json();
 
-      // Close loading
-      Swal.close();
 
       // Show success
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Student information has been successfully updated.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      await showSuccess("Updated!", "Information has been successfully updated.");
+
       fetchHolidayCamps(data.id);
       return result;
     } catch (error) {
-      Swal.close();
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      await showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
   const mapServiceType = (serviceType) => {
@@ -386,14 +298,7 @@ export const AccountsInfoProvider = ({ children }) => {
         const resultRaw = await response.json();
 
         if (!resultRaw.status) {
-          Swal.fire({
-            icon: "error",
-            title: "Fetch Failed",
-            text:
-              resultRaw.message ||
-              "Something went wrong while fetching account information.",
-            confirmButtonText: "Ok",
-          });
+          await showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching account information.");
           return;
         }
         const isBookingBasedService = (serviceType) => {
@@ -422,14 +327,7 @@ export const AccountsInfoProvider = ({ children }) => {
       } catch (error) {
         console.error("Failed to fetch members:", error);
 
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text:
-            error.message ||
-            "Something went wrong while fetching account information.",
-          confirmButtonText: "Ok",
-        });
+        await showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
       } finally {
         setLoading(false);
       }
@@ -451,12 +349,7 @@ export const AccountsInfoProvider = ({ children }) => {
 
       // Check API response status
       if (!resultRaw.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: resultRaw.message || "Something went wrong while fetching account information.",
-          confirmButtonText: "Ok",
-        });
+        await showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching account information.");
         return; // Stop further execution
       }
 
@@ -472,12 +365,7 @@ export const AccountsInfoProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch members:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching account information.",
-        confirmButtonText: "Ok",
-      });
+      await showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
     } finally {
       setLoading(false);
     }
@@ -497,12 +385,7 @@ export const AccountsInfoProvider = ({ children }) => {
 
       // Check API response status
       if (!resultRaw.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: resultRaw.message || "Something went wrong while fetching account information.",
-          confirmButtonText: "Ok",
-        });
+        await showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching account information.");
         return; // Stop further execution
       }
 
@@ -517,12 +400,7 @@ export const AccountsInfoProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch members:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching account information.",
-        confirmButtonText: "Ok",
-      });
+      await showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
     } finally {
       setLoading(false);
     }
@@ -542,12 +420,7 @@ export const AccountsInfoProvider = ({ children }) => {
 
       // Check API response status
       if (!resultRaw?.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: resultRaw.message || "Something went wrong while fetching account information.",
-          confirmButtonText: "Ok",
-        });
+        await showError("Fetch Failed", resultRaw.message || "Something went wrong while fetching account information.");
         return; // Stop further execution
       }
 
@@ -560,12 +433,7 @@ export const AccountsInfoProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch members:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message || "Something went wrong while fetching account information.",
-        confirmButtonText: "Ok",
-      });
+      await showError("Fetch Failed", error.message || "Something went wrong while fetching account information.");
     } finally {
       setLoading(false);
     }
@@ -592,29 +460,18 @@ export const AccountsInfoProvider = ({ children }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create Membership");
+        throw new Error(result.message || "Failed to send email");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Email has been sent successfully.");
 
       return result;
 
     } catch (error) {
-      console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      console.error("Error sending email:", error);
+      await showError("Error", error.message || "Something went wrong while sending email.");
       throw error;
     } finally {
-      // await fetchOneToOneMembers(data.id);
       setLoading(false);
     }
   };
@@ -640,29 +497,18 @@ export const AccountsInfoProvider = ({ children }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create Membership");
+        throw new Error(result.message || "Failed to send email");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Email has been sent successfully.");
 
       return result;
 
     } catch (error) {
-      console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      console.error("Error sending email:", error);
+      await showError("Error", error.message || "Something went wrong while sending email.");
       throw error;
     } finally {
-      // await fetchOneToOneMembers(data.id);
       setLoading(false);
     }
   };
@@ -677,7 +523,7 @@ export const AccountsInfoProvider = ({ children }) => {
       headers["Authorization"] = `Bearer ${token}`;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/birthday-party/leads/send-email`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/holiday/leads/send-email`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -688,71 +534,58 @@ export const AccountsInfoProvider = ({ children }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create Membership");
+        throw new Error(result.message || "Failed to send email");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Email has been sent successfully.");
 
       return result;
 
     } catch (error) {
-      console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      console.error("Error sending email:", error);
+      await showError("Error", error.message || "Something went wrong while sending email.");
       throw error;
     } finally {
-      // await fetchOneToOneMembers(data.id);
       setLoading(false);
     }
   };
 
-const fetchFeedback = useCallback(async () => {
-  const token = localStorage.getItem("adminToken");
-  if (!token) return;
+  const fetchFeedback = useCallback(async () => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
 
-  setLoading(true);
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/feedback/list`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const resultRaw = await response.json();
-
-    if (!resultRaw?.status) {
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: resultRaw.message || "Something went wrong while fetching Feedback.",
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/feedback/list`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
       });
-      return;
-    }
 
-    setFeedbackData(resultRaw.data || []);
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Fetch Failed",
-      text: error.message || "Something went wrong while fetching account information.",
-    });
-  } finally {
-    setLoading(false);
-  }
-}, []); // ✅ stable forever
+      const resultRaw = await response.json();
+
+      if (!resultRaw?.status) {
+        await showError(
+          "Fetch Failed",
+          resultRaw.message || "Something went wrong while fetching Feedback."
+        );
+        return;
+      }
+
+      setFeedbackData(resultRaw.data || []);
+    } catch (error) {
+      await showError(
+        "Fetch Failed",
+        error.message || "Something went wrong while fetching feedback."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL]);
 
 
 
   return (
-    <AccountsInfoContext.Provider value={{ data, sendHolidayMail, handleUpdateHoliday, fetchHolidayCamps, oneToOneData, historyActiveTab, setHistoryActiveTab, handleUpdateAcountInfo, sendOnetoOneMail, sendBirthdayMail, handleUpdateBirthday, fetchBirthdyPartiesMembers, fetchMembers, fetchOneToOneMembers, setData, students, setStudents, loading, setLoading, formData, setFormData, emergency, setEmergency, handleUpdate, mainId, setMainId, fetchFeedback, feedbackData, setFeedbackData }}>
+    <AccountsInfoContext.Provider value={{ data, sendHolidayMail, handleUpdateHoliday, fetchHolidayCamps, oneToOneData, historyActiveTab, setHistoryActiveTab, handleUpdateAccountInfo, sendOnetoOneMail, sendBirthdayMail, handleUpdateBirthday, fetchBirthdyPartiesMembers, fetchMembers, fetchOneToOneMembers, setData, students, setStudents, loading, setLoading, formData, setFormData, emergency, setEmergency, handleUpdate, mainId, setMainId, fetchFeedback, feedbackData, setFeedbackData }}>
       {children}
     </AccountsInfoContext.Provider>
   );

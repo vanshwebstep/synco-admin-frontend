@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Swal from "sweetalert2";
 import Select from "react-select";
 import { useHolidayVenue } from "../../../contexts/HolidayVenueContext";
+import { showError } from "../../../../../../utils/swalHelper";
 
 const Create = ({ groups, termGroup }) => {
 
@@ -35,12 +35,8 @@ const Create = ({ groups, termGroup }) => {
   const handleSubmit = () => {
     const err = validateForm();
     if (err) {
-      Swal.fire({
-        title: 'Validation Error',
-        text: err,
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+      showError('Validation Error', err);
+      
       return; // stop here
     }
 
@@ -67,12 +63,7 @@ const Create = ({ groups, termGroup }) => {
   const handleUpdate = (id) => {
     const err = validateForm();
     if (err) {
-      Swal.fire({
-        title: 'Validation Error',
-        text: err,
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+      showError('Validation Error', err);
       return; // stop here, don't close
     }
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError } from "../../../../utils/swalHelper";
 import { useNavigate } from 'react-router-dom';
 
 const SessionPlanContext = createContext();
@@ -93,12 +93,7 @@ export const SessionPlanContextProvider = ({ children }) => {
           xhr.send(fd);
         });
 
-        await Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: "Group created successfully.",
-          confirmButtonColor: "#237FEA",
-        });
+        await showSuccess("Success!", "Group created successfully.");
 
         if (shouldRedirect) {
           navigate("/configuration/weekly-classes/session-plan-list");
@@ -106,11 +101,7 @@ export const SessionPlanContextProvider = ({ children }) => {
 
       } catch (err) {
         console.error(err);
-        await Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: err.message || "Upload failed",
-        });
+        await showError("Error", err.message || "Upload failed");
       } finally {
         setProgressLoading(false);
         resetProgress();
@@ -308,21 +299,11 @@ export const SessionPlanContextProvider = ({ children }) => {
 
       await fetchSessionGroup();
 
-      await Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: result.message || 'Discount created successfully.',
-        confirmButtonColor: '#237FEA'
-      });
+      await showSuccess("Success!", result.message || "Discount created successfully.");
 
       navigate('/weekly-classes/sessionGroup/list');
     } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed to Create Discount',
-        text: err.message || 'An unexpected error occurred.',
-        confirmButtonColor: '#d33'
-      });
+      showError("Failed to Create Discount", err.message || "An unexpected error occurred.");
 
       console.error("Failed to create discount:", err);
     } finally {
@@ -399,22 +380,13 @@ export const SessionPlanContextProvider = ({ children }) => {
 
       if (!response.ok) throw new Error(result.message || "Failed to update");
 
-      await Swal.fire({
-        icon: "success",
-        title: "Success",
-        text: result.message || "Level updated successfully.",
-        confirmButtonColor: "#237FEA",
-      });
+      await showSuccess("Success!", result.message || "Level updated successfully.");
 
       navigate("/configuration/weekly-classes/session-plan-list");
       await fetchSessionGroup();
     } catch (err) {
       console.error("Failed to update discount:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Something went wrong.",
-      });
+      await showError("Error", err.message || "Something went wrong.");
     } finally {
       setLoading(false); // 🔵 End loading
     }

@@ -4,9 +4,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Swal from 'sweetalert2';
 import { Eye, EyeOff } from 'lucide-react';
-
+import { showSuccess, showError } from '../utils/swalHelper';
 const StepModal = ({ isOpen, onClose, email }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -185,10 +184,10 @@ const ForgotPassword = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const fetchWithTimeout = (url, options, timeout = 10000) => {
     return Promise.race([
@@ -202,21 +201,17 @@ const validateEmail = (email) => {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
 
- if (!email || !validateEmail(email)) {
-    Swal.fire({
-      icon: "error",
-      title: "Invalid Email",
-      text: "Please enter a valid email address.",
-    });
-    return;
-  }
+    if (!email || !validateEmail(email)) {
+      showError("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
 
     setLoading(true);
 
     const url = `${API_BASE_URL}/api/admin/auth/password/forget`;
 
     try {
-       console.log('Sending forgot password request to:', url);
+      console.log('Sending forgot password request to:', url);
 
       const res = await fetchWithTimeout(url, {
         method: 'POST',
@@ -227,39 +222,17 @@ const validateEmail = (email) => {
       });
 
       const result = await res.json();
-       console.log('Response from server:', result);
+      console.log('Response from server:', result);
 
       if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: result.message || 'Email Sent!',
-          html: `
-    <p class="swal-subtext">Please check your inbox and follow the instructions.</p>
-  `,
-          customClass: {
-            popup: 'rounded-xl p-6',
-            title: 'text-[20px] font-semibold text-green-600',
-            htmlContainer: 'text-[16px] text-gray-700',
-          },
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#3085d6',
-          buttonsStyling: true,
-        });
+        showSuccess(result.message || 'Email Sent!', 'Please check your inbox and follow the instructions.');
 
       } else {
-        Swal.fire({
-          icon: 'error', // or 'success' if it's a success message
-          title: 'Oops...',
-          text: result.message || 'Failed to send password reset email.',
-        });
+        showError('Oops...', result.message || 'Failed to send password reset email.');
       }
     } catch (err) {
       console.error('Error during forgot password request:', err);
-      Swal.fire({
-        icon: 'error', // or 'success' if it's a success message
-        title: 'Oops...',
-        text: 'Server error: ' + err.message,
-      });
+      showError('Oops...', 'Server error: ' + err.message);
     } finally {
       setLoading(false);
     }

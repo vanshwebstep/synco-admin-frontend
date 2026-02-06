@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
-import Swal from "sweetalert2";
 import { useNotification } from '../../../contexts/NotificationContext';
 import { Check, Mail, MessageSquare, Search, X } from "lucide-react";
 import { IoIosArrowDown } from "react-icons/io";
 import { motion } from "framer-motion";
 import { IoMdCheckmarkCircle } from "react-icons/io";
 import Select from "react-select";
+import { showError, showSuccess } from '../../../../../../utils/swalHelper';
 const dateOptions = [
   { value: "2025-01-01", label: "Jan 01 2025" },
   { value: "2025-01-02", label: "Jan 02 2025" },
@@ -47,7 +47,7 @@ const CandidateVenueDetails = () => {
   const [qualification, setQualification] = useState("");
   const [experience, setExperience] = useState("");
   const [venues, setVenues] = useState([]);
-
+  const [loading, setLoading] = useState(false)
   const handleVenueChange = (slot) => {
     setVenues((prev) =>
       prev.includes(slot)
@@ -102,13 +102,8 @@ const CandidateVenueDetails = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
     }
   }, []);
 
@@ -133,13 +128,7 @@ const CandidateVenueDetails = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -147,33 +136,21 @@ const CandidateVenueDetails = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError(result.message || "Something went wrong.");
         return;
       }
 
+      showSuccess(result.message || " Comment has been  added successfully!");
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
 
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -406,7 +383,7 @@ const CandidateVenueDetails = () => {
                   How many years football coaching experience do you have?
                 </p>
                 <div className="space-y-2">
-                  {["0-1 year", "2 years", "3 years", "More than 3 years" , "None"].map((yr) => (
+                  {["0-1 year", "2 years", "3 years", "More than 3 years", "None"].map((yr) => (
                     <label key={yr} className="flex items-center gap-3 cursor-pointer select-none">
 
                       <input

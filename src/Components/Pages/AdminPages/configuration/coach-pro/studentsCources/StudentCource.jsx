@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading } from "../../../../../../utils/swalHelper";
 
 import {
   DragDropContext,
@@ -88,11 +88,7 @@ export default function StudentCourse() {
         Advance: json?.data?.Advanced ?? [],
       });
     } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Something went wrong",
-      });
+      showError("Error", err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -101,31 +97,21 @@ export default function StudentCourse() {
   const handleDelete = async (id) => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
-      Swal.fire("Error", "Admin token missing", "error");
+      showError("Error", "Admin token missing");
       return;
     }
 
     // 🔴 Confirmation
-    const result = await Swal.fire({
-      title: "Delete course?",
-      text: "This action cannot be undone",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, delete",
-    });
+    const result = await showConfirm(
+      "Delete course?",
+      "This action cannot be undone",
+      "Yes, delete"
+    );
 
     if (!result.isConfirmed) return;
 
     // 🔵 Loading
-    Swal.fire({
-      title: "Deleting...",
-      text: "Please wait",
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => Swal.showLoading(),
-    });
+    showLoading("Deleting...");
 
     try {
       const res = await fetch(
@@ -140,22 +126,13 @@ export default function StudentCourse() {
       if (!res.ok) throw new Error(data?.message || "Delete failed");
 
       // ✅ Success
-      Swal.fire({
-        icon: "success",
-        title: "Deleted",
-        text: "course deleted successfully",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      showSuccess("Deleted", "course deleted successfully");
 
       fetchData();
     } catch (err) {
       // ❌ Error
-      Swal.fire({
-        icon: "error",
-        title: "Delete failed",
-        text: err.message || "Something went wrong",
-      });
+      // ❌ Error
+      showError("Delete failed", err.message || "Something went wrong");
     }
   };
 

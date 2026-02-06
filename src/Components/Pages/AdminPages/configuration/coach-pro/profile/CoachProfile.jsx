@@ -5,7 +5,7 @@ import InvoicePdf from "./InvoicePdf";
 import { useCoachPro } from "../../../contexts/CoachProContext";
 import { useVenue } from "../../../contexts/VenueContext";
 import Loader from '../../../contexts/Loader';
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm } from "../../../../../../utils/swalHelper";
 
 import Select from "react-select";
 
@@ -300,35 +300,16 @@ export default function CoachProfile() {
     }
   };
   const handleDeleteVenue = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This venue allocation will be permanently deleted.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it",
-      cancelButtonText: "Cancel",
-    });
+    const result = await showConfirm("Are you sure?", "This venue allocation will be permanently deleted.", "Yes, delete it");
 
     if (!result.isConfirmed) return;
 
     try {
       const res = await deleteVenueAllocation(id);
 
-      Swal.fire({
-        icon: "success",
-        title: "Deleted!",
-        text: res?.message || "Venue allocation deleted successfully.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      showSuccess("Deleted!", res?.message || "Venue allocation deleted successfully.");
     } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Failed to delete venue allocation.",
-      });
+      showError("Error", err.message || "Failed to delete venue allocation.");
     }
   };
   useEffect(() => {
@@ -394,562 +375,562 @@ export default function CoachProfile() {
 
           </div>
         </div>
- {!selectedCoach ? (
-            <div className="w-full flex items-center justify-center text-gray-500 text-lg py-10">
-              No coach found
-            </div>
-          ) : ( 
-        <div className="md:w-[80%] bg-white p-4 rounded-2xl flex gap-4">
-                 
-          <div className="bg-[#FAFAFA] border border-[#E2E1E5] min-w-60 rounded-3xl py-6">
-            <div className="flex flex-col items-center border-b border-[#E2E1E5] pb-5 px-6">
-              <div className="w-24 h-24 rounded-full mb-3">
-                <img
-                  src={selectedCoach?.profile || "/members/dummyuser.png"} // use profile if available
-                  alt={`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              </div>
-              <h2 className="text-lg font-semibold">{`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}</h2>
-            </div>
-
-            <div className="mt-6 space-y-3 text-sm px-6 border-b border-[#E2E1E5] pb-5">
-              <p className="text-[#282829] font-semibold">Username</p>
-              <p className="text-[#717073]">{`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Email</p>
-              <p className="text-[#717073]">{`${selectedCoach?.email}`}</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Position</p>
-              <p className="text-[#717073]">{`${selectedCoach?.position}`}</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Password</p>
-              <p className="text-[#717073]">{`${selectedCoach?.passwordHint}`}</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Phone</p>
-              <p className="text-[#717073]">{`${selectedCoach?.phoneNumber}`}</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Address</p>
-              <p className="text-[#717073]">-</p>
-
-              <p className="text-[#282829] font-semibold mt-3">Hour rate</p>
-              <p className="text-[#717073]">-</p>
-            </div>
-            {/* £ */}
-            <div className="p-4">
-              <OnboardingProgress />
-            </div>
+        {!selectedCoach ? (
+          <div className="w-full flex items-center justify-center text-gray-500 text-lg py-10">
+            No coach found
           </div>
-            
+        ) : (
+          <div className="md:w-[80%] bg-white p-4 rounded-2xl flex gap-4">
 
+            <div className="bg-[#FAFAFA] border border-[#E2E1E5] min-w-60 rounded-3xl py-6">
+              <div className="flex flex-col items-center border-b border-[#E2E1E5] pb-5 px-6">
+                <div className="w-24 h-24 rounded-full mb-3">
+                  <img
+                    src={selectedCoach?.profile || "/members/dummyuser.png"} // use profile if available
+                    alt={`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+                <h2 className="text-lg font-semibold">{`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}</h2>
+              </div>
 
-          <div className="flex-1 bg-white rounded-xl p-4">
+              <div className="mt-6 space-y-3 text-sm px-6 border-b border-[#E2E1E5] pb-5">
+                <p className="text-[#282829] font-semibold">Username</p>
+                <p className="text-[#717073]">{`${selectedCoach?.firstName} ${selectedCoach?.lastName || ""}`}</p>
 
-            <div className="flex gap-6 border border-[#EFEEF2] p-2 rounded-2xl mb-4">
-              {tabs.map((tab, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTab(i)}
-                  className={`p-2 px-3 text-[16px] rounded-xl font-semibold 
-                ${activeTab === i ? "text-white bg-[#237FEA]" : "text-gray-600"}`}
-                >
-                  {tab}
-                </button>
-              ))}
+                <p className="text-[#282829] font-semibold mt-3">Email</p>
+                <p className="text-[#717073]">{`${selectedCoach?.email}`}</p>
+
+                <p className="text-[#282829] font-semibold mt-3">Position</p>
+                <p className="text-[#717073]">{`${selectedCoach?.position}`}</p>
+
+                <p className="text-[#282829] font-semibold mt-3">Password</p>
+                <p className="text-[#717073]">{`${selectedCoach?.passwordHint}`}</p>
+
+                <p className="text-[#282829] font-semibold mt-3">Phone</p>
+                <p className="text-[#717073]">{`${selectedCoach?.phoneNumber}`}</p>
+
+                <p className="text-[#282829] font-semibold mt-3">Address</p>
+                <p className="text-[#717073]">-</p>
+
+                <p className="text-[#282829] font-semibold mt-3">Hour rate</p>
+                <p className="text-[#717073]">-</p>
+              </div>
+              {/* £ */}
+              <div className="p-4">
+                <OnboardingProgress />
+              </div>
             </div>
 
-            {activeTab === 0 && (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">Venues allocations ({venuesData.length})</h2>
 
+
+            <div className="flex-1 bg-white rounded-xl p-4">
+
+              <div className="flex gap-6 border border-[#EFEEF2] p-2 rounded-2xl mb-4">
+                {tabs.map((tab, i) => (
                   <button
-                    onClick={() => {
-                      setModalMode("add");
-                      setFormData({ location: "", rate: "", address: "", id: "" });
-                      setIsModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 bg-[#237FEA] text-white px-4 py-2.5 rounded-xl text-sm"
+                    key={i}
+                    onClick={() => setActiveTab(i)}
+                    className={`p-2 px-3 text-[16px] rounded-xl font-semibold 
+                ${activeTab === i ? "text-white bg-[#237FEA]" : "text-gray-600"}`}
                   >
-                    <Plus size={18} /> Add new venue
+                    {tab}
                   </button>
-                </div>
+                ))}
+              </div>
 
-                <table className="w-full text-sm">
-                  <tbody>
-                    {venuesData.map((v, index) => (
-                      <tr key={index} className="border-b border-[#EFEEF2]">
+              {activeTab === 0 && (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Venues allocations ({venuesData.length})</h2>
 
-                        <td className="p-3 pl-0 w-[20%]">
-                          {v?.venue?.name}
-                        </td>
+                    <button
+                      onClick={() => {
+                        setModalMode("add");
+                        setFormData({ location: "", rate: "", address: "", id: "" });
+                        setIsModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 bg-[#237FEA] text-white px-4 py-2.5 rounded-xl text-sm"
+                    >
+                      <Plus size={18} /> Add new venue
+                    </button>
+                  </div>
 
-                        <td className="p-3 pl-0 w-[50%] text-[#717073]">
-                          {editingRow === index ? (
-                            <div className="flex items-center gap-3 justify-start">
-
-                              Rate per hour
-                              <input
-                                type="text"
-                                value={editRate}
-                                onChange={(e) => setEditRate(e.target.value)}
-                                className="border border-gray-300 rounded-lg p-2 w-28"
-                              />
-
-                            </div>
-                          ) : (v?.venue?.address)}
-                        </td>
-
-                        <td className="p-3 pl-0 w-[30%]">
-
-                          {editingRow === index ? (
-                            <div className="flex items-center gap-3 justify-end">
-                              <button
-                                onClick={() => {
-                                  const updated = [...venuesData];
-                                  updated[index].rate = editRate;
-                                  setVenuesData(updated);
-                                  setEditingRow(null);
-                                }}
-                                className="border border-blue-500 text-blue-600 px-4 py-2 rounded-xl flex items-center gap-2"
-                              >
-                                ✓ Confirm Change
-                              </button>
-
-                            </div>
-                          ) : (
-                            <div className="flex justify-end items-center gap-4">
-                              <img
-                                src="/reportsIcons/Pen.png"
-                                onClick={() => {
-                                  setEditingIndex(index);
-                                  setModalMode("edit");
-                                  setFormData({
-                                    location: v?.venue?.id,
-                                    rate: v?.rate,
-                                    id: v?.id,
-                                  });
-                                  setIsModalOpen(true);
-                                }}
-                                className="w-5 h-5 cursor-pointer"
-                              />
-                              <img onClick={() => handleDeleteVenue(v.id)} src="/reportsIcons/delete-02.png" className="w-5 h-5 cursor-pointer" alt="" />
-
-
-
-                            </div>
-                          )}
-
-                        </td>
-
-                      </tr>
-                    ))}
-
-                  </tbody>
-                </table>
-              </>
-            )}
-            {activeTab === 1 && (
-              <>
-                {qualifications && qualifications.length > 0 ? (
                   <table className="w-full text-sm">
                     <tbody>
-                      {qualifications.map((v, index) => (
+                      {venuesData.map((v, index) => (
                         <tr key={index} className="border-b border-[#EFEEF2]">
 
-                          {/* Qualification name */}
+                          <td className="p-3 pl-0 w-[20%]">
+                            {v?.venue?.name}
+                          </td>
+
                           <td className="p-3 pl-0 w-[50%] text-[#717073]">
-                            {v.address}
-                          </td>
+                            {editingRow === index ? (
+                              <div className="flex items-center gap-3 justify-start">
 
-                          {/* Download column */}
-                          <td className="p-3 pl-0 w-[30%]">
-                            <div className="flex justify-end">
-                              {v.download ? (
-                                <img
-                                  src="/reportsIcons/Icon.png"
-                                  className="w-5 h-5 cursor-pointer"
-                                  alt="Download"
-                                  onClick={() => handleDownload(selectedCoach.id, v.key)}
-
+                                Rate per hour
+                                <input
+                                  type="text"
+                                  value={editRate}
+                                  onChange={(e) => setEditRate(e.target.value)}
+                                  className="border border-gray-300 rounded-lg p-2 w-28"
                                 />
-                              ) : (
-                                <span className="text-red-500">Not available</span>
-                              )}
-                            </div>
-                          </td>
-
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="text-center text-gray-500 py-6">
-                    No qualifications available
-                  </div>
-                )}
-              </>
-            )}
-
-            {activeTab === 2 && (
-              <div className="border border-[#E2E1E5]  rounded-2xl overflow-auto">
-                <table className="w-full text-sm ">
-                  <thead>
-                    <tr className="bg-[#F5F5F5] border-b border-[#DBDBDB]">
-                      <th className="text-[#717073] font-semibold p-3 px-4 text-left">Title</th>
-                      <th className="text-[#717073] font-semibold p-3 px-4 text-left">Status</th>
-                      <th className="text-[#717073] font-semibold p-3 px-4 text-left">Grade</th>
-                      <th className="text-[#717073] font-semibold p-3 px-4 text-left">Percentage</th>
-                      <th className="text-[#717073] font-semibold p-3 px-4 text-left"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {assessments.map((v, index) => (
-                      <>
-                        <tr key={index} className="border-b border-[#EFEEF2]">
-
-                          <td className="p-3 px-4 text-[#717073]">
-                            {v.title}
-                          </td>
-                          <td className="p-3 px-4">
-                            <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusClasses(v.status)}`}>
-                              {v.status}
-                            </span>
-                          </td>
-
-                          <td className="p-3 px-4 text-[#717073]">
-                            {v.grade}
-                          </td>
-                          <td className="p-3 px-4  text-[#717073]">
-                            {v.percentage}
-                          </td>
-
-
-
-                          <td className="p-3 px-4 text-right"> <button onClick={() => setOpenRow(openRow === v.id ? null : v.id)} className="bg-[#237FEA] p-2 px-3 rounded-xl text-center text-white "> See Result </button> </td>
-
-
-                        </tr>
-                        {openRow === v.id && (
-                          <tr className="">
-                            <td colSpan={6} className="p-4 border-b border-[#EFEEF2] ">
-
-                              <div className="space-y-2">
-
-                                <p className="flex justify-between text-[#717073] ">1. What is the purpose of the skill demonstrated in the video?
-                                  <div className="flex items-center gap-2 text-green-500 font-semibold">
-                                    <img src="/reportsIcons/tick-02.png" className="w-5 h-5 cursor-pointer" alt="" />
-                                    To help coaches</div></p>
-                                <p className="flex justify-between text-[#717073] ">2. What is the purpose of the skill demonstrated in the video?
-                                  <div className=" flex items-center gap-2  text-red-500 font-semibold">
-                                    <img src="/reportsIcons/cross1.png" className="w-5 h-5 cursor-pointer" alt="" />
-                                    Control the ball</div></p>
 
                               </div>
+                            ) : (v?.venue?.address)}
+                          </td>
+
+                          <td className="p-3 pl-0 w-[30%]">
+
+                            {editingRow === index ? (
+                              <div className="flex items-center gap-3 justify-end">
+                                <button
+                                  onClick={() => {
+                                    const updated = [...venuesData];
+                                    updated[index].rate = editRate;
+                                    setVenuesData(updated);
+                                    setEditingRow(null);
+                                  }}
+                                  className="border border-blue-500 text-blue-600 px-4 py-2 rounded-xl flex items-center gap-2"
+                                >
+                                  ✓ Confirm Change
+                                </button>
+
+                              </div>
+                            ) : (
+                              <div className="flex justify-end items-center gap-4">
+                                <img
+                                  src="/reportsIcons/Pen.png"
+                                  onClick={() => {
+                                    setEditingIndex(index);
+                                    setModalMode("edit");
+                                    setFormData({
+                                      location: v?.venue?.id,
+                                      rate: v?.rate,
+                                      id: v?.id,
+                                    });
+                                    setIsModalOpen(true);
+                                  }}
+                                  className="w-5 h-5 cursor-pointer"
+                                />
+                                <img onClick={() => handleDeleteVenue(v.id)} src="/reportsIcons/delete-02.png" className="w-5 h-5 cursor-pointer" alt="" />
+
+
+
+                              </div>
+                            )}
+
+                          </td>
+
+                        </tr>
+                      ))}
+
+                    </tbody>
+                  </table>
+                </>
+              )}
+              {activeTab === 1 && (
+                <>
+                  {qualifications && qualifications.length > 0 ? (
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {qualifications.map((v, index) => (
+                          <tr key={index} className="border-b border-[#EFEEF2]">
+
+                            {/* Qualification name */}
+                            <td className="p-3 pl-0 w-[50%] text-[#717073]">
+                              {v.address}
                             </td>
+
+                            {/* Download column */}
+                            <td className="p-3 pl-0 w-[30%]">
+                              <div className="flex justify-end">
+                                {v.download ? (
+                                  <img
+                                    src="/reportsIcons/Icon.png"
+                                    className="w-5 h-5 cursor-pointer"
+                                    alt="Download"
+                                    onClick={() => handleDownload(selectedCoach.id, v.key)}
+
+                                  />
+                                ) : (
+                                  <span className="text-red-500">Not available</span>
+                                )}
+                              </div>
+                            </td>
+
                           </tr>
-                        )}
-                      </>
-                    ))}
-
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {activeTab === 3 && (
-              <>
-                <div>
-                  <h4 className="font-bold text-[24px] py-4">
-                    Your Contract
-                  </h4>
-
-                  <h5 className="font-semibold text-[16px]">
-                    INDEPENDENT CONTRACTOR AGREEMENT
-                  </h5>
-
-                  <p className="text-[#4B4B56] text-[14px] font-normal py-3">
-                    This Independent Contractor Agreement is between
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      className="border border-[#9E9FAA] rounded-xl p-3 w-[100px] text-center outline-none bg-[#F6F6F7] mx-1"
-                    />
-                    and SAMBA SOCCER SCHOOLS GLOBAL LTD (“We”, “Us”, “Our”, the “Company”).
-                  </p>
-
-                  <h5 className="font-semibold text-[16px]">Background</h5>
-
-                  <ul className="list-[lower-alpha] ml-6 text-[#4B4B56] text-[14px] font-normal py-3">
-                    <li className="mt-1">
-                      The Company is of the opinion that the Contractor has the necessary
-                      qualifications, experience, and abilities to provide services to the Company.
-                    </li>
-                    <li className="mt-1">
-                      The Contractor agrees to provide such services to the Company on the
-                      terms and conditions set out in this Agreement.
-                    </li>
-                  </ul>
-
-                  <h5 className="font-semibold text-[16px]">General</h5>
-
-                  <p className="text-[#4B4B56] text-[14px] font-normal py-3">
-                    IN CONSIDERATION OF the matters described above and of the mutual
-                    benefits and obligations set forth in this Agreement, the receipt and
-                    sufficiency of which consideration are hereby acknowledged, the Company
-                    and the Contractor (individually a “Party” and collectively the “Parties”)
-                    agree as follows:
-                  </p>
-
-                  <h5 className="font-semibold text-[16px]">General</h5>
-
-                  <ul className="list-[lower-alpha] ml-6 text-[#4B4B56] text-[14px] font-normal py-3">
-                    <li className="mt-1">
-                      The particulars of this Agreement are as set out in this Agreement and in
-                      the Company’s policies, procedures, and rules, as may be introduced and/or
-                      varied from time to time.
-                    </li>
-
-                    <li className="mt-1">
-                      The Company has a duty to safeguard all students, parents, guardians, and
-                      their personal information. The Contractor agrees to adhere to the Company’s
-                      policies and understands that failure to do so may lead to all work being withdrawn.
-                    </li>
-
-                    <li className="mt-1">
-                      Any amendments or modifications to this Agreement or additional
-                      obligations assumed by either Party must be agreed to in writing and signed
-                      by both Parties.
-                    </li>
-
-                    <li className="mt-1">
-                      The Contractor agrees to comply with all reasonable instructions, standards,
-                      and expectations communicated by the Company.
-                    </li>
-
-                    <li className="mt-1">
-                      The Contractor understands that continued failure to follow Company
-                      policies or performance expectations may result in termination of this Agreement.
-                    </li>
-                  </ul>
-                </div>
-
-
-
-
-
-              </>
-            )}
-
-            {activeTab === 4 && (
-              <>
-                <div className="flex justify-between items-center py-4 pb-5">
-                  <h3 className="font-semibold ">Quality Control Results</h3>
-                  <div className="px-6 flex gap-2 items-center">
-                    <div className="relative ">
-                      <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search assessor"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg p-2 pl-10"
-                      />
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center text-gray-500 py-6">
+                      No qualifications available
                     </div>
-                    <div className="relative ">
-                      <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search Venue"
-                        venues
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg p-2 pl-10"
-                      />
-                    </div>
-                    <img src="/reportsIcons/Chart_1.png" className="w-8 h-8 " alt="" />
-                  </div>
-                </div>
+                  )}
+                </>
+              )}
+
+              {activeTab === 2 && (
                 <div className="border border-[#E2E1E5]  rounded-2xl overflow-auto">
                   <table className="w-full text-sm ">
                     <thead>
                       <tr className="bg-[#F5F5F5] border-b border-[#DBDBDB]">
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Date</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Time</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Assessor</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Venue</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Result</th>
+                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Title</th>
+                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Status</th>
+                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Grade</th>
+                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Percentage</th>
                         <th className="text-[#717073] font-semibold p-3 px-4 text-left"></th>
                       </tr>
                     </thead>
                     <tbody>
-                      {qcResults.map((v, index) => (
-                        <React.Fragment key={index}>
-                          {/* MAIN ROW */}
-                          <tr className="border-b border-[#EFEEF2]">
-                            <td className="p-3 px-4 text-[#717073]">{v.date}</td>
-                            <td className="p-3 px-4">{v.time}</td>
-                            <td className="p-3 px-4 text-[#717073]">{v.accesor}</td>
-                            <td className="p-3 px-4 text-[#717073]">{v.venue}</td>
+                      {assessments.map((v, index) => (
+                        <>
+                          <tr key={index} className="border-b border-[#EFEEF2]">
 
                             <td className="p-3 px-4 text-[#717073]">
-                              <span className="px-3 py-1 rounded-lg text-[#34AE56] text-sm font-semibold bg-[#EBF7EE]">
-                                {v.result}
-                              </span>
+                              {v.title}
                             </td>
-
-                            <td className="p-3 px-4 text-right">
-                              <button
-                                onClick={() => setOpenRowIndex(openRowIndex === index ? null : index)}
-                                className="bg-[#237FEA] p-1.5 px-3 rounded-xl text-center text-white"
-                              >
-                                {openRowIndex === index ? "Hide" : "See More"}
-                              </button>
-                            </td>
-                          </tr>
-
-                          {openRowIndex === index && (
-                            <tr className="bg-white border-b border-[#efefef]">
-                              <td colSpan={6} className="p-6">
-
-                                <div className="mb-6">
-                                  <h4 className="font-semibold text-base mb-2">Results</h4>
-                                  <div className="grid grid-cols-2 gap-2 text-sm text-[#555]">
-                                    <p>Punctuality — 5/5</p>
-                                    <p>Set Up — 3/5</p>
-                                    <p>Uniform — 2/5</p>
-                                    <p>Small Sided Games — 3/5</p>
-                                    <p>Technical — 5/5</p>
-                                    <p>Tactical — 3/5</p>
-                                    <p>Engagement — 2/5</p>
-                                  </div>
-                                </div>
-
-                                <div className="mb-6">
-                                  <h4 className="font-semibold text-base mb-2">Strengths</h4>
-                                  <ul className="list-decimal ml-5 text-sm text-[#555]">
-                                    <li>Example 1</li>
-                                    <li>Example 2</li>
-                                    <li>Example 3</li>
-                                  </ul>
-                                </div>
-
-                                <div className="mb-6">
-                                  <h4 className="font-semibold text-base mb-2">Improvements</h4>
-                                  <ul className="list-decimal ml-5 text-sm text-[#555]">
-                                    <li>Example 1</li>
-                                    <li>Example 2</li>
-                                    <li>Example 3</li>
-                                  </ul>
-                                </div>
-
-                                <div>
-                                  <h4 className="font-semibold text-base mb-2">Voice Note</h4>
-                                  <div className="flex items-center gap-2 text-[#555]">
-                                    <span>Recording</span>
-                                    <img src="/reportsIcons/vup.png" className="w-6" alt="" />
-                                  </div>
-                                </div>
-
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-
-                  </table>
-                </div>
-              </>
-            )}
-            {activeTab === 5 && (
-              <>
-                <div className="flex justify-between items-center py-4 pb-5">
-                  <h3 className="font-semibold">Attendance</h3>
-                  <div className="px-6 flex gap-2 items-center">
-                    <InvoicePdf />
-                    <button onClick={() => setOpenVenueFilter(true)} className=" p-1.5 px-3 text-[#717073] rounded-xl text-center border border-[#E2E1E5]">
-                      Venues filter
-                    </button>
-                    <button className=" flex items-center gap-2 p-1.5 px-3 text-[#717073] rounded-xl text-center border border-[#E2E1E5]">
-                      <CalendarDays className="w-4" />  Time Period
-                    </button>
-
-
-                  </div>
-                </div>
-                <div className="border border-[#E2E1E5]  rounded-2xl overflow-auto">
-                  <table className="w-full text-sm ">
-                    <thead>
-                      <tr className="bg-[#F5F5F5] border-b border-[#DBDBDB]">
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Venue</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Invoice</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Sessions</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Date Range</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Status</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left">Account</th>
-                        <th className="text-[#717073] font-semibold p-3 px-4 text-left"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendanceData.map((v, index) => (
-                        <React.Fragment key={index}>
-                          {/* MAIN ROW */}
-                          <tr className="border-b border-[#EFEEF2] ">
-                            <td className="p-3 px-4 ">{v.name}</td>
-                            <td className="p-3 px-4 ">{v.invoiceNumber}</td>
-                            <td className="p-3 px-4 ">{v.sessionDays}</td>
-                            <td className="p-3 px-4 ">{v.date}</td>
-
-                            <td className="p-3 px-4 ">
-                              <span className={`px-3 py-1 rounded-lg  text-sm font-semibold ${v.status == "paid" ? 'bg-[#EBF7EE] text-[#34AE56]' : 'bg-[#FDF6E5] text-[#EDA600] '}`}>
+                            <td className="p-3 px-4">
+                              <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusClasses(v.status)}`}>
                                 {v.status}
                               </span>
                             </td>
-                            <td className="p-3 px-4 ">{v.account}</td>
 
-                            <td className="p-3 px-4 text-right">
-                              <button
-                                onClick={() => setOpenAttendanceDataRowIndex(openAttendanceDataRowIndex === index ? null : index)}
-                                className="bg-[#237FEA] p-1.5 px-3 rounded-xl text-center text-white"
-                              >
-                                {openRowIndex === index ? "Hide" : "See More"}
-                              </button>
+                            <td className="p-3 px-4 text-[#717073]">
+                              {v.grade}
                             </td>
+                            <td className="p-3 px-4  text-[#717073]">
+                              {v.percentage}
+                            </td>
+
+
+
+                            <td className="p-3 px-4 text-right"> <button onClick={() => setOpenRow(openRow === v.id ? null : v.id)} className="bg-[#237FEA] p-2 px-3 rounded-xl text-center text-white "> See Result </button> </td>
+
+
                           </tr>
+                          {openRow === v.id && (
+                            <tr className="">
+                              <td colSpan={6} className="p-4 border-b border-[#EFEEF2] ">
 
-                          {openAttendanceDataRowIndex === index && (
-                            <tr className="bg-white border-b border-[#efefef]">
-                              <td colSpan={7} className="p-6">
+                                <div className="space-y-2">
 
-                                <div className="w-full max-w-4xl">
-                                  <h2 className="text-lg font-semibold mb-4">Details</h2>
+                                  <p className="flex justify-between text-[#717073] ">1. What is the purpose of the skill demonstrated in the video?
+                                    <div className="flex items-center gap-2 text-green-500 font-semibold">
+                                      <img src="/reportsIcons/tick-02.png" className="w-5 h-5 cursor-pointer" alt="" />
+                                      To help coaches</div></p>
+                                  <p className="flex justify-between text-[#717073] ">2. What is the purpose of the skill demonstrated in the video?
+                                    <div className=" flex items-center gap-2  text-red-500 font-semibold">
+                                      <img src="/reportsIcons/cross1.png" className="w-5 h-5 cursor-pointer" alt="" />
+                                      Control the ball</div></p>
 
-                                  <div className="grid grid-cols-4 gap-3 text-gray-900">
-                                    {sessions.map((s, index) => (
-                                      <React.Fragment key={index}>
-                                        <div className="py-2">{s.name}</div>
-                                        <div className="py-2">{s.address}</div>
-                                        <div className="py-2">{s.datetime}</div>
-                                        <div className="py-2 font-medium">{s.price}</div>
-                                      </React.Fragment>
-                                    ))}
-                                  </div>
                                 </div>
-
                               </td>
                             </tr>
                           )}
-                        </React.Fragment>
+                        </>
                       ))}
-                    </tbody>
 
+                    </tbody>
                   </table>
                 </div>
-              </>
-            )}
-          </div>
+              )}
+              {activeTab === 3 && (
+                <>
+                  <div>
+                    <h4 className="font-bold text-[24px] py-4">
+                      Your Contract
+                    </h4>
 
-        </div>
+                    <h5 className="font-semibold text-[16px]">
+                      INDEPENDENT CONTRACTOR AGREEMENT
+                    </h5>
+
+                    <p className="text-[#4B4B56] text-[14px] font-normal py-3">
+                      This Independent Contractor Agreement is between
+                      <input
+                        type="text"
+                        placeholder="Full Name"
+                        className="border border-[#9E9FAA] rounded-xl p-3 w-[100px] text-center outline-none bg-[#F6F6F7] mx-1"
+                      />
+                      and SAMBA SOCCER SCHOOLS GLOBAL LTD (“We”, “Us”, “Our”, the “Company”).
+                    </p>
+
+                    <h5 className="font-semibold text-[16px]">Background</h5>
+
+                    <ul className="list-[lower-alpha] ml-6 text-[#4B4B56] text-[14px] font-normal py-3">
+                      <li className="mt-1">
+                        The Company is of the opinion that the Contractor has the necessary
+                        qualifications, experience, and abilities to provide services to the Company.
+                      </li>
+                      <li className="mt-1">
+                        The Contractor agrees to provide such services to the Company on the
+                        terms and conditions set out in this Agreement.
+                      </li>
+                    </ul>
+
+                    <h5 className="font-semibold text-[16px]">General</h5>
+
+                    <p className="text-[#4B4B56] text-[14px] font-normal py-3">
+                      IN CONSIDERATION OF the matters described above and of the mutual
+                      benefits and obligations set forth in this Agreement, the receipt and
+                      sufficiency of which consideration are hereby acknowledged, the Company
+                      and the Contractor (individually a “Party” and collectively the “Parties”)
+                      agree as follows:
+                    </p>
+
+                    <h5 className="font-semibold text-[16px]">General</h5>
+
+                    <ul className="list-[lower-alpha] ml-6 text-[#4B4B56] text-[14px] font-normal py-3">
+                      <li className="mt-1">
+                        The particulars of this Agreement are as set out in this Agreement and in
+                        the Company’s policies, procedures, and rules, as may be introduced and/or
+                        varied from time to time.
+                      </li>
+
+                      <li className="mt-1">
+                        The Company has a duty to safeguard all students, parents, guardians, and
+                        their personal information. The Contractor agrees to adhere to the Company’s
+                        policies and understands that failure to do so may lead to all work being withdrawn.
+                      </li>
+
+                      <li className="mt-1">
+                        Any amendments or modifications to this Agreement or additional
+                        obligations assumed by either Party must be agreed to in writing and signed
+                        by both Parties.
+                      </li>
+
+                      <li className="mt-1">
+                        The Contractor agrees to comply with all reasonable instructions, standards,
+                        and expectations communicated by the Company.
+                      </li>
+
+                      <li className="mt-1">
+                        The Contractor understands that continued failure to follow Company
+                        policies or performance expectations may result in termination of this Agreement.
+                      </li>
+                    </ul>
+                  </div>
+
+
+
+
+
+                </>
+              )}
+
+              {activeTab === 4 && (
+                <>
+                  <div className="flex justify-between items-center py-4 pb-5">
+                    <h3 className="font-semibold ">Quality Control Results</h3>
+                    <div className="px-6 flex gap-2 items-center">
+                      <div className="relative ">
+                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder="Search assessor"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg p-2 pl-10"
+                        />
+                      </div>
+                      <div className="relative ">
+                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder="Search Venue"
+                          venues
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg p-2 pl-10"
+                        />
+                      </div>
+                      <img src="/reportsIcons/Chart_1.png" className="w-8 h-8 " alt="" />
+                    </div>
+                  </div>
+                  <div className="border border-[#E2E1E5]  rounded-2xl overflow-auto">
+                    <table className="w-full text-sm ">
+                      <thead>
+                        <tr className="bg-[#F5F5F5] border-b border-[#DBDBDB]">
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Date</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Time</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Assessor</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Venue</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Result</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {qcResults.map((v, index) => (
+                          <React.Fragment key={index}>
+                            {/* MAIN ROW */}
+                            <tr className="border-b border-[#EFEEF2]">
+                              <td className="p-3 px-4 text-[#717073]">{v.date}</td>
+                              <td className="p-3 px-4">{v.time}</td>
+                              <td className="p-3 px-4 text-[#717073]">{v.accesor}</td>
+                              <td className="p-3 px-4 text-[#717073]">{v.venue}</td>
+
+                              <td className="p-3 px-4 text-[#717073]">
+                                <span className="px-3 py-1 rounded-lg text-[#34AE56] text-sm font-semibold bg-[#EBF7EE]">
+                                  {v.result}
+                                </span>
+                              </td>
+
+                              <td className="p-3 px-4 text-right">
+                                <button
+                                  onClick={() => setOpenRowIndex(openRowIndex === index ? null : index)}
+                                  className="bg-[#237FEA] p-1.5 px-3 rounded-xl text-center text-white"
+                                >
+                                  {openRowIndex === index ? "Hide" : "See More"}
+                                </button>
+                              </td>
+                            </tr>
+
+                            {openRowIndex === index && (
+                              <tr className="bg-white border-b border-[#efefef]">
+                                <td colSpan={6} className="p-6">
+
+                                  <div className="mb-6">
+                                    <h4 className="font-semibold text-base mb-2">Results</h4>
+                                    <div className="grid grid-cols-2 gap-2 text-sm text-[#555]">
+                                      <p>Punctuality — 5/5</p>
+                                      <p>Set Up — 3/5</p>
+                                      <p>Uniform — 2/5</p>
+                                      <p>Small Sided Games — 3/5</p>
+                                      <p>Technical — 5/5</p>
+                                      <p>Tactical — 3/5</p>
+                                      <p>Engagement — 2/5</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="mb-6">
+                                    <h4 className="font-semibold text-base mb-2">Strengths</h4>
+                                    <ul className="list-decimal ml-5 text-sm text-[#555]">
+                                      <li>Example 1</li>
+                                      <li>Example 2</li>
+                                      <li>Example 3</li>
+                                    </ul>
+                                  </div>
+
+                                  <div className="mb-6">
+                                    <h4 className="font-semibold text-base mb-2">Improvements</h4>
+                                    <ul className="list-decimal ml-5 text-sm text-[#555]">
+                                      <li>Example 1</li>
+                                      <li>Example 2</li>
+                                      <li>Example 3</li>
+                                    </ul>
+                                  </div>
+
+                                  <div>
+                                    <h4 className="font-semibold text-base mb-2">Voice Note</h4>
+                                    <div className="flex items-center gap-2 text-[#555]">
+                                      <span>Recording</span>
+                                      <img src="/reportsIcons/vup.png" className="w-6" alt="" />
+                                    </div>
+                                  </div>
+
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+
+                    </table>
+                  </div>
+                </>
+              )}
+              {activeTab === 5 && (
+                <>
+                  <div className="flex justify-between items-center py-4 pb-5">
+                    <h3 className="font-semibold">Attendance</h3>
+                    <div className="px-6 flex gap-2 items-center">
+                      <InvoicePdf />
+                      <button onClick={() => setOpenVenueFilter(true)} className=" p-1.5 px-3 text-[#717073] rounded-xl text-center border border-[#E2E1E5]">
+                        Venues filter
+                      </button>
+                      <button className=" flex items-center gap-2 p-1.5 px-3 text-[#717073] rounded-xl text-center border border-[#E2E1E5]">
+                        <CalendarDays className="w-4" />  Time Period
+                      </button>
+
+
+                    </div>
+                  </div>
+                  <div className="border border-[#E2E1E5]  rounded-2xl overflow-auto">
+                    <table className="w-full text-sm ">
+                      <thead>
+                        <tr className="bg-[#F5F5F5] border-b border-[#DBDBDB]">
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Venue</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Invoice</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Sessions</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Date Range</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Status</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left">Account</th>
+                          <th className="text-[#717073] font-semibold p-3 px-4 text-left"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {attendanceData.map((v, index) => (
+                          <React.Fragment key={index}>
+                            {/* MAIN ROW */}
+                            <tr className="border-b border-[#EFEEF2] ">
+                              <td className="p-3 px-4 ">{v.name}</td>
+                              <td className="p-3 px-4 ">{v.invoiceNumber}</td>
+                              <td className="p-3 px-4 ">{v.sessionDays}</td>
+                              <td className="p-3 px-4 ">{v.date}</td>
+
+                              <td className="p-3 px-4 ">
+                                <span className={`px-3 py-1 rounded-lg  text-sm font-semibold ${v.status == "paid" ? 'bg-[#EBF7EE] text-[#34AE56]' : 'bg-[#FDF6E5] text-[#EDA600] '}`}>
+                                  {v.status}
+                                </span>
+                              </td>
+                              <td className="p-3 px-4 ">{v.account}</td>
+
+                              <td className="p-3 px-4 text-right">
+                                <button
+                                  onClick={() => setOpenAttendanceDataRowIndex(openAttendanceDataRowIndex === index ? null : index)}
+                                  className="bg-[#237FEA] p-1.5 px-3 rounded-xl text-center text-white"
+                                >
+                                  {openRowIndex === index ? "Hide" : "See More"}
+                                </button>
+                              </td>
+                            </tr>
+
+                            {openAttendanceDataRowIndex === index && (
+                              <tr className="bg-white border-b border-[#efefef]">
+                                <td colSpan={7} className="p-6">
+
+                                  <div className="w-full max-w-4xl">
+                                    <h2 className="text-lg font-semibold mb-4">Details</h2>
+
+                                    <div className="grid grid-cols-4 gap-3 text-gray-900">
+                                      {sessions.map((s, index) => (
+                                        <React.Fragment key={index}>
+                                          <div className="py-2">{s.name}</div>
+                                          <div className="py-2">{s.address}</div>
+                                          <div className="py-2">{s.datetime}</div>
+                                          <div className="py-2 font-medium">{s.price}</div>
+                                        </React.Fragment>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+
+          </div>
         )}
         {showModal && (
           <QcConfiguration setShowModal={setShowModal} />

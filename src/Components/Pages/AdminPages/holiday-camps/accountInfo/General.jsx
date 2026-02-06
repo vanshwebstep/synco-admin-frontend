@@ -8,9 +8,9 @@ import { Search } from "lucide-react";
 import { useNotification } from "../../contexts/NotificationContext";
 import { Mail, MessageSquare } from "lucide-react";
 import { useAccountsInfo } from "../../contexts/AccountsInfoContext";
-import Swal from "sweetalert2";
 import { useLocation } from "react-router-dom";
 import { useBookFreeTrial } from "../../contexts/BookAFreeTrialContext";
+import { showError, showSuccess, showWarning } from "../../../../../utils/swalHelper";
 const General = () => {
     const { data } = useAccountsInfo();
     const [bookingId, setBookingId] = useState([]);
@@ -144,13 +144,8 @@ const reasonOptions = [
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+     showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
+           
         }
     }, []);
     const handleSubmitComment = async (e) => {
@@ -173,13 +168,8 @@ const reasonOptions = [
         };
 
         try {
-            Swal.fire({
-                title: "Creating ",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+
+         setLoading(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
@@ -187,33 +177,23 @@ const reasonOptions = [
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
+               
                 return;
             }
 
-
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+         
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
+              
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -250,23 +230,13 @@ const reasonOptions = [
                 throw new Error(result.message || "Failed to send Email");
             }
 
-            await Swal.fire({
-                title: "Success!",
-                text: result.message || "Mail has been Sent successfully.",
-                icon: "success",
-                confirmButtonText: "OK",
-            });
+           await showSuccess("Success!", result.message || "Mail has been Sent successfully.");
 
             return result;
 
         } catch (error) {
             console.error("Error sending Mail:", error);
-            await Swal.fire({
-                title: "Error",
-                text: error.message || "Something went wrong while sending Mail.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            await showError("Error", error.message || "Something went wrong while sending Mail.");
             throw error;
         } finally {
             // await fetchOneToOneMembers(data.id);
@@ -685,12 +655,8 @@ const reasonOptions = [
                                     if (bookingId) {
                                         sendEmail();
                                     } else {
-                                        Swal.fire({
-                                            icon: "warning",
-                                            title: "No Students Selected",
-                                            text: "Please select at least one Lead before sending an email.",
-                                            confirmButtonText: "OK",
-                                        });
+                                        showWarning("No Booking ID", "No booking ID found to send email.");
+                                        
                                     }
                                 }} className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[18px]  hover:bg-gray-50 transition">
                                     <Mail className="w-4 h-4 mr-1" /> Send Email
@@ -780,11 +746,7 @@ const reasonOptions = [
                                 onClick={() => {
                                     // Validation: reason
                                     if (!cancelData.cancelReason) {
-                                        Swal.fire({
-                                            icon: "warning",
-                                            title: "Missing Field",
-                                            text: "Please select a reason for cancellation.",
-                                        });
+                                        showWarning("Missing Field", "Please select a reason for cancellation.");
                                         return;
                                     }
 

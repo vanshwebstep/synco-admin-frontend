@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Menu, X, Search, Bell, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNotification } from '../Pages/AdminPages/contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-import Swal from "sweetalert2";
 import { useMembers } from "../Pages/AdminPages/contexts/MemberContext";
 import { usePermission } from '../Pages/AdminPages/Common/permission';
 import { useAccountsInfo } from '../Pages/AdminPages/contexts/AccountsInfoContext';
+import { showConfirm } from '../../utils/swalHelper';
 
 const Header = ({ profileOpen, setProfileOpen, toggleMobileMenu, isMobileMenuOpen }) => {
   const isFetchingRef = useRef(false);
@@ -198,19 +198,13 @@ const Header = ({ profileOpen, setProfileOpen, toggleMobileMenu, isMobileMenuOpe
 
 
   const handleLogout = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, logout",
-      cancelButtonText: "Cancel",
-    }).then((result) => {
+    showConfirm("Are you sure?", "You will be logged out!", "warning").then((result) => {
       if (result.isConfirmed) {
         localStorage.clear();
         navigate("/admin-login"); // redirect to dashboard (adjust route if needed)
       }
     });
+
   };
   const handleNotificationClick = () => {
     if (notificationCount > 0) {

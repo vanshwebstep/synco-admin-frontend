@@ -7,10 +7,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2"; // make sure it's installed
 import { usePermission } from '../../../../Common/permission';
 import { useHolidayClassSchedule } from '../../../../contexts/HolidayClassScheduleContext';
 import { useHolidayVenue } from '../../../../contexts/HolidayVenueContext';
+import { showConfirm, showError, showSuccess } from '../../../../../../../utils/swalHelper';
 
 const ClassSheduleList = () => {
     const navigate = useNavigate();
@@ -176,24 +176,24 @@ const ClassSheduleList = () => {
 
         // --- Validation ---
         if (!formData.className?.trim()) {
-            Swal.fire("Validation Error", "Class Name is required", "error");
+            showError("Validation Error", "Class Name is required");
             return;
         }
 
         if (!formData.capacity || isNaN(formData.capacity) || Number(formData.capacity) <= 0) {
-            Swal.fire("Validation Error", "Capacity must be a positive number", "error");
+            showError("Validation Error", "Capacity must be a positive number");
             return;
         }
 
 
 
         if (!formData.startTime || !formData.endTime) {
-            Swal.fire("Validation Error", "Please select both start and end times", "error");
+            showError("Validation Error", "Please select both start and end times");
             return;
         }
 
         if (formData.startTime === formData.endTime) {
-            Swal.fire("Validation Error", "Start and End time cannot be the same", "error");
+            showError("Validation Error", "Start and End time cannot be the same");
             return;
         }
 
@@ -201,12 +201,12 @@ const ClassSheduleList = () => {
         const endMinutes = parseTimeToMinutes(formData.endTime);
 
         if (startMinutes === endMinutes) {
-            Swal.fire("Validation Error", "Start and End time cannot be the same", "error");
+            showError("Validation Error", "Start and End time cannot be the same");
             return;
         }
 
         if (startMinutes > endMinutes) {
-            Swal.fire("Validation Error", "End time must be after start time", "error");
+            showError("Validation Error", "End time must be after start time");
             return;
         }
 
@@ -240,24 +240,11 @@ const ClassSheduleList = () => {
     const [openForm, setOpenForm] = useState(false);
 
     const handleDeleteClick = (item) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will delete the schedule permanently!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
+        showConfirm(`Are you sure you want to delete ${item.className}?`, "This action cannot be undone.").then((result) => {
         }).then((result) => {
             if (result.isConfirmed) {
                 deleteClassSchedule(item); // only called after confirmation
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'The class schedule has been deleted.',
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+
             }
         });
     };

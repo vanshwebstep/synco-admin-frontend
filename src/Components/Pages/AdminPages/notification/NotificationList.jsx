@@ -4,8 +4,8 @@ import { useMembers } from "../contexts/MemberContext";
 import Loader from "../contexts/Loader";
 import Select from 'react-select';
 import { useNotification } from "../contexts/NotificationContext";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { showConfirm, showError } from "../../../../utils/swalHelper";
 
 
 export default function NotificationList() {
@@ -18,7 +18,7 @@ export default function NotificationList() {
 
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [selectedCategory, setSelectedCategory] = useState('');
-
+    const [loadingData, setLoadingData] = useState(false);
     const [form, setForm] = useState({
         title: "",
         recipients: [],
@@ -35,11 +35,7 @@ export default function NotificationList() {
         const token = localStorage.getItem("adminToken");
 
         if (!form.title || !form.category || !form.description || form.recipients.length === 0) {
-            Swal.fire({
-                icon: "warning",
-                title: "Missing Fields",
-                text: "Please fill all fields and select at least one recipient.",
-            });
+            showWarning("Missing Fields", "Please fill all fields and select at least one recipient.");
             return;
         }
 
@@ -76,42 +72,27 @@ export default function NotificationList() {
         };
 
         try {
-            Swal.fire({
-                title: "Creating Notification...",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            setLoadingData(true);
 
             const response = await fetch(`${API_BASE_URL}/api/admin/custom-notification`, requestOptions);
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Notification",
-                    text: result.message || result.error || "Something went wrong.",
-                });
+                showError("Failed to Add Notification", result.message || result.error || "Something went wrong.");
                 return;
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Notification Created",
-                text: result.message || "New notification was added successfully!",
-                timer: 2000,
-                showConfirmButton: false,
-            });
+
+            showSuccess("Notification Created", result.message || "New notification was added successfully!");
 
             setForm({ title: "", recipients: [], category: "", description: "" });
             setOpenForm(null);
             fetchCustomNotification();
         } catch (error) {
             console.error("Error creating notification:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text: error.message || "An error occurred while submitting the form.",
-            });
+            showError("Error", error.message || "An error occurred while creating the notification.");
+        } finally {
+            setLoadingData(false);
         }
     };
 
@@ -170,12 +151,7 @@ export default function NotificationList() {
             `<li>${r.recipientEmail}</li>`
         ).join("");
 
-        Swal.fire({
-            title: recipients.length === 1 ? 'Recipient' : 'All Recipients',
-            html: `<ul class="text-left pl-4 list-disc">${content}</ul>`,
-            icon: 'info',
-            confirmButtonText: 'Close',
-        });
+        showConfirm("Recipients", `<ul style="text-align: left; padding-left: 20px;">${content}</ul>`, "Close", true);
     };
     const filteredNotifications = customNotification.filter(item => {
         const createdDate = new Date(item.createdAt);
@@ -431,15 +407,15 @@ export default function NotificationList() {
             {showTimePeriodPopup && (
                 <div className="fixed inset-0 bg-black/10 z-50 flex items-center justify-center">
                     <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-xl">
-                         <div className="flex items-center mb-6 md:gap-20 gap-5">
+                        <div className="flex items-center mb-6 md:gap-20 gap-5">
                             <button
                                 onClick={() => setShowTimePeriodPopup(null)}
                                 className="text-gray-500 hover:text-black"
                             >
                                 <X />
                             </button>
-                        <h2 className="text-lg font-semibold mb-4">Select Time Period</h2>
-                           
+                            <h2 className="text-lg font-semibold mb-4">Select Time Period</h2>
+
                         </div>
                         <div className="flex items-center gap-2 mb-6">
                             <input
@@ -479,15 +455,15 @@ export default function NotificationList() {
             {showCategoryPopup && (
                 <div className="fixed inset-0 bg-black/10 z-50 flex items-center justify-center">
                     <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-xl">
-                            <div className="flex items-center mb-6 md:gap-20 gap-5">
+                        <div className="flex items-center mb-6 md:gap-20 gap-5">
                             <button
                                 onClick={() => setShowCategoryPopup(null)}
                                 className="text-gray-500 hover:text-black"
                             >
                                 <X />
                             </button>
-                        <h2 className="text-lg font-semibold mb-4">Filter by Category</h2>
-                           
+                            <h2 className="text-lg font-semibold mb-4">Filter by Category</h2>
+
                         </div>
                         <select
                             value={selectedCategory}

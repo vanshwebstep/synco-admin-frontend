@@ -7,7 +7,7 @@ import { PieChart, Pie, Cell } from "recharts";
 import { useBookFreeTrial } from '../../contexts/BookAFreeTrialContext';
 import { useNavigate } from "react-router-dom";
 import Loader from '../../contexts/Loader';
-import Swal from "sweetalert2";
+import { showError } from '../../../../../utils/swalHelper';
 const CheckboxOption = (props) => {
     return (
         <components.Option {...props}>
@@ -76,12 +76,7 @@ const Capacity = () => {
         let forOtherDate = "";
         // ✅ Check for partial date input
         if ((fromDate && !toDate) || (!fromDate && toDate)) {
-            Swal.fire({
-                icon: "error",
-                title: "Missing Date",
-                text: "Please select both Start Date and End Date.",
-                confirmButtonColor: "#3085d6",
-            });
+            showError("Missing Date", "Please select both Start Date and End Date.");
             return; // Stop further execution
         }
 
@@ -116,13 +111,13 @@ const Capacity = () => {
 
     const calendarDays = getDaysArray();
 
-   const goToPreviousMonth = () => {
-  setCurrentDate(new Date(year, month - 1, 1));
-};
+    const goToPreviousMonth = () => {
+        setCurrentDate(new Date(year, month - 1, 1));
+    };
 
-const goToNextMonth = () => {
-  setCurrentDate(new Date(year, month + 1, 1)); 
- };
+    const goToNextMonth = () => {
+        setCurrentDate(new Date(year, month + 1, 1));
+    };
 
     const isInRange = (date) => {
         if (!fromDate || !toDate) return false;

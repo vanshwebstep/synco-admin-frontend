@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react'
-import Swal from "sweetalert2";
 import { useNotification } from '../../../contexts/NotificationContext';
 import { Check, Mail, MessageSquare, Search, X } from "lucide-react";
 import { IoIosArrowDown } from "react-icons/io";
@@ -12,6 +11,7 @@ import PhoneInput from "react-phone-input-2";
 import { useRecruitmentTemplate } from '../../../contexts/RecruitmentContext';
 import { useVenue } from '../../../contexts/VenueContext';
 import Loader from '../../../contexts/Loader';
+import { showConfirm, showError } from '../../../../../../utils/swalHelper';
 const dateOptions = [
   { value: "2025-01-01", label: "Jan 01 2025" },
   { value: "2025-01-02", label: "Jan 02 2025" },
@@ -86,7 +86,7 @@ const OverView = ({ steps, setSteps }) => {
   });
 
 
-  const { fetchCoachRecruitmentById,fetchFranchiseRecruitmentById, recuritmentDataById, sendOfferMail, sendFranchiseMail, rejectFranchise, createFranchiseRecruitmentById } = useRecruitmentTemplate() || {};
+  const { fetchCoachRecruitmentById, fetchFranchiseRecruitmentById, recuritmentDataById, sendOfferMail, sendFranchiseMail, rejectFranchise, createFranchiseRecruitmentById } = useRecruitmentTemplate() || {};
   const { fetchVenueNames, venues } = useVenue() || {};
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -232,13 +232,8 @@ const OverView = ({ steps, setSteps }) => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
+      showError("Error", "Failed to fetch comments. Please try again later.");
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
     }
   }, []);
 
@@ -263,13 +258,7 @@ const OverView = ({ steps, setSteps }) => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -277,33 +266,20 @@ const OverView = ({ steps, setSteps }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Error", "Failed to Add Comment");
+       
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
-
-
+      showSuccess("Comment Created", " Comment has been  added successfully!");
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Error", "Network Error");
+    }finally{
+      setLoading(false);
     }
   }
   const handleChange = (field, value) => {
@@ -585,29 +561,14 @@ const OverView = ({ steps, setSteps }) => {
     setOpenOfferModal(false);
   };
   const handleSendFranchiseMail = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to send the franchise mail?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, send it',
-      cancelButtonText: 'Cancel',
-    });
-
+    const result = await showConfirm("Are you sure?", "Do you want to send the franchise mail?");
     if (result.isConfirmed) {
       await sendFranchiseMail(id);
-
     }
+
   };
   const handleRejectFranchise = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to Reject this Candidate ?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Reject it',
-      cancelButtonText: 'Cancel',
-    });
+    const result = await showConfirm("Are you sure?", "Do you want to Reject this Candidate ?");
 
     if (result.isConfirmed) {
       await rejectFranchise(id);
@@ -669,7 +630,7 @@ const OverView = ({ steps, setSteps }) => {
       )
     );
   };
-const confirmTelephoneCall = () => {
+  const confirmTelephoneCall = () => {
     setPayload(prev => ({
       ...prev,
       telephoneCallSetupDate: telephoneCall.date,
@@ -1050,8 +1011,8 @@ const confirmTelephoneCall = () => {
                         <button
                           disabled={recruitedMode}
                           className={`w-8 h-8 border rounded-lg ${step.status === "skipped"
-                              ? "bg-blue-600 text-white"
-                              : "bg-white text-gray-500"
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-500"
                             }`}
                           onClick={() => toggleStep(step.id, "skipped")}
                         >
@@ -1061,8 +1022,8 @@ const confirmTelephoneCall = () => {
                         <button
                           disabled={recruitedMode}
                           className={`w-8 h-8 rounded-lg ${step.status === "completed"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-200 text-gray-500"
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-500"
                             }`}
                           onClick={() => toggleStep(step.id, "completed")}
                         >

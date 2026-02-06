@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Swal from "sweetalert2"; // make sure it's installed
 import { useNavigate } from 'react-router-dom';
 import { usePermission } from '../../../Common/permission';
 import { useHolidayTerm } from '../../../contexts/HolidayTermsContext';
+import { showConfirm, showError } from '../../../../../../utils/swalHelper';
 
 const TermCard = ({ item, sessionData }) => {
   const navigate = useNavigate();
@@ -11,21 +11,13 @@ const TermCard = ({ item, sessionData }) => {
   const { deleteTermGroup } = useHolidayTerm();
 
   const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will delete the Term Group.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    }).then(async (result) => {
+    showConfirm('Are you sure?', 'This action cannot be undone. Do you want to delete this Term Group?').then(async (result) => {
       if (result.isConfirmed) {
         try {
           await deleteTermGroup(id);
-          Swal.fire('Deleted!', 'Term Group has been deleted.', 'success');
+          showError('Deleted!', 'Term Group has been deleted.', 'success');
         } catch (error) {
-          Swal.fire('Error!', 'Failed to delete Term Group.', 'error');
+          showError('Error!', 'Failed to delete Term Group.', 'error');
         }
       }
     });
@@ -33,7 +25,7 @@ const TermCard = ({ item, sessionData }) => {
   const handleEdit = (id) => {
     navigate(`/configuration/holiday-camp/terms/create?id=${id}`)
   };
-  console.log('item, sessionData',item, sessionData)
+  console.log('item, sessionData', item, sessionData)
 
   const { checkPermission } = usePermission();
 

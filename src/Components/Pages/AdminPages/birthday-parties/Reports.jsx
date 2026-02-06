@@ -29,7 +29,6 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import Swal from "sweetalert2";
 import { PiUsersThreeBold } from "react-icons/pi";
 import {
   Database,
@@ -40,6 +39,7 @@ import {
   Plus,
 } from "lucide-react";
 import { color } from "framer-motion";
+import { showError } from "../../../../utils/swalHelper";
 
 export default function BirthdayReports() {
   const [data, setData] = useState([]);
@@ -82,11 +82,7 @@ export default function BirthdayReports() {
 
       const result = await response.json();
       if (!result.status) {
-        Swal.fire({
-          icon: "error",
-          title: "Fetch Failed",
-          text: result.message || "Something went wrong while fetching analytics data.",
-        });
+        showError(result.message || "Something went wrong while fetching analytics data.");
         return;
       }
 
@@ -95,11 +91,7 @@ export default function BirthdayReports() {
       setCharts(result.charts || {});
     } catch (error) {
       console.error("Failed to fetch reports:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: error.message,
-      });
+      showError(error.message);
     } finally {
       setLoading(false);
     }
@@ -403,11 +395,7 @@ console.log('summary',summary)
       }
     } catch (error) {
       console.error("Export failed:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Export Failed",
-        text: error.message || "Something went wrong during export.",
-      });
+      showError(error.message || "Something went wrong during export.");
     }
   };
 

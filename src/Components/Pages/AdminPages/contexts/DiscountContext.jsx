@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
 import { useNavigate } from 'react-router-dom';
-
+import { showError, showSuccess } from "../../../../utils/swalHelper";
 const DiscountContext = createContext();
 
 export const DiscountContextProvider = ({ children }) => {
@@ -87,21 +86,11 @@ export const DiscountContextProvider = ({ children }) => {
 
       await fetchDiscounts();
 
-      await Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: result.message || 'Discount created successfully.',
-        confirmButtonColor: '#237FEA'
-      });
+      await showSuccess("Success!", result.message || 'Discount created successfully.');
 
       navigate('/holiday-camps/discounts/list');
     } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed to Create Discount',
-        text: err.message || 'An unexpected error occurred.',
-        confirmButtonColor: '#d33'
-      });
+      await showError("Error", err.message || 'An unexpected error occurred.');
 
       console.error("Failed to create discount:", err);
     } finally {

@@ -12,6 +12,7 @@ import { useBookFreeTrial } from '../../../../contexts/BookAFreeTrialContext';
 import Loader from '../../../../contexts/Loader';
 import { usePermission } from '../../../../Common/permission';
 import PhoneInput from 'react-phone-input-2';
+import { showError, showSuccess } from '../../../../utils/swalHelper';
 
 const ParentProfile = ({ ParentProfile }) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -135,13 +136,7 @@ const ParentProfile = ({ ParentProfile }) => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || "Failed to fetch comments. Please try again later.");
         }
     }, []);
 
@@ -168,13 +163,7 @@ const ParentProfile = ({ ParentProfile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+           setLoading(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -182,33 +171,20 @@ const ParentProfile = ({ ParentProfile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+               showError("Error", result.message || "Failed to add comment.");
                 return;
             }
 
-
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Success!", result.message || "Comment has been added successfully!");
+           
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Error", error.message || "An error occurred while adding the comment. Please try again.");
+          
         }
     }
     const canCancelTrial =

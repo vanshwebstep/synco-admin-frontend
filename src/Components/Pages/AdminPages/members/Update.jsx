@@ -2,7 +2,7 @@ import CreatableSelect from "react-select/creatable";
 import Select from 'react-select';
 
 import React, { useEffect, useState, useCallback } from "react";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showConfirm, showLoading, showWarning, ThemeSwal } from "../../../../utils/swalHelper";
 import { useMembers } from "../contexts/MemberContext";
 import RoleModal from "./RoleModal";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -38,7 +38,7 @@ const Update = () => {
     countryId: "",
   });
 
-  const [admins,setAdmins] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [editAddress, setEditAddress] = useState(false);
   const [fileuploaded, setFileuploaded] = useState(false);
 
@@ -118,28 +118,28 @@ const Update = () => {
       console.error("Failed to fetch roles:", error);
     }
   }
-    const fetchMembers = useCallback(async () => {
-          const token = localStorage.getItem("adminToken");
-          if (!token) return;
-  
-          setLoading(true);
-          try {
-              const response = await fetch(`${API_BASE_URL}/api/admin/reassign/data`, {
-                  method: "GET",
-                  headers: {
-                      Authorization: `Bearer ${token}`,
-                  },
-              });
-  
-              const resultRaw = await response.json();
-              const result = resultRaw.data || [];
-              setAdmins(result);
-          } catch (error) {
-              console.error("Failed to fetch members:", error);
-          } finally {
-              setLoading(false);
-          }
-      }, []);
+  const fetchMembers = useCallback(async () => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/reassign/data`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const resultRaw = await response.json();
+      const result = resultRaw.data || [];
+      setAdmins(result);
+    } catch (error) {
+      console.error("Failed to fetch members:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -201,11 +201,7 @@ const Update = () => {
     const missing = requiredFields.filter((f) => !formData[f]);
 
     if (missing.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Missing Fields",
-        text: `Please fill in: ${missing.join(", ")}`,
-      });
+      showError("Missing Fields", `Please fill in: ${missing.join(", ")}`);
       return;
     }
     const data = new FormData();
@@ -228,23 +224,16 @@ const Update = () => {
       data.append("removedImage", true);
     }
     if (!formData.countryId) {
-      Swal.fire({
+      ThemeSwal.fire({
         icon: 'warning',
         title: 'Missing Information',
         text: 'Please select a country and fill out all address fields.',
-        confirmButtonColor: '#3085d6',
         confirmButtonText: 'OK',
       }); return;
     }
 
     try {
-      Swal.fire({
-        title: "Updating Member...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      showLoading("Updating Member...");
 
       const response = await fetch(`${API_BASE_URL}/api/admin/${id}`, {
         method: "PUT",
@@ -259,21 +248,11 @@ const Update = () => {
 
       // console.log('🔍 Verification result:', verified);
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Update Member",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Update Member", result.message || "Something went wrong.");
         return;
       }
 
-      Swal.fire({
-        icon: "success",
-        title: result.message || "Member Updated",
-        text: result.message || "New member was Updated successfully!",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      showSuccess(result.message || "Member Updated", result.message || "New member was Updated successfully!");
       const storedAdmin = localStorage.getItem("adminInfo");
       const parsedAdmin = JSON.parse(storedAdmin);
       setAdminInfo(parsedAdmin);
@@ -284,15 +263,11 @@ const Update = () => {
 
     } catch (error) {
       console.error("Error Updating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text: error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
     }
   };
   const handleDelete = async () => {
-    const { value: action } = await Swal.fire({
+    const { value: action } = await ThemeSwal.fire({
       title: "Delete Options",
       html: `
       <div class="text-left">
@@ -309,16 +284,16 @@ const Update = () => {
       cancelButtonText: "Cancel",
       showConfirmButton: false, // Hide the default confirm button
       didOpen: () => {
-        const deleteAllBtn = Swal.getPopup().querySelector("#deleteAllBtn");
-        const assignBtn = Swal.getPopup().querySelector("#assignBtn");
+        const deleteAllBtn = ThemeSwal.getPopup().querySelector("#deleteAllBtn");
+        const assignBtn = ThemeSwal.getPopup().querySelector("#assignBtn");
 
         deleteAllBtn.addEventListener("click", () => {
-          Swal.close();
+          ThemeSwal.close();
           performDelete("permanent");
         });
 
         assignBtn.addEventListener("click", () => {
-          Swal.close();
+          ThemeSwal.close();
           showAssignDropdown();
         });
       },
@@ -327,7 +302,7 @@ const Update = () => {
 
   // Step 2: Show dropdown of admins to assign
   const showAssignDropdown = async () => {
-    const { value: selectedAdmin } = await Swal.fire({
+    const { value: selectedAdmin } = await ThemeSwal.fire({
       title: "Assign Data",
       html: `
       <select id="adminSelect" class="swal2-input border border-gray-200">
@@ -343,9 +318,9 @@ const Update = () => {
       showCancelButton: true,
       cancelButtonText: "Cancel",
       preConfirm: () => {
-        const select = Swal.getPopup().querySelector("#adminSelect");
+        const select = ThemeSwal.getPopup().querySelector("#adminSelect");
         if (!select.value) {
-          Swal.showValidationMessage("Please select an admin to assign data to");
+          ThemeSwal.showValidationMessage("Please select an admin to assign data to");
           return false;
         }
         return select.value;
@@ -361,15 +336,11 @@ const Update = () => {
   const performDelete = async (actionType, assignAdminId = null) => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
-      Swal.fire("Error", "No token found. Please login again.", "error");
+      showError("Error", "No token found. Please login again.");
       return;
     }
 
-    Swal.fire({
-      title: actionType === "assign" ? "Assigning data..." : "Deleting...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
+    showLoading(actionType === "assign" ? "Assigning data..." : "Deleting...");
 
     try {
       const payload =
@@ -389,26 +360,25 @@ const Update = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Swal.fire(
+        showSuccess(
           "Success",
           actionType === "assign"
             ? "Data has been assigned successfully."
-            : "Admin and related data permanently deleted.",
-          "success"
+            : "Admin and related data permanently deleted."
         );
         navigate("/members/List");
       } else {
-        Swal.fire("Error", result.message || "Something went wrong.", "error");
+        showError("Error", result.message || "Something went wrong.");
       }
     } catch (error) {
-      Swal.fire("Error", "Network or server error occurred.", "error");
+      showError("Error", "Network or server error occurred.");
       console.error("Delete error:", error);
     }
   };
 
 
 
-  
+
   const handleTogglePersonal = () => {
     if (!editPersonal) {
       setOriginalData(formData); // backup
@@ -431,30 +401,20 @@ const Update = () => {
     const isSuspending = status === 1; // 1 = suspend, 0 = activate
     const statusText = isSuspending ? 'suspend' : 'active';
 
-    const confirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to ${statusText} this member.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: `Yes, ${statusText} it!`,
-    });
+    const confirm = await showConfirm(
+      'Are you sure?',
+      `You are about to ${statusText} this member.`,
+      `Yes, ${statusText} it!`
+    );
 
     if (!confirm.isConfirmed) return;
 
     const token = localStorage.getItem("adminToken");
     if (!token) {
-      return Swal.fire("Error", "No token found. Please login again.", "error");
+      return showError("Error", "No token found. Please login again.");
     }
 
-    Swal.fire({
-      title: `${statusText.charAt(0).toUpperCase() + statusText.slice(1)}...`,
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+    showLoading(`${statusText.charAt(0).toUpperCase() + statusText.slice(1)}...`);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/${id}/status?status=${statusText}`, {
@@ -467,18 +427,18 @@ const Update = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Swal.fire(
+
+        showSuccess(
           `${statusText.charAt(0).toUpperCase() + statusText.slice(1)}  !`,
-          `Member has been ${statusText}ed successfully.`,
-          "success"
+          `Member has been ${statusText}ed successfully.`
         );
         navigate('/members/List');
       } else {
-        Swal.fire("Error", result.message || `Failed to ${statusText} the member.`, "error");
+        showError("Error", result.message || `Failed to ${statusText} the member.`);
       }
     } catch (err) {
       console.error(`${statusText} error:`, err);
-      Swal.fire("Error", "Network or server error occurred.", "error");
+      showError("Error", "Network or server error occurred.");
     }
   };
 
@@ -502,8 +462,8 @@ const Update = () => {
   if (loading) return <Loader />;
   if (!id) return null;
   if (error) return <p className="text-red-500 text-center mt-5">{error}</p>;
-console.log('formData',formData)
-console.log('editPersonal',editPersonal)
+  console.log('formData', formData)
+  console.log('editPersonal', editPersonal)
   // console.log('isImageremove', isImageremove)
   return (
     <div className="md:max-w-[1043px] w-full mx-auto md:p-4 space-y-8">
@@ -547,22 +507,17 @@ console.log('editPersonal',editPersonal)
                       alt="Cross"
                       className="absolute top-[-15px] right-[-15px] rounded-full object-cover border cursor-pointer"
                       onClick={() => {
-                        Swal.fire({
-                          title: 'Are you sure?',
-                          text: "Do you want to remove your picture?",
-                          icon: 'warning',
-                          showCancelButton: true,
-                          confirmButtonColor: '#3085d6',
-                          cancelButtonColor: '#d33',
-                          confirmButtonText: 'Yes, remove it!',
-                          cancelButtonText: 'Cancel'
-                        }).then((result) => {
+                        showConfirm(
+                          'Are you sure?',
+                          "Do you want to remove your picture?",
+                          "Yes, remove it!"
+                        ).then((result) => {
                           if (result.isConfirmed) {
                             setFormData((prev) => ({ ...prev, profile: null }));
                             setPhotoPreview(null);
                             setIsImageremove(true);
                             setIsImageValid(false); // hide cross after removal
-                            Swal.fire('Removed!', 'Your picture has been removed.', 'success');
+                            showSuccess('Removed!', 'Your picture has been removed.');
                           }
                         });
                       }}
@@ -571,7 +526,7 @@ console.log('editPersonal',editPersonal)
                 </>
               )}
 
-              { editPersonal && (
+              {editPersonal && (
                 <>
                   <div className="absolute bottom-1 md:right-0 bg-black bg-opacity-30 text-white text-xs px-2 py-0.5 whitespace-nowrap rounded-full">
                     Edit Image
@@ -889,7 +844,7 @@ console.log('editPersonal',editPersonal)
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
               />
             )}
-            
+
           </div>
 
         </div>

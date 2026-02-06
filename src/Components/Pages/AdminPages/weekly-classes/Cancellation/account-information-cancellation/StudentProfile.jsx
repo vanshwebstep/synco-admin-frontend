@@ -13,7 +13,7 @@ import Loader from '../../../contexts/Loader';
 import { usePermission } from '../../../Common/permission';
 import { addDays } from "date-fns";
 import { useNotification } from '../../../contexts/NotificationContext';
-import Swal from "sweetalert2";
+import { showSuccess, showError } from '../../../../../../utils/swalHelper';
 
 const StudentProfile = ({ StudentProfile }) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -193,12 +193,7 @@ const StudentProfile = ({ StudentProfile }) => {
         } catch (error) {
             console.error("Failed to fetch comments:", error);
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
         }
     }, []);
 
@@ -225,13 +220,7 @@ const StudentProfile = ({ StudentProfile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            // Loader skipped
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -239,33 +228,19 @@ const StudentProfile = ({ StudentProfile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
         }
     }
     const canCancelTrial =
@@ -724,11 +699,11 @@ const StudentProfile = ({ StudentProfile }) => {
                                     </div>
                                 ) : (
                                     <>
-<div className="border-t border-[#495362] py-5">
-                                        <div className=" text-[20px] text-white">Lifecycle</div>
-                                        <div className="text-[16px] mt-1 text-gray-400">
-                                            {paymentPlan?.duration} {paymentPlan?.interval}{paymentPlan?.duration > 1 ? "s" : ""}
-                                        </div>
+                                        <div className="border-t border-[#495362] py-5">
+                                            <div className=" text-[20px] text-white">Lifecycle</div>
+                                            <div className="text-[16px] mt-1 text-gray-400">
+                                                {paymentPlan?.duration} {paymentPlan?.interval}{paymentPlan?.duration > 1 ? "s" : ""}
+                                            </div>
                                         </div>
                                     </>
                                 )}

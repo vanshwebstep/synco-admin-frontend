@@ -6,7 +6,6 @@ import {
     CirclePoundSterling,
     X
 } from "lucide-react";
-import Swal from "sweetalert2";
 import { PiUsersThreeBold } from "react-icons/pi";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
@@ -333,23 +332,14 @@ const StudentCamp = () => {
                 throw new Error(result.message || "Failed to send Email");
             }
 
-            await Swal.fire({
-                title: "Success!",
-                text: result.message || "Mail has been Sent successfully.",
-                icon: "success",
-                confirmButtonText: "OK",
-            });
+            await showSuccess("Success!", result.message || "Mail has been Sent successfully.");
 
             return result;
 
         } catch (error) {
             console.error("Error sending Mail:", error);
-            await Swal.fire({
-                title: "Error",
-                text: error.message || "Something went wrong while sending Mail.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            await showError("Error", error.message || "Something went wrong while sending Mail.");
+               
             throw error;
         } finally {
             // await fetchOneToOneMembers(data.id);
@@ -750,12 +740,8 @@ const exportToExcel = () => {
                                 if (selectedUserIds && selectedUserIds.length > 0) {
                                     sendEmail(selectedUserIds);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
+                                       
                                 }
                             }}
                             style={{ width: "max-content" }}

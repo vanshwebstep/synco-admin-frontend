@@ -7,8 +7,7 @@ import PlanTabs from '../PlanTabs';
 import Loader from '../../../../Pages/AdminPages/contexts/Loader';
 import { useVenue } from '../../contexts/VenueContext';
 import { usePayments } from '../../contexts/PaymentPlanContext';
-import Swal from "sweetalert2"; // make sure it's installed
-import { format, parseISO } from "date-fns";
+import { format, parseISO, set } from "date-fns";
 import { motion } from "framer-motion";
 import { X } from "lucide-react"; // Optional: Use any icon or ✖️ if no icon lib
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -29,6 +28,7 @@ import 'react-phone-input-2/lib/style.css';
 import { useBookFreeTrial } from '../../contexts/BookAFreeTrialContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useTermContext } from '../../contexts/TermDatesSessionContext';
+import { showError } from '../../../../../utils/swalHelper';
 const HolidayAddtoWaitingList = () => {
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
@@ -43,7 +43,7 @@ const HolidayAddtoWaitingList = () => {
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5; // Number of comments per page
-
+const [loadingState, setLoadingState] = useState(false);
   // Pagination calculations
   const indexOfLastComment = currentPage * commentsPerPage;
   const indexOfFirstComment = indexOfLastComment - commentsPerPage;
@@ -174,25 +174,7 @@ const HolidayAddtoWaitingList = () => {
   };
 
 
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the venue.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // console.log('DeleteId:', id);
-
-        deleteVenue(id); // Call your delete function here
-
-      }
-    });
-  };
+ 
 
   const [openForm, setOpenForm] = useState(false);
 
@@ -492,12 +474,7 @@ const goToNextMonth = () => {
     } catch (error) {
       console.error("Failed to fetch comments:", error);
 
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
   const handleSubmitComment = async (e) => {
@@ -520,47 +497,29 @@ const goToNextMonth = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
+      setLoadingState(true);
 
       const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
 
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
       fetchComments();
     } catch (error) {
+      setLoadingState
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
+    }finally{
+      set
     }
   }
   const token = localStorage.getItem("adminToken");

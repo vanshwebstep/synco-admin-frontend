@@ -14,7 +14,7 @@ import { usePermission } from '../../../Common/permission';
 import { addDays } from "date-fns";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { useNotification } from '../../../contexts/NotificationContext';
-import Swal from "sweetalert2";
+import { showSuccess, showError, showConfirm, showWarning } from '../../../../../../utils/swalHelper';
 import { useNavigate } from 'react-router-dom';
 
 const StudentProfile = ({ profile }) => {
@@ -111,12 +111,7 @@ const StudentProfile = ({ profile }) => {
         } catch (error) {
             console.error("Failed to fetch comments:", error);
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
         }
     }, []);
 
@@ -143,13 +138,7 @@ const StudentProfile = ({ profile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            // Loader skipped
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -157,33 +146,19 @@ const StudentProfile = ({ profile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
         }
     }
 
@@ -208,16 +183,12 @@ const StudentProfile = ({ profile }) => {
     ) || [];
 
     const handleBookMembership = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to book a membership?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#237FEA",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Book it!",
-            cancelButtonText: "Cancel",
-        }).then((result) => {
+        showConfirm(
+            "Are you sure?",
+            "Do you want to book a membership?",
+            "Yes, Book it!",
+            "Cancel"
+        ).then((result) => {
             if (result.isConfirmed) {
                 // Navigate to your component/route
                 navigate("/weekly-classes/find-a-class/book-a-membership", {
@@ -396,16 +367,16 @@ const StudentProfile = ({ profile }) => {
 
             const s = students[index];
 
-        // Validation: required fields
-        if (
-            !s.studentFirstName?.trim() ||
-            !s.studentLastName?.trim() ||
-            !s.age?.toString().trim() ||
-            !s.dateOfBirth?.trim()
-        ) {
-            Swal.fire("Missing fields", "Please fill all required student fields before saving.", "warning");
-            return; // stop save
-        }
+            // Validation: required fields
+            if (
+                !s.studentFirstName?.trim() ||
+                !s.studentLastName?.trim() ||
+                !s.age?.toString().trim() ||
+                !s.dateOfBirth?.trim()
+            ) {
+                showWarning("Missing fields", "Please fill all required student fields before saving.");
+                return; // stop save
+            }
             saveStudentData();
             setEditingIndex(null);
         } else {
@@ -893,7 +864,7 @@ const StudentProfile = ({ profile }) => {
                                         </button>
                                     </div>
                                 )}
-                                {!profile?.paymentPlan && profile?.classSchedule?.capacity !== 0 && status !== 'active' && status !== "request_to_cancel" &&(
+                                {!profile?.paymentPlan && profile?.classSchedule?.capacity !== 0 && status !== 'active' && status !== "request_to_cancel" && (
 
                                     <button
                                         onClick={handleBookMembership}
@@ -923,7 +894,7 @@ const StudentProfile = ({ profile }) => {
                                 </div>
 
 
-                               {(status === "frozen" || status === "cancelled") &&
+                                {(status === "frozen" || status === "cancelled") &&
                                     classSchedule?.capacity > 0 &&
                                     canRebooking && (
                                         <button

@@ -12,7 +12,7 @@ import { useBookFreeTrial } from '../../../../contexts/BookAFreeTrialContext';
 import Loader from '../../../../contexts/Loader';
 import { usePermission } from '../../../../Common/permission';
 import List from '../../Book a Membership/list';
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError, showConfirm, showWarning } from '../../../../../../../utils/swalHelper';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaSave } from "react-icons/fa";
 import { useNotification } from '../../../../contexts/NotificationContext';
@@ -98,12 +98,7 @@ const ParentProfile = ({ ParentProfile }) => {
         } catch (error) {
             console.error("Failed to fetch comments:", error);
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
         }
     }, []);
 
@@ -130,13 +125,7 @@ const ParentProfile = ({ ParentProfile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            // Loader skipped
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book/free-trials/comment/create`, requestOptions);
@@ -144,33 +133,19 @@ const ParentProfile = ({ ParentProfile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
         }
     }
 
@@ -352,16 +327,11 @@ const ParentProfile = ({ ParentProfile }) => {
             .join(" ");           // join with space
     };
     const handleBookMembership = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to book a membership?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#237FEA",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Book it!",
-            cancelButtonText: "Cancel",
-        }).then((result) => {
+        showConfirm(
+            "Are you sure?",
+            "Do you want to book a membership?",
+            "Yes, Book it!"
+        ).then((result) => {
             if (result.isConfirmed) {
                 // Navigate to your component/route
                 navigate("/weekly-classes/find-a-class/book-a-membership", {
@@ -456,7 +426,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                                 buttonClass="!bg-white !border-none !p-0"
                                             />
                                             <input
-                                            type='number'
+                                                type='number'
                                                 className="border-none w-full focus:outline-none"
                                                 value={parent.parentPhoneNumber}
                                                 readOnly={editingIndex !== index}
@@ -1020,20 +990,12 @@ const ParentProfile = ({ ParentProfile }) => {
                                         className="w-1/2 bg-[#237FEA] text-white rounded-xl py-3 text-[18px] font-medium hover:shadow-md transition-shadow"
                                         onClick={() => {
                                             if (!selectedDate) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Please select a date first!",
-                                                    confirmButtonColor: "#237FEA",
-                                                });
+                                                showWarning("Please select a date first!");
                                                 return;
                                             }
 
                                             if (!reason) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Please select a reason for non-attendance!",
-                                                    confirmButtonColor: "#237FEA",
-                                                });
+                                                showWarning("Please select a reason for non-attendance!");
                                                 return;
                                             }
 

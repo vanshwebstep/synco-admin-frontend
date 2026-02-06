@@ -11,7 +11,7 @@ import {
 import { useLeads } from "../../contexts/LeadsContext";
 import Select from "react-select";
 import * as XLSX from "xlsx";
-import Swal from "sweetalert2";
+import { showWarning } from "../../../../../utils/swalHelper";
 
 import { saveAs } from "file-saver";
 function exportDataToExcel(data) {
@@ -267,12 +267,10 @@ const Filters = () => {
         console.log("selectedUserIds:", selectedUserIds);
 
         if (!selectedUserIds || selectedUserIds.length === 0) {
-            await Swal.fire({
-                title: "No Users Selected",
-                text: "Please select at least one user before sending email.",
-                icon: "warning",
-                confirmButtonText: "OK",
-            });
+            await showWarning(
+                "No Users Selected",
+                "Please select at least one user before sending email."
+            );
             return;
         }
 

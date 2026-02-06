@@ -14,9 +14,9 @@ import { usePermission } from '../../../Common/permission';
 import { addDays } from "date-fns";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { useNotification } from '../../../contexts/NotificationContext';
-import Swal from "sweetalert2";
 import { useNavigate } from 'react-router-dom';
 import PhoneInput from 'react-phone-input-2';
+import { showConfirm, showError, showSuccess, showWarning } from '../../../../../../utils/swalHelper';
 const ParentProfile = ({ profile }) => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const {
@@ -39,7 +39,7 @@ const ParentProfile = ({ profile }) => {
     const totalPages = Math.ceil(commentsList.length / commentsPerPage);
     const { adminInfo, setAdminInfo } = useNotification();
     const token = localStorage.getItem("adminToken");
-
+     const [loadingData, setLoadingData] = useState(false);
     const goToPage = (page) => {
         if (page < 1) page = 1;
         if (page > totalPages) page = totalPages;
@@ -129,13 +129,8 @@ const ParentProfile = ({ profile }) => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
+           
         }
     }, []);
 
@@ -162,13 +157,7 @@ const ParentProfile = ({ profile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+           setLoadingData(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
@@ -176,33 +165,21 @@ const ParentProfile = ({ profile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
-
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
-
+showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+            
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
+              
+        }finally{
+            setLoadingData(false);
         }
     }
 
@@ -429,16 +406,8 @@ const ParentProfile = ({ profile }) => {
     };
     console.log('profile', profile.paymentPlans)
     const handleBookMembership = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to book a membership?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#237FEA",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Book it!",
-            cancelButtonText: "Cancel",
-        }).then((result) => {
+        showConfirm("Are you sure?", "Do you want to book a membership?", "Yes, Book it!").then((result) => {
+
             if (result.isConfirmed) {
                 // Navigate to your component/route
                 navigate("/holiday-camp/find-a-camp/book-a-membership", {
@@ -1332,31 +1301,30 @@ const ParentProfile = ({ profile }) => {
                                         onClick={() => {
                                             // Validation
                                             if (!cancelData.cancellationType) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a cancellation type.",
-                                                });
+                                                showWarning("Missing Field", "Please select a cancellation type.");
                                                 return;
                                             }
 
                                             if (cancelData.cancellationType !== "immediate" && !cancelData.cancelDate) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a cancellation effective date.",
-                                                });
+                                                showWarning("Missing Field", "Please select a cancellation effective date.");
                                                 return;
                                             }
 
                                             if (!cancelData.cancelReason) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Missing Field",
-                                                    text: "Please select a reason for cancellation.",
-                                                });
+                                                showWarning("Missing Field", "Please select a reason for cancellation.");
                                                 return;
                                             }
+
+                                            if (cancelData.cancellationType !== "immediate" && !cancelData.cancelDate) {
+                                                showWarning("Missing Field", "Please select a cancellation effective date.");
+                                                return;
+                                            }
+
+                                            if (!cancelData.cancelReason) {
+                                                showWarning("Missing Field", "Please select a reason for cancellation.");
+                                                return;
+                                            }
+                                                 
 
                                             // If all validations pass → call submit function
                                             cancelMembershipSubmit(cancelData, "allMembers");
@@ -1628,22 +1596,8 @@ const ParentProfile = ({ profile }) => {
                                         className="w-1/2 bg-[#237FEA] text-white rounded-xl py-3 text-[18px] font-medium hover:shadow-md transition-shadow"
                                         onClick={() => {
                                             if (!freezeData.freezeStartDate || !freezeData.freezeDurationMonths || !freezeData.reactivateOn) {
-                                                Swal.fire({
-                                                    icon: "warning",
-                                                    title: "Incomplete Form",
-                                                    html: `
-                                          <div style="font-size:16px; text-align:left; line-height:1.6;">
-                                            Please fill in all the required fields before submitting:
-                                            <ul style="margin-top:10px; list-style-type:disc; margin-left:20px;">
-                                              ${!freezeData.freezeStartDate ? "<li><b>Freeze Start Date</b> is missing.</li>" : ""}
-                                              ${!freezeData.freezeDurationMonths ? "<li><b>Freeze Duration</b> is missing.</li>" : ""}
-                                              ${!freezeData.reactivateOn ? "<li><b>Reactivate On</b> date is missing.</li>" : ""}
-                                            </ul>
-                                          </div>
-                                        `,
-                                                    confirmButtonText: "Okay",
-                                                    confirmButtonColor: "#237FEA",
-                                                });
+                                              showWarning("Incomplete Form", "Please fill in all the required fields before submitting.");   
+                                               
                                                 return;
                                             }
 

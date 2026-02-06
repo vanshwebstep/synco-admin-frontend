@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import Loader from '../../../contexts/Loader';
 import { Editor } from '@tinymce/tinymce-react';
-import Swal from 'sweetalert2'; // If not already imported
+import { showError, showSuccess, showWarning } from '../../../../../../utils/swalHelper';
 
 import { usePayments } from '../../../contexts/PaymentPlanContext';
 import PlanTabs from "../../../weekly-classes/find-a-class/PlanTabs";
@@ -177,12 +177,9 @@ const AddPaymentPlanGroup = () => {
         const { title, price, priceLesson, interval, duration, joiningFee, students } = formData;
 
         // ✅ Validation
+
         if (!title || !price || !interval || !priceLesson || !duration || !students || !joiningFee) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Missing Fields',
-                text: 'Please fill in all required fields: Title, Price, Interval, Duration, Number of Students, and Joining Fee.',
-            });
+            showWarning("Missing Fields", "Please fill in all required fields: Title, Price, Interval, Duration, Number of Students, and Joining Fee.");
             return;
         }
 
@@ -203,13 +200,8 @@ const AddPaymentPlanGroup = () => {
         try {
             await createPackage(newPlan);
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Saved',
-                text: 'Plan saved successfully!',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            // Success
+            showSuccess("Saved", "Plan saved successfully!");
 
             // Clear form
             setFormData({
@@ -228,15 +220,13 @@ const AddPaymentPlanGroup = () => {
             setOpenForm(false);
         } catch (err) {
             console.error('Error saving plan:', err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Save Failed',
-                text: 'There was an error saving the plan. Please try again.'
-            });
+            console.error('Error saving plan:', err);
+            showError("Save Failed", "There was an error saving the plan. Please try again.");
         } finally {
             setIsSavePlan(false);
         }
     };
+
     useEffect(() => {
         if (id && selectedGroup) {
             setGroupName(selectedGroup.name || "");
@@ -324,31 +314,19 @@ const AddPaymentPlanGroup = () => {
                                     onSubmit={(e) => {
                                         e.preventDefault();
 
-                                        // --- VALIDATION USING SWEETALERT ONLY ---
+                                        // --- VALIDATION USING swalHelper ONLY ---
                                         if (!groupName.trim()) {
-                                            Swal.fire({
-                                                icon: "warning",
-                                                title: "Group Name Missing",
-                                                text: "Please enter a Payment Plan Group Name.",
-                                            });
+                                            showWarning("Group Name Missing", "Please enter a Payment Plan Group Name.");
                                             return;
                                         }
 
                                         if (!description.trim()) {
-                                            Swal.fire({
-                                                icon: "warning",
-                                                title: "Description Missing",
-                                                text: "Please enter a description.",
-                                            });
+                                            showWarning("Description Missing", "Please enter a description.");
                                             return;
                                         }
 
                                         if (selectedPlans.length === 0) {
-                                            Swal.fire({
-                                                icon: "warning",
-                                                title: "No Plans Selected",
-                                                text: "Please select at least one Membership Plan.",
-                                            });
+                                            showWarning("No Plans Selected", "Please select at least one Membership Plan.");
                                             return;
                                         }
 
@@ -858,6 +836,6 @@ const AddPaymentPlanGroup = () => {
 
         </div>
     );
-};
 
+}
 export default AddPaymentPlanGroup;

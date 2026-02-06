@@ -14,7 +14,7 @@ import { usePermission } from '../../../Common/permission';
 import { addDays } from "date-fns";
 import { FaEdit, FaSave } from "react-icons/fa";
 import { useNotification } from '../../../contexts/NotificationContext';
-import Swal from "sweetalert2";
+import { showSuccess, showError, showConfirm, showWarning } from '../../../../../../utils/swalHelper';
 import { useNavigate } from 'react-router-dom';
 import PhoneInput from 'react-phone-input-2';
 
@@ -107,12 +107,7 @@ const ParentProfile = ({ profile }) => {
         } catch (error) {
             console.error("Failed to fetch comments:", error);
 
-            Swal.fire({
-                title: "Error",
-                text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
         }
     }, []);
 
@@ -139,13 +134,7 @@ const ParentProfile = ({ profile }) => {
         };
 
         try {
-            Swal.fire({
-                title: "Creating ....",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+            // Loader skipped
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -153,33 +142,19 @@ const ParentProfile = ({ profile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Add Comment",
-                    text: result.message || "Something went wrong.",
-                });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
 
 
-            Swal.fire({
-                icon: "success",
-                title: "Comment Created",
-                text: result.message || " Comment has been  added successfully!",
-                showConfirmButton: false,
-            });
+            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text:
-                    error.message || "An error occurred while submitting the form.",
-            });
+            showError("Network Error", error.message || "An error occurred while submitting the form.");
         }
     }
     // console.log('profile', profile)
@@ -359,7 +334,7 @@ const ParentProfile = ({ profile }) => {
                 !p.relationToChild?.trim() ||
                 !p.howDidYouHear?.trim()
             ) {
-                Swal.fire("Missing fields", "Please fill all fields before saving.", "warning");
+                showWarning("Missing fields", "Please fill all fields before saving.");
                 return; // ❌ stop saving
             }
             setEditingIndex(null);
@@ -456,16 +431,12 @@ const ParentProfile = ({ profile }) => {
         (cls) => cls.value === waitingListData?.classScheduleId
     );
     const handleBookMembership = () => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you want to book a membership?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#237FEA",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Book it!",
-            cancelButtonText: "Cancel",
-        }).then((result) => {
+        showConfirm(
+            "Are you sure?",
+            "Do you want to book a membership?",
+            "Yes, Book it!",
+            "Cancel"
+        ).then((result) => {
             if (result.isConfirmed) {
                 // console.log('profile',profile)
                 // Navigate to your component/route
@@ -564,7 +535,7 @@ const ParentProfile = ({ profile }) => {
                                                 />
 
                                                 <input
-                                                type='number'
+                                                    type='number'
                                                     className="border-none w-full focus:outline-none"
                                                     value={parent.parentPhoneNumber}
                                                     readOnly={editingIndex !== index}

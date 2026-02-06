@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError, showLoading } from "../../../../utils/swalHelper";
 
 const BookFreeTrialLoaderContext = createContext();
 
@@ -64,11 +64,11 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     ) => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
-       // console.log('status1', status1)
-       // console.log('satus2', status2)
-       // console.log('otherDateRange', otherDateRange)
-       // console.log('dateoftrial', dateoftrial)
-       // console.log('forOtherDate', forOtherDate)
+      // console.log('status1', status1)
+      // console.log('satus2', status2)
+      // console.log('otherDateRange', otherDateRange)
+      // console.log('dateoftrial', dateoftrial)
+      // console.log('forOtherDate', forOtherDate)
 
       const shouldShowLoader = studentName || venueName || status1 || status2 || otherDateRange || dateoftrial || forOtherDate;
       // if (shouldShowLoader) setLoading(true);
@@ -214,26 +214,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || result.keyInformation || "Failed to create class schedule");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Free Trial has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "Free Trial has been created successfully.");
       navigate(`/weekly-classes/trial/list`)
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -263,25 +253,15 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
       const result = await response.json();
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "BookFreeTrial has been updated successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "BookFreeTrial has been updated successfully.");
 
       return result;
     } catch (error) {
       console.error("Error updating bookFreeTrial:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while updating bookFreeTrial.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while updating bookFreeTrial.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -301,22 +281,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
       if (!res.ok) {
         throw new Error(data.message || "Failed to delete bookFreeTrial");
       }
-
-      await Swal.fire({
-        icon: "success",
-        title: data.message || "BookFreeTrial deleted successfully",
-        confirmButtonColor: "#3085d6",
-      });
-
+      
       await fetchBookFreeTrialsLoading(); // Refresh the list
+      await showSuccess(data.message || "BookFreeTrial deleted successfully");
+
     } catch (err) {
       console.error("Failed to delete bookFreeTrial:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Something went wrong",
-        confirmButtonColor: "#d33",
-      });
+      await showError("Error", err.message || "Something went wrong");
     }
   }, [token, fetchBookFreeTrialsLoading]);
 
@@ -349,7 +320,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -368,26 +339,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -397,7 +358,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -415,26 +376,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       navigate(`/weekly-classes/trial/list`)
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -444,7 +395,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -462,26 +413,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      }); navigate(`/weekly-classes/trial/list`)
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully."); navigate(`/weekly-classes/trial/list`)
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -491,7 +432,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -510,26 +451,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookFreeTrialsLoading();
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       navigate(`/weekly-classes/trial/list`)
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookFreeTrialsLoading();
       setLoading(false);
     }
   };
@@ -539,7 +470,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -557,24 +488,14 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to Cancel Waiting List");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       navigate(`/weekly-classes/trial/list`);
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -733,26 +654,16 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Membership has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookMemberships();
+      await showSuccess("Success!", result.message || "Membership has been created successfully.");
       navigate(`/weekly-classes/all-members/list`)
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
-      await fetchBookMemberships();
       setLoading(false);
     }
   };
@@ -762,7 +673,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -781,28 +692,18 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await fetchBookMemberships();
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       navigate(`/weekly-classes/all-members/list`);
 
-      await fetchBookMemberships();
       setLoading(false);
     }
   };
@@ -812,7 +713,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -830,12 +731,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       if (comesfrom === "allMembers") {
         navigate(`/weekly-classes/all-members/list`);
       } else {
@@ -846,12 +742,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -863,7 +754,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -881,12 +772,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       if (comesfrom === "allMembers") {
         navigate(`/weekly-classes/all-members/list`);
       } else {
@@ -897,12 +783,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -914,7 +795,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -932,12 +813,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       if (comesfrom === "allMembers") {
         navigate(`/weekly-classes/all-members/list`);
       } else {
@@ -948,12 +824,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -993,12 +864,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result?.message || "Failed to reactivate membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Membership has been reactivated successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Membership has been reactivated successfully.");
 
       if (comesfrom === "allMembers") {
         navigate(`/weekly-classes/all-members/list`);
@@ -1010,12 +876,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error reactivating membership:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while reactivating membership.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while reactivating membership.");
       throw error;
 
     } finally {
@@ -1115,7 +976,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1134,23 +995,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchMembershipSales();
@@ -1160,14 +1011,14 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
 
 
-  // Add to Waiting List 
+  // Add to Waiting List
   const addtoWaitingListSubmit = async (bookingIds, comesfrom) => {
     setLoading(true);
 
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1185,28 +1036,12 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trials has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
-      if (comesfrom === "allMembers") {
-        navigate(`/weekly-classes/all-members/list`);
-      } else {
-        navigate(`/weekly-classes/all-members/membership-sales`);
-      }
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -1227,11 +1062,11 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     ) => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
-       // console.log('status1', status1)
-       // console.log('satus2', status2)
-       // console.log('otherDateRange', otherDateRange)
-       // console.log('dateoftrial', dateoftrial)
-       // console.log('forOtherDate', forOtherDate)
+      // console.log('status1', status1)
+      // console.log('satus2', status2)
+      // console.log('otherDateRange', otherDateRange)
+      // console.log('dateoftrial', dateoftrial)
+      // console.log('forOtherDate', forOtherDate)
 
       const shouldShowLoader = studentName || venueName || status1 || status2 || otherDateRange || dateoftrial || forOtherDate;
       // if (shouldShowLoader) setLoading(true);
@@ -1307,7 +1142,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1325,12 +1160,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to Cancel Waiting List");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
       if (comesfrom === "allMembers") {
         navigate(`/weekly-classes/all-members/list`);
       } else {
@@ -1341,12 +1171,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       setLoading(false);
@@ -1358,7 +1183,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1377,23 +1202,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchAddtoWaitingList();
@@ -1508,23 +1323,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Membership has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Membership has been created successfully.");
       navigate(`/weekly-classes/find-a-class/add-to-waiting-list/list`)
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchAddtoWaitingList();
@@ -1550,11 +1355,11 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     ) => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
-       // console.log('status1', status1)
-       // console.log('satus2', status2)
-       // console.log('otherDateRange', otherDateRange)
-       // console.log('dateoftrial', dateoftrial)
-       // console.log('forOtherDate', forOtherDate)
+      // console.log('status1', status1)
+      // console.log('satus2', status2)
+      // console.log('otherDateRange', otherDateRange)
+      // console.log('dateoftrial', dateoftrial)
+      // console.log('forOtherDate', forOtherDate)
 
       const shouldShowLoader = studentName || venueName || status1 || status2 || otherDateRange || dateoftrial || forOtherDate;
       // if (shouldShowLoader) setLoading(true);
@@ -1644,11 +1449,11 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     ) => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
-       // console.log('status1', status1)
-       // console.log('satus2', status2)
-       // console.log('otherDateRange', otherDateRange)
-       // console.log('dateoftrial', dateoftrial)
-       // console.log('forOtherDate', forOtherDate)
+      // console.log('status1', status1)
+      // console.log('satus2', status2)
+      // console.log('otherDateRange', otherDateRange)
+      // console.log('dateoftrial', dateoftrial)
+      // console.log('forOtherDate', forOtherDate)
 
       const shouldShowLoader = studentName || venueName || status1 || status2 || otherDateRange || dateoftrial || forOtherDate;
       // if (shouldShowLoader) setLoading(true);
@@ -1738,11 +1543,11 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     ) => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
-       // console.log('status1', status1)
-       // console.log('satus2', status2)
-       // console.log('otherDateRange', otherDateRange)
-       // console.log('dateoftrial', dateoftrial)
-       // console.log('forOtherDate', forOtherDate)
+      // console.log('status1', status1)
+      // console.log('satus2', status2)
+      // console.log('otherDateRange', otherDateRange)
+      // console.log('dateoftrial', dateoftrial)
+      // console.log('forOtherDate', forOtherDate)
 
       const shouldShowLoader = studentName || venueName || status1 || status2 || otherDateRange || dateoftrial || forOtherDate;
       // if (shouldShowLoader) setLoading(true);
@@ -1824,7 +1629,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1843,23 +1648,14 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
+
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await  showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchRequestToCancellations();
@@ -1872,7 +1668,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1891,23 +1687,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Trialsssssss has been created successfully.");
 
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await  showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchAllCancellations();
@@ -1920,7 +1706,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
     const headers = {
       "Content-Type": "application/json",
     };
-     // console.log('bookingIds', bookingIds)
+    // console.log('bookingIds', bookingIds)
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -1939,23 +1725,13 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create Membership");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Trialsssssss has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
-       navigate("/weekly-classes/cancellation", { state: 'fullCancellation' });
+      await showSuccess("Success!", result.message || "Full cancellation email has been sent successfully.");
+      navigate("/weekly-classes/cancellation", { state: 'fullCancellation' });
       return result;
 
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await  showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchFullCancellations();
@@ -1987,7 +1763,7 @@ export const BookFreeTrialLoaderProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-    const ServiceHistoryFulltto = useCallback(async (ID) => {
+  const ServiceHistoryFulltto = useCallback(async (ID) => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
 

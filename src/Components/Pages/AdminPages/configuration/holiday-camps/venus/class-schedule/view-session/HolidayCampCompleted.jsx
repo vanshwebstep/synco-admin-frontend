@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, X } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { showError, showSuccess } from '../../../../../../../../utils/swalHelper';
 const HolidayCampCompleted = ({ item, sessionData }) => {
     const tabs = ['Members'];
     //  'Trials', 'Coaches'
@@ -51,16 +51,8 @@ const HolidayCampCompleted = ({ item, sessionData }) => {
             const token = localStorage.getItem("adminToken"); // dynamic token
             if (!token) throw new Error("Token not found");
 
-            // Show loading Swal
-            Swal.fire({
-                title: "Updating attendance...",
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-            });
+            // Show loading 
+            setLoading(true);
 
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -89,33 +81,23 @@ const HolidayCampCompleted = ({ item, sessionData }) => {
             const result = await response.json();
 
             // Close loading
-            Swal.close();
+
 
             if (result.status) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Attendance updated!",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+                showSuccess("Attendance updated!", "The attendance status has been updated successfully.");
+
                 fetchData();
             } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to update attendance",
-                    text: result.message || "Something went wrong",
-                });
+                showError("Failed to update", result.message || "Failed to update attendance status.");
+
             }
 
             return result;
 
         } catch (error) {
-            Swal.close();
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong",
-            });
+            setLoading(false);
+            showError("Error", error.message || "An error occurred while updating attendance.");
+
             console.error("Error updating attendance:", error);
         }
     };

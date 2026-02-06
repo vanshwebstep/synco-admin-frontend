@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CreatableSelect from "react-select/creatable";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading, showWarning } from "../../../../utils/swalHelper";
 import { useMembers } from "../contexts/MemberContext";
 import RoleModal from "./RoleModal";
 import { Eye, EyeOff } from "lucide-react"; // or use any icon library
@@ -97,11 +97,7 @@ const Create = () => {
     // Email validation
     if (!formData.email || !emailRegex.test(formData.email)) {
       // console.log("❌ Missing fields:", formData);
-      Swal.fire({
-        icon: "error",
-        title: "Invalid Email",
-        text: "Please enter a valid email address.",
-      });
+      showError("Invalid Email", "Please enter a valid email address.");
       return;
     }
     // console.log("❌ Misdss:", formData);
@@ -111,11 +107,7 @@ const Create = () => {
         .map(([key]) => key.replace(/_/g, " "));
 
       if (missingDocs.length > 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Missing Coach Documents",
-          text: `Please upload: ${missingDocs.join(", ")}`,
-        });
+        showWarning("Missing Coach Documents", `Please upload: ${missingDocs.join(", ")}`);
         return;
       }
     }
@@ -133,11 +125,7 @@ const Create = () => {
       ) {
         // console.log("❌ Missing fields:", formData);
 
-        Swal.fire({
-          icon: "warning",
-          title: "Missing Information",
-          text: "Please fill out all required fields before submitting.",
-        });
+        showWarning("Missing Information", "Please fill out all required fields before submitting.");
         return;
       }
 
@@ -165,13 +153,7 @@ const Create = () => {
       }
 
       try {
-        Swal.fire({
-          title: "Creating Member...",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
+        showLoading("Creating Member...");
 
         const response = await fetch(`${API_BASE_URL}/api/admin`, {
           method: "POST",
@@ -184,11 +166,7 @@ const Create = () => {
         const result = await response.json();
 
         if (!response.ok) {
-          Swal.fire({
-            icon: "error",
-            title: "Failed to Add Member",
-            text: result.message || "Something went wrong.",
-          });
+          showError("Failed to Add Member", result.message || "Something went wrong.");
           return;
         }
 
@@ -197,14 +175,7 @@ const Create = () => {
           additionalMessage =
             " A reset password link has been sent to your registered email address.";
         }
-        Swal.fire({
-          icon: "success",
-          title: result.message || "Member Created",
-          text:
-            (result.message || "New member was added successfully!"),
-          timer: 10000,
-          showConfirmButton: false,
-        });
+        showSuccess(result.message || "Member Created", result.message || "New member was added successfully!");
 
         fetchMembers();
 
@@ -221,12 +192,7 @@ const Create = () => {
         setPhotoPreview(null);
       } catch (error) {
         console.error("Error creating member:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Network Error",
-          text:
-            error.message || "An error occurred while submitting the form.",
-        });
+        showError("Network Error", error.message || "An error occurred while submitting the form.");
       }
     }
   };

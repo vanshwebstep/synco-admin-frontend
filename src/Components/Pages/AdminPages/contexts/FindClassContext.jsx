@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
-
+import { showError, showSuccess } from "../../../../utils/swalHelper";
 const FindClassContext = createContext();
 
 export const FindClassProvider = ({ children }) => {
@@ -69,23 +68,13 @@ export const FindClassProvider = ({ children }) => {
 
       const result = await response.json();
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "FindClasses has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "FindClasses has been created successfully.");
 
       fetchFindClasses();
       return result;
     } catch (error) {
       console.error("Error creating findClasses:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating findClasses.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating findClasses.");
       throw error;
     } finally {
       setLoading(false);
@@ -119,23 +108,13 @@ export const FindClassProvider = ({ children }) => {
 
       const result = await response.json();
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "FindClasses has been updated successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "FindClasses has been updated successfully.");
 
       fetchFindClasses();
       return result;
     } catch (error) {
       console.error("Error updating findClasses:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while updating findClasses.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while updating findClasses.");
       throw error;
     } finally {
       setLoading(false);
@@ -158,21 +137,12 @@ const deleteFindClasses = useCallback(async (id) => {
       throw new Error(data.message || "Failed to delete findClasses");
     }
 
-    await Swal.fire({
-      icon: "success",
-      title: data.message || "FindClasses deleted successfully",
-      confirmButtonColor: "#3085d6",
-    });
+    await showSuccess("Success!", data.message || "FindClasses deleted successfully");
 
     await fetchFindClasses(); // Refresh the list
   } catch (err) {
     console.error("Failed to delete findClasses:", err);
-    await Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: err.message || "Something went wrong",
-      confirmButtonColor: "#d33",
-    });
+    await showError("Error", err.message || "Something went wrong");
   }
 }, [token, fetchFindClasses]);
 

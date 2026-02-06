@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, X } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { showError, showSuccess, showLoading, ThemeSwal } from '../../../../../../../../utils/swalHelper';
 const ViewSessions = ({ item, sessionData }) => {
     const tabs = ['Members', 'Trials', 'Coaches'];
     const [activeTab, setActiveTab] = useState('Members');
@@ -53,15 +53,7 @@ const ViewSessions = ({ item, sessionData }) => {
             if (!token) throw new Error("Token not found");
 
             // Show loading Swal
-            Swal.fire({
-                title: "Updating attendance...",
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-            });
+            showLoading("Updating attendance...");
 
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -90,33 +82,20 @@ const ViewSessions = ({ item, sessionData }) => {
             const result = await response.json();
 
             // Close loading
-            Swal.close();
+            ThemeSwal.close();
 
             if (result.status) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Attendance updated!",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+                showSuccess("Attendance updated!");
                 fetchData();
             } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to update attendance",
-                    text: result.message || "Something went wrong",
-                });
+                showError("Failed to update attendance", result.message || "Something went wrong");
             }
 
             return result;
 
         } catch (error) {
-            Swal.close();
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong",
-            });
+            ThemeSwal.close();
+            showError("Error", error.message || "Something went wrong");
             console.error("Error updating attendance:", error);
         }
     };

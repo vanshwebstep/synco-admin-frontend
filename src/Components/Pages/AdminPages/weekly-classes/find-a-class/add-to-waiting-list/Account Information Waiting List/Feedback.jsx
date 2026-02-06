@@ -6,7 +6,7 @@ import Loader from '../../../../contexts/Loader';
 import { usePermission } from '../../../../Common/permission';
 import { useSearchParams } from "react-router-dom";
 import Select from "react-select";
-import Swal from "sweetalert2";
+import { showSuccess, showError, showWarning,  } from '../../../../../../../utils/swalHelper';
 
 const Feedback = ({ profile }) => {
   const { checkPermission } = usePermission();
@@ -83,14 +83,14 @@ const Feedback = ({ profile }) => {
       const result = await response.json();
 
       if (!result?.status) {
-        Swal.fire("Error", result.message, "error");
+        showError("Error", result.message);
         return;
       }
 
       // 🎯 ONLY BIRTHDAY PARTY DATA
       setFeedbackData(result.data?.[DISPLAY_SERVICE_TYPE] || []);
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   }, []);
 
@@ -109,13 +109,13 @@ const Feedback = ({ profile }) => {
       const result = await response.json();
 
       if (!result?.status) {
-        Swal.fire("Error", result.message, "error");
+        showError("Error", result.message);
         return;
       }
 
       setAgentAndClassesData(result.data || {});
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   }, []);
 
@@ -179,7 +179,7 @@ const Feedback = ({ profile }) => {
     const { classScheduleId, agentId, feedbackType, category, notes } = formData;
 
     if (!classScheduleId || !agentId || !feedbackType || !category || !notes) {
-      return Swal.fire("Error", "All fields are required", "error");
+      return showError("Error", "All fields are required");
     }
     // classScheduleId
     const payload = {
@@ -192,11 +192,7 @@ const Feedback = ({ profile }) => {
       agentAssigned: agentId,
     };
 
-    Swal.fire({
-      title: "Submitting...",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
+    // Loader skipped
 
     try {
       const response = await fetch(
@@ -214,7 +210,7 @@ const Feedback = ({ profile }) => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      Swal.fire("Success", result.message, "success");
+      showSuccess("Success", result.message);
       setOpenForm(false);
       setFormData({
         classScheduleId: null,
@@ -226,16 +222,15 @@ const Feedback = ({ profile }) => {
 
       fetchFeedback();
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      showError("Error", err.message);
     }
   };
   const handleSave = async (id, successCallback) => {
-    if (!token) return Swal.fire("Error", "Token not found. Please login again.", "error");
+    if (!token) return showError("Error", "Token not found. Please login again.");
     if (!selectedAgent?.id) {
-      return Swal.fire(
+      return showWarning(
         "Agent Required",
-        "Please select an agent before saving.",
-        "warning"
+        "Please select an agent before saving."
       );
     }
     const myHeaders = new Headers({
@@ -256,12 +251,7 @@ const Feedback = ({ profile }) => {
 
     try {
       // Show loading
-      Swal.fire({
-        title: "Updating...",
-        text: "Please wait while we save changes.",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
+      // Loader skipped
 
       const response = await fetch(`${API_BASE_URL}/api/admin/feedback/resolve/${id}`, requestOptions);
 
@@ -271,17 +261,8 @@ const Feedback = ({ profile }) => {
         throw new Error(result?.message || "Something went wrong");
       }
 
-      // Close loading
-      Swal.close();
-
-      // Show success message from API response
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: result?.message || "Information updated successfully.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      // Swal.close();
+      showSuccess("Updated!", result?.message || "Information updated successfully.");
       fetchFeedback();
       setShowAgentModal(false)
       setOpenResolve(false);
@@ -294,13 +275,9 @@ const Feedback = ({ profile }) => {
 
       return result;
     } catch (error) {
-      Swal.close();
+      // Swal.close();
       console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: error.message || "Something went wrong while updating.",
-      });
+      showError("Failed!", error.message || "Something went wrong while updating.");
     }
   };
 

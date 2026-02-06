@@ -9,11 +9,11 @@ import { useNotification } from "../contexts/NotificationContext";
 import { useMembers } from "../contexts/MemberContext";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2";
 import { useHolidayTerm } from "../contexts/HolidayTermsContext";
 import { useDiscounts } from "../contexts/DiscountContext";
 import PlanTabs from "../weekly-classes/find-a-class/PlanTabs";
 import { evaluate } from 'mathjs';
+import { showError, showLoading, showSuccess } from "../../../../utils/swalHelper";
 
 const BookACamp = () => {
     const [expression, setExpression] = useState('');
@@ -465,12 +465,8 @@ const BookACamp = () => {
         if (!validate()) return;
 
         // 🔄 Show Loading Popup
-        Swal.fire({
-            title: "Processing...",
-            text: "Please wait while we submit your booking.",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        showLoading("Processing...", "Please wait while we submit your booking.");
+       
 
         try {
             const payload = {
@@ -506,31 +502,21 @@ const BookACamp = () => {
 
             if (response.ok) {
                 // ✅ SUCCESS ALERT
-                Swal.fire({
-                    icon: "success",
-                    title: "Booking Successful!",
-                    text: result?.message || "Your booking has been submitted.",
-                });
+                showSuccess("Booking Successful!", result?.message || "Your booking has been submitted.");
 
                 setShowPayment(null);
                 navigate('/holiday-camp/members/list')
             } else {
-
-                Swal.fire({
-                    icon: "error",
-                    title: "Submission Failed",
-                    text: result?.message || "Something went wrong. Please try again.",
-                });
+showError("Submission Failed", result?.message || "Something went wrong. Please try again.");
+               
             }
         } catch (err) {
             console.error("Submit Error:", err);
 
             // ❌ NETWORK OR CODE ERROR
-            Swal.fire({
-                icon: "error",
-                title: "Network Error",
-                text: "Could not submit booking. Please check your internet or try again later.",
-            });
+          
+            showError("Network Error", "Could not submit booking. Please check your internet or try again later.");
+                
         }
     };
 
@@ -560,7 +546,7 @@ const BookACamp = () => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-            Swal.fire({ title: "Error", text: error.message || "Failed to fetch comments.", icon: "error", confirmButtonText: "OK" });
+            showError("Error", error.message || "Failed to fetch comments.");
         }
     }, [API_BASE_URL]);
 
@@ -569,7 +555,7 @@ const BookACamp = () => {
         const tokenLocal = localStorage.getItem("adminToken");
         if (!tokenLocal) return;
         try {
-            Swal.fire({ title: "Creating ", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            showLoading("Creating Comment", "Please wait while we add your comment.");
             const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenLocal}` },
@@ -577,15 +563,15 @@ const BookACamp = () => {
             });
             const result = await response.json();
             if (!response.ok) {
-                Swal.fire({ icon: "error", title: "Failed to Add Comment", text: result.message || "Something went wrong." });
+                showError("Failed to Add Comment", result.message || "Something went wrong.");
                 return;
             }
-            Swal.fire({ icon: "success", title: "Comment Created", text: result.message || "Comment has been added successfully!", showConfirmButton: false });
+            showSuccess("Comment Created", result.message || "Comment has been added successfully!");
             setComment("");
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
-            Swal.fire({ icon: "error", title: "Network Error", text: error.message || "An error occurred." });
+            showError("Network Error", error.message || "An error occurred.");
         }
     };
 

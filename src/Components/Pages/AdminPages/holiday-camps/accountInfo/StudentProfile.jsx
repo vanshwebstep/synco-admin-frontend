@@ -8,7 +8,9 @@ import { RxCross2 } from "react-icons/rx";
 import { useAccountsInfo } from "../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
 import { useNotification } from "../../contexts/NotificationContext";
-import Swal from "sweetalert2";
+
+import { showError, showSuccess, showWarning } from "../../../../../utils/swalHelper";
+
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -16,7 +18,7 @@ const StudentProfile = () => {
   const { students, setStudents, handleUpdateHoliday, mainId } = useAccountsInfo();
 
   const { adminInfo } = useNotification();
-
+ const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
   const [comment, setComment] = useState('');
@@ -112,13 +114,8 @@ const StudentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-
-      Swal.fire({
-        title: "Error",
-        text: error.message || error.error || "Failed to fetch comments. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+showError("Failed to fetch comments", error.message || error.error || "Please try again later.");
+     
     }
   }, []);
 
@@ -148,13 +145,9 @@ const StudentProfile = () => {
     };
 
     try {
-      Swal.fire({
-        title: "Creating ....",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      
+ 
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
@@ -162,33 +155,23 @@ const StudentProfile = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to Add Comment",
-          text: result.message || "Something went wrong.",
-        });
+        
+        showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
-      Swal.fire({
-        icon: "success",
-        title: "Comment Created",
-        text: result.message || " Comment has been  added successfully!",
-        showConfirmButton: false,
-      });
-
+      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+        
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text:
-          error.message || "An error occurred while submitting the form.",
-      });
+      showError("Network Error", error.message || "An error occurred while submitting the form.");
+       
+    }finally{
+      setLoading(false);
     }
   }
   const formatLocalDate = (date) => {
@@ -201,52 +184,31 @@ const StudentProfile = () => {
   // --- Add Student ---
   const handleAddStudent = () => {
     if (!newStudent.studentFirstName && !newStudent.studentLastName) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Name",
-        text: "Please enter at least first or last name.",
-        confirmButtonText: "OK",
-      });
+      showWarning("Missing Name", "Please enter at least first or last name.");
+      
       return;
     }
     if (!newStudent.medicalInformation) {
-      Swal.fire({
-        icon: "warning",
-        title: "Medical Information",
-        text: "Please enter Medical Information.",
-        confirmButtonText: "OK",
-      });
+      showWarning("Medical Information Missing", "Please enter Medical Information.");
+       
       return;
     }
     if (!newStudent.dateOfBirth) {
-      Swal.fire({
-        icon: "warning",
-        title: "Date of Birth Missing",
-        text: "Please select date of birth.",
-        confirmButtonText: "OK",
-      });
+      showWarning("Date of Birth Missing", "Please select date of birth.");
+      
       return;
     }
 
     // Age
     if (!newStudent.age) {
-      Swal.fire({
-        icon: "warning",
-        title: "Age Missing",
-        text: "Please enter age.",
-        confirmButtonText: "OK",
-      });
+      showWarning("Age Missing", "Please enter age.");
+       
       return;
     }
 
     // Gender
     if (!newStudent.gender) {
-      Swal.fire({
-        icon: "warning",
-        title: "Gender Missing",
-        text: "Please select gender.",
-        confirmButtonText: "OK",
-      });
+      showWarning("Gender Missing", "Please select gender.");
       return;
     }
     // Create the updated students array

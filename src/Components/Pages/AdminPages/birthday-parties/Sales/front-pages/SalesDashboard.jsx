@@ -18,13 +18,14 @@ import {
     CirclePoundSterling, X, CircleDollarSign
 } from "lucide-react";
 import { TiUserAdd } from "react-icons/ti";
-import Swal from "sweetalert2";
+
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { PiUsersThreeBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
+import { showError, showWarning } from "../../../../../../utils/swalHelper";
 const SalesDashboard = () => {
     const navigate = useNavigate();
     const [noLoaderShow, setNoLoaderShow] = useState(false);
@@ -187,11 +188,7 @@ const SalesDashboard = () => {
                 setSummary(resultRaw.summary);
             } catch (error) {
                 console.error("❌ Error fetching leads:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Failed to Load Leads",
-                    text: "Something went wrong while fetching leads. Please try again.",
-                });
+                showError("Failed to Load Leads", "Something went wrong while fetching leads. Please try again.");
             } finally {
                 // ✅ Always stop loader — success or error
                 setLoading(false);
@@ -287,11 +284,7 @@ const SalesDashboard = () => {
             if (!formData.packageInterest) missingFields.push("Package Interest");
             if (!formData.availability) missingFields.push("Availability");
             if (!formData.source) missingFields.push("Source");
-
-            Swal.fire({
-                icon: "warning",
-                title: "Missing Fields",
-                html: `
+            showWarning('Missing Fields', `
       <div style="text-align:left;">
         <p>Please fill out the following required field(s):</p>
         <ul style="margin-top:8px;">
@@ -299,7 +292,7 @@ const SalesDashboard = () => {
         </ul>
       </div>
     `,
-            });
+            );
             return;
         }
 
@@ -325,26 +318,17 @@ const SalesDashboard = () => {
             }
 
             // ✅ Success alert
-            Swal.fire({
-                icon: "success",
-                title: "Lead Created",
-                text: "The lead has been successfully added.",
-                timer: 2000,
-                showConfirmButton: false,
-            });
- setCurrentPage(1);
+            showSuccess("Lead Created", "The lead has been successfully added.");
+
+            setCurrentPage(1);
             await fetchLeads(); // refresh roles or data
             setIsOpen(false);   // close modal or form
             setFormData({});    // reset form if needed
 
         } catch (error) {
             console.error("Create lead error:", error);
+            showError("Error", error.message || "Something went wrong while creating the lead.");
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.message || "Something went wrong while creating the lead.",
-            });
         } finally {
             setLoading(false);
         }
@@ -356,7 +340,7 @@ const SalesDashboard = () => {
         // If search is cleared, hide loader and optionally reset data
         if (value.length === 0) {
             setNoLoaderShow(true);
-             setCurrentPage(1);
+            setCurrentPage(1);
             fetchLeads(""); // optional: reload default list
             return;
         }
@@ -367,7 +351,7 @@ const SalesDashboard = () => {
         // Debounce to prevent too many API calls while typing
         clearTimeout(window.searchTimeout);
         window.searchTimeout = setTimeout(() => {
-             setCurrentPage(1);
+            setCurrentPage(1);
             fetchLeads(value);
         }, 400);
     };
@@ -478,12 +462,12 @@ const SalesDashboard = () => {
     const calendarDays = getDaysArray();
 
     const goToPreviousMonth = () => {
-  setCurrentDate(new Date(year, month - 1, 1));
-};
+        setCurrentDate(new Date(year, month - 1, 1));
+    };
 
-const goToNextMonth = () => {
-  setCurrentDate(new Date(year, month + 1, 1)); 
- };
+    const goToNextMonth = () => {
+        setCurrentDate(new Date(year, month + 1, 1));
+    };
 
     const isInRange = (date) => {
         if (!fromDate || !toDate || !date) return false;
@@ -541,14 +525,9 @@ const goToNextMonth = () => {
 
         // ✅ Show alert if only one date selected
         if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
-            Swal.fire({
-                icon: "warning",
-                title: "Incomplete Date Range",
-                text: hasFrom
-                    ? "Please select a To Date to complete the date range."
-                    : "Please select a From Date to complete the date range.",
-                confirmButtonColor: "#3085d6",
-            });
+            showWarning("Incomplete Date Range", hasFrom
+                ? "Please select a To Date to complete the date range."
+                : "Please select a From Date to complete the date range.");
             return; // stop further execution
         }
 
@@ -558,7 +537,7 @@ const goToNextMonth = () => {
 
         const fromDateToSend = hasRange ? formatLocalDate(fromDate) : null;
         const toDateToSend = hasRange ? formatLocalDate(toDate) : null;
- setCurrentPage(1);
+        setCurrentPage(1);
         fetchLeads(
             "",
             checkedStatuses.package,
@@ -684,7 +663,7 @@ const goToNextMonth = () => {
             : selectedVenue?.value
                 ? selectedVenue.value
                 : "";
- setCurrentPage(1);
+        setCurrentPage(1);
         fetchLeads(
             "",
             checkedStatuses.package,
@@ -738,7 +717,7 @@ const goToNextMonth = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [rowsPerPage]);
-    
+
     if (mainLoading || loading) {
         return (
             <>
@@ -1257,12 +1236,7 @@ const goToNextMonth = () => {
                                 if (selectedUserIds && selectedUserIds.length > 0) {
                                     sendOnetoOneMail(selectedUserIds);
                                 } else {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "No Students Selected",
-                                        text: "Please select at least one student before sending an email.",
-                                        confirmButtonText: "OK",
-                                    });
+                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
                                 }
                             }}
                             className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"

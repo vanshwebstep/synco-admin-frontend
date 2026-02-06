@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import Swal from "sweetalert2"; // make sure it's installed
+import { showSuccess, showError, showLoading } from "../../../../utils/swalHelper";
 import { useNavigate } from 'react-router-dom';
 
 const HolidayClassScheduleContext = createContext();
@@ -144,22 +144,12 @@ export const HolidayClassScheduleProvider = ({ children }) => {
         throw new Error(result.message || "Failed to create class schedule");
       }
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "Class schedule has been created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "Class schedule has been created successfully.");
 
       return result;
     } catch (error) {
       console.error("Error creating class schedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while creating class schedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while creating class schedule.");
       throw error;
     } finally {
       await fetchClassSchedules();
@@ -194,22 +184,12 @@ export const HolidayClassScheduleProvider = ({ children }) => {
 
       const result = await response.json();
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "ClassSchedule has been updated successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "ClassSchedule has been updated successfully.");
 
       return result;
     } catch (error) {
       console.error("Error updating classSchedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while updating classSchedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while updating classSchedule.");
       throw error;
     } finally {
       await fetchClassSchedules();
@@ -218,7 +198,7 @@ export const HolidayClassScheduleProvider = ({ children }) => {
   };
   const deleteClassSchedule = useCallback(async (id) => {
     if (!token) return;
-
+    setLoading
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/holiday/class-schedule/delete/${id}`, {
         method: "DELETE",
@@ -233,25 +213,19 @@ export const HolidayClassScheduleProvider = ({ children }) => {
         throw new Error(data.message || "Failed to delete classSchedule");
       }
 
-      await Swal.fire({
-        icon: "success",
-        title: data.message || "ClassSchedule deleted successfully",
-        confirmButtonColor: "#3085d6",
-      });
+      await showSuccess("Success!", data.message || "Class Schedule deleted successfully");
 
       await fetchClassSchedules(); // Refresh the list
     } catch (err) {
       console.error("Failed to delete classSchedule:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Something went wrong",
-        confirmButtonColor: "#d33",
-      });
+      await showError("Error", err.message || "Something went wrong");
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   }, [token, fetchClassSchedules]);
- const cancelClass = async  (classScheduleId, sessionId,updatedClassScheduleData,venueId) => {
-  console.log('classScheduleId, sessionId,updatedClassScheduleData',classScheduleId, sessionId,updatedClassScheduleData)
+  const cancelClass = async (classScheduleId, sessionId, updatedClassScheduleData, venueId) => {
+    console.log('classScheduleId, sessionId,updatedClassScheduleData', classScheduleId, sessionId, updatedClassScheduleData)
     setLoading(true);
 
     const myHeaders = new Headers();
@@ -278,22 +252,12 @@ export const HolidayClassScheduleProvider = ({ children }) => {
 
       const result = await response.json();
 
-      await Swal.fire({
-        title: "Success!",
-        text: result.message || "ClassSchedule has been cancelled successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      await showSuccess("Success!", result.message || "ClassSchedule has been cancelled successfully.");
 
       return result;
     } catch (error) {
       console.error("Error updating classSchedule:", error);
-      await Swal.fire({
-        title: "Error",
-        text: error.message || "Something went wrong while updating classSchedule.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      await showError("Error", error.message || "Something went wrong while updating classSchedule.");
       throw error;
     } finally {
       await fetchClassSchedules();
@@ -302,7 +266,7 @@ export const HolidayClassScheduleProvider = ({ children }) => {
     }
   };
 
-    const fetchCancelledClass = useCallback(async (ID) => {
+  const fetchCancelledClass = useCallback(async (ID) => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
 

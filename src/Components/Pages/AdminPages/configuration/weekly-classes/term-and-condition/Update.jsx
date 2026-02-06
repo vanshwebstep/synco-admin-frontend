@@ -8,7 +8,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSearchParams } from "react-router-dom";
 
-import Swal from "sweetalert2"; // make sure it's installed
+import { showError, showSuccess, showConfirm, showWarning } from '../../../../../../utils/swalHelper';
 
 const initialTerms = [
     {
@@ -108,16 +108,16 @@ const Create = () => {
             if (selectedTermGroup?.id) {
                 // ✅ Update using selectedTermGroup.id
                 await updateTermGroup(selectedTermGroup.id, payload);
-                 // console.log("🔄 Updated using selectedTermGroup");
+                // console.log("🔄 Updated using selectedTermGroup");
             } else if (isCreated) {
                 // ✅ Update using myGroupData.id
                 await updateTermGroup(myGroupData.id, payload);
-                 // console.log("🔄 Updated using myGroupData");
+                // console.log("🔄 Updated using myGroupData");
             } else {
                 // ✅ Create new
                 await createTermGroup(payload);
                 setIsCreated(true);
-                 // console.log("✅ Created new term group");
+                // console.log("✅ Created new term group");
             }
         } catch (err) {
             console.error("❌ Error saving Term Group:", err);
@@ -143,7 +143,7 @@ const Create = () => {
         }
     };
     const handleSaveTerm = async (term, isEdit) => {
-         // console.log('myGroupData', myGroupData)
+        // console.log('myGroupData', myGroupData)
         if (!myGroupData?.id) {
             console.error("Missing termGroupId");
             return;
@@ -187,24 +187,15 @@ const Create = () => {
                 throw new Error(data.message || 'Failed to save term.');
             }
 
-             // console.log(`✅ Term ${isEdit ? 'Updated' : 'Created'}:`, data);
+            // console.log(`✅ Term ${isEdit ? 'Updated' : 'Created'}:`, data);
 
-            Swal.fire({
-                icon: 'success',
-                title: data.message || `Term ${isEdit ? 'Updated' : 'Saved'} Successfully`,
-                confirmButtonColor: '#3085d6',
-            });
+            showSuccess(data.message || `Term ${isEdit ? 'Updated' : 'Saved'} Successfully`);
 
             toggleTerm(term.id);
 
         } catch (error) {
             console.error(`❌ Error ${isEdit ? 'updating' : 'saving'} term:`, error);
-            Swal.fire({
-                icon: 'error',
-                title: `Failed to ${isEdit ? 'Update' : 'Save'} Term`,
-                text: error.message || 'An unexpected error occurred.',
-                confirmButtonColor: '#d33',
-            });
+            showError(`Failed to ${isEdit ? 'Update' : 'Save'} Term`, error.message || 'An unexpected error occurred.');
         }
     };
 
@@ -236,16 +227,11 @@ const Create = () => {
     const deleteTerm = useCallback(async (id) => {
         if (!token) return;
 
-        const willDelete = await Swal.fire({
-            title: "Are you sure?",
-            text: "This action will permanently delete the term.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "Cancel",
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-        });
+        const willDelete = await showConfirm(
+            "Are you sure?",
+            "This action will permanently delete the term.",
+            "Yes, delete it!"
+        );
 
         if (!willDelete.isConfirmed) return; // Exit if user cancels
 
@@ -256,15 +242,15 @@ const Create = () => {
             });
 
             if (response.ok) {
-                Swal.fire("Deleted!", "The term was deleted successfully.", "success");
+                showSuccess("Deleted!", "The term was deleted successfully.");
                 fetchTerm()
             } else {
                 const errorData = await response.json();
-                Swal.fire("Failed", errorData.message || "Failed to delete the term.", "error");
+                showError("Failed", errorData.message || "Failed to delete the term.");
             }
         } catch (err) {
             console.error("Failed to delete term:", err);
-            Swal.fire("Error", "Something went wrong. Please try again.", "error");
+            showError("Error", "Something went wrong. Please try again.");
         }
     }, [token]);
 
@@ -314,17 +300,13 @@ const Create = () => {
 
 
         // Optional: log or use updatedTerm somewhere
-         // console.log('✅ Updated Active Term with mapped sessions:', updatedTerm);
+        // console.log('✅ Updated Active Term with mapped sessions:', updatedTerm);
 
+        // Update state if needed
         // Update state if needed
         setMapSession(sessionMappings); // Still keep this if it's used elsewhere
         setIsMapCreated(true);
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Map Saved successfully.',
-            confirmButtonColor: '#237FEA'
-        });
+        showSuccess('Success', 'Map Saved successfully.');
 
         setIsMapping(false);
 
@@ -335,18 +317,13 @@ const Create = () => {
         // Optional: perform save logic here (e.g. API call)
 
         // Show SweetAlert
-        await Swal.fire({
-            icon: 'success',
-            title: 'Saved!',
-            text: 'Your data has been saved.',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#237FEA',
-        });
+        // Show SweetAlert
+        await showSuccess('Saved!', 'Your data has been saved.');
 
         // Navigate after confirmation
         navigate('/configuration/weekly-classes/term-dates/list');
     };
-     // console.log('selectedTermGroup', selectedTermGroup)
+    // console.log('selectedTermGroup', selectedTermGroup)
     useEffect(() => {
         if (selectedTermGroup) {
             setTermGroupName(selectedTermGroup?.name);
@@ -380,7 +357,7 @@ const Create = () => {
             );
 
             setSessionMappings(extractedData);
-             // console.log('sessionMapData', extractedData);
+            // console.log('sessionMapData', extractedData);
 
             setTerms(formattedTerms);
             setMachedTermsID(formattedTerms)
@@ -390,8 +367,8 @@ const Create = () => {
     const filteredMappings = sessionMappings.filter(
         (mapping) => mapping.termId === activeTerm?.id
     );
-     // console.log('Terms', terms);
-     // console.log('setSessionMappings', sessionMappings);
+    // console.log('Terms', terms);
+    // console.log('setSessionMappings', sessionMappings);
 
     return (
         <div className="md:p-6 bg-gray-50 min-h-screen">
@@ -600,20 +577,12 @@ const Create = () => {
                                                                 : 'bg-gray-400 text-white cursor-not-allowed'}`}
                                                         onClick={() => {
                                                             if (!termGroupName.trim()) {
-                                                                Swal.fire({
-                                                                    icon: 'warning',
-                                                                    title: 'Group name is required',
-                                                                    confirmButtonColor: '#237FEA',
-                                                                });
+                                                                showWarning('Group name is required');
                                                                 return;
                                                             }
 
                                                             if (!isMapCreated && !isEditMode) {
-                                                                Swal.fire({
-                                                                    icon: 'warning',
-                                                                    title: 'Please save map first',
-                                                                    confirmButtonColor: '#237FEA',
-                                                                });
+                                                                showWarning('Please save map first');
                                                                 return;
                                                             }
                                                             // Use update handler in edit mode
@@ -659,11 +628,7 @@ const Create = () => {
                             <button
                                 onClick={() => {
                                     if (!termGroupName?.trim()) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'You cannot save without a group name',
-                                            confirmButtonColor: '#237FEA',
-                                        });
+                                        showWarning('You cannot save without a group name');
                                         return;
                                     }
 

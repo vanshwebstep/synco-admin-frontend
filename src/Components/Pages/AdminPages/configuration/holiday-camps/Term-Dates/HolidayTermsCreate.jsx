@@ -3,12 +3,12 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SessionPlanSelect from "./SessionPlanSelect";
 import { useNavigate, } from 'react-router-dom';
-import Swal from 'sweetalert2';
 import Loader from '../../../contexts/Loader';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSearchParams } from "react-router-dom";
 import { useHolidayTerm } from "../../../contexts/HolidayTermsContext";
+import { showError, showSuccess } from "../../../../../../utils/swalHelper";
 
 const initialTerms = [];
 const HolidayTermsCreate = () => {
@@ -61,12 +61,7 @@ const HolidayTermsCreate = () => {
     }
     const handleMapClick = () => {
         if (!holidayTerms.startDate || !holidayTerms.endDate) {
-            Swal.fire({
-                icon: "warning",
-                title: "Please select dates first",
-                text: "Start Date and End Date are required",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Error", "Please select dates first");
             return;
         }
 
@@ -176,12 +171,7 @@ const HolidayTermsCreate = () => {
     console.log('selectedTerm', selectedTerm)
     const handleGroupNameSave = async () => {
         if (!groupName.trim()) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Group Name Required',
-                text: 'Please enter a name for the term camp',
-                confirmButtonColor: '#d33'
-            });
+            showError("Error", "Please enter a name for the term camp");
             return;
         }
 
@@ -213,26 +203,14 @@ const HolidayTermsCreate = () => {
                     : "Camp created successfully";
             }
 
-            Swal.fire({
-                icon: "success",
-                title: id ? "Camp Updated" : "Camp Created",
-                text: message,
-                confirmButtonColor: "#3085d6",
-                timer: 1800,
-                showConfirmButton: false,
-            });
+            showSuccess(id ? "Camp Updated" : "Camp Created", message);
             if (id) {
                 setIsEditMode(false)
             }
 
             setIsGroupSaved(true);
         } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Save Failed",
-                text: error?.message || "Failed to save Camp name",
-                confirmButtonColor: "#d33",
-            });
+            showError("Error", error?.message || "Failed to save Camp name");
         }
     };
 
@@ -299,12 +277,7 @@ const HolidayTermsCreate = () => {
     const handleSaveMappings = () => {
         // If empty
         if (!sessionMappings.length) {
-            Swal.fire({
-                icon: "warning",
-                title: "No Session Mappings",
-                text: "Please add at least one session mapping.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Error", "Please add at least one session mapping.");
             return;
         }
 
@@ -314,12 +287,7 @@ const HolidayTermsCreate = () => {
         );
 
         if (!isValid) {
-            Swal.fire({
-                icon: "error",
-                title: "Incomplete Mappings",
-                text: "Please fill all session mappings completely.",
-                confirmButtonColor: "#237FEA",
-            });
+            showError("Error", "Please fill all session mappings completely.");
             return;
         }
 
@@ -328,12 +296,7 @@ const HolidayTermsCreate = () => {
         setIsMapping(false);
 
         // Success
-        Swal.fire({
-            icon: "success",
-            title: "Saved",
-            text: "Session mappings saved successfully.",
-            confirmButtonColor: "#237FEA",
-        });
+        showSuccess("Success", "Session mappings saved successfully.");
     };
 
     // Determine if it's an existing term (edit)
@@ -358,12 +321,7 @@ const HolidayTermsCreate = () => {
         }
 
         if (!holidayTerms.startDate || !holidayTerms.endDate) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Missing Information',
-                text: 'Please fill all required fields for the term',
-                confirmButtonColor: '#d33'
-            });
+            showError("Error", "Please fill all required fields for the term");
             return;
         }
 
@@ -372,12 +330,7 @@ const HolidayTermsCreate = () => {
             sessionMappings.length === 0 ||
             sessionMappings.some(mapping => !mapping.sessionPlanId)
         ) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Session Mapping Required',
-                text: 'Please map all sessions before saving the term',
-                confirmButtonColor: '#d33'
-            });
+            showError("Error", "Please map all sessions before saving the term");
             return;
         }
 
@@ -421,11 +374,7 @@ const HolidayTermsCreate = () => {
 
             await fetchHolidayCampDate();
 
-            Swal.fire({
-                icon: 'success',
-                title: data.message || 'Term Saved Successfully',
-                confirmButtonColor: '#3085d6'
-            });
+            showSuccess("Success", data.message || 'Term Saved Successfully');
 
 
 
@@ -433,12 +382,7 @@ const HolidayTermsCreate = () => {
 
         } catch (error) {
             console.error("❌ Error saving term:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to Save Term',
-                text: error.message || 'An unexpected error occurred.',
-                confirmButtonColor: '#d33'
-            });
+            showError("Error", error.message || 'An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }

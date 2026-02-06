@@ -12,7 +12,7 @@ GlobalWorkerOptions.workerSrc = workerSrc;
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../../../contexts/Loader";
 import { e } from "mathjs";
-import Swal from "sweetalert2";
+import { showError, showSuccess, showLoading } from "../../../../../../utils/swalHelper";
 const PdfEditor = () => {
     const viewerRef = useRef(null);
     const overlayRef = useRef(null);
@@ -53,11 +53,7 @@ const PdfEditor = () => {
 
         try {
             setLoading(true);
-            Swal.fire({
-                title: "Updating Template...",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            showLoading("Updating Template...");
 
             const token = localStorage.getItem("adminToken");
 
@@ -86,11 +82,7 @@ const PdfEditor = () => {
                 throw new Error(json?.message || "Failed to update contract");
             }
 
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: json?.message || "Contract template updated successfully",
-            });
+            showSuccess("Success", json?.message || "Contract template updated successfully");
             navigate('/configuration/coach-pro/contracts')
             setFormData({
                 pdfFile: null,
@@ -100,11 +92,7 @@ const PdfEditor = () => {
                 tags: [],
             });
         } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Something went wrong",
-            });
+            showError("Error", err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -120,110 +108,110 @@ const PdfEditor = () => {
     const [isDrawing, setIsDrawing] = useState(false);
 
     // ------------------ LOAD PDF ------------------
- 
-useEffect(() => {
-    if (!viewerRef.current || !overlayRef.current || !formData.pdfFile) return;
 
-    const loadPDF = async () => {
-        let fileUrl;
+    useEffect(() => {
+        if (!viewerRef.current || !overlayRef.current || !formData.pdfFile) return;
 
-        try {
-            // 🔹 If pdfFile is URL → convert to Base64 using API
-            if (typeof formData.pdfFile === "string") {
-                const response = await fetch(
-                                      `${API_BASE_URL}/api/admin/contract/utils/url-to-base`,
+        const loadPDF = async () => {
+            let fileUrl;
 
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                        },
-                        body: JSON.stringify({
-                            urls: [formData.pdfFile],
-                        }),
-                    }
-                );
+            try {
+                // 🔹 If pdfFile is URL → convert to Base64 using API
+                if (typeof formData.pdfFile === "string") {
+                    const response = await fetch(
+                        `${API_BASE_URL}/api/admin/contract/utils/url-to-base`,
 
-                const result = await response.json();
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                            },
+                            body: JSON.stringify({
+                                urls: [formData.pdfFile],
+                            }),
+                        }
+                    );
 
-                fileUrl = result?.data?.[0]?.base;
-                if (!fileUrl) throw new Error("Base64 PDF not found");
-            }
-            // 🔹 If pdfFile is File object
-            else {
-                fileUrl = URL.createObjectURL(formData.pdfFile);
-            }
+                    const result = await response.json();
 
-            const loadingTask = pdfjsLib.getDocument(fileUrl);
-            const pdf = await loadingTask.promise;
-
-            const main = viewerRef.current;
-            const overlay = overlayRef.current;
-
-            main.innerHTML = "";
-            overlay.innerHTML = "";
-
-            const pagesArr = [];
-            const thumbList = [];
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.4 });
-
-                const canvas = document.createElement("canvas");
-                const ctx = canvas.getContext("2d");
-
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                canvas.className = "shadow-xl mb-6 rounded bg-white";
-
-                if (i === selectedPage) {
-                    main.appendChild(canvas);
-                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    fileUrl = result?.data?.[0]?.base;
+                    if (!fileUrl) throw new Error("Base64 PDF not found");
+                }
+                // 🔹 If pdfFile is File object
+                else {
+                    fileUrl = URL.createObjectURL(formData.pdfFile);
                 }
 
-                pagesArr.push({
-                    width: viewport.width,
-                    height: viewport.height,
-                });
+                const loadingTask = pdfjsLib.getDocument(fileUrl);
+                const pdf = await loadingTask.promise;
 
-                const thumbViewport = page.getViewport({ scale: 0.28 });
-                const thumbCanvas = document.createElement("canvas");
-                const thumbCtx = thumbCanvas.getContext("2d");
+                const main = viewerRef.current;
+                const overlay = overlayRef.current;
 
-                thumbCanvas.width = thumbViewport.width;
-                thumbCanvas.height = thumbViewport.height;
+                main.innerHTML = "";
+                overlay.innerHTML = "";
 
-                await page.render({
-                    canvasContext: thumbCtx,
-                    viewport: thumbViewport,
-                }).promise;
+                const pagesArr = [];
+                const thumbList = [];
 
-                thumbList.push({
-                    id: i,
-                    src: thumbCanvas.toDataURL(),
-                });
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.4 });
+
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.className = "shadow-xl mb-6 rounded bg-white";
+
+                    if (i === selectedPage) {
+                        main.appendChild(canvas);
+                        await page.render({ canvasContext: ctx, viewport }).promise;
+                    }
+
+                    pagesArr.push({
+                        width: viewport.width,
+                        height: viewport.height,
+                    });
+
+                    const thumbViewport = page.getViewport({ scale: 0.28 });
+                    const thumbCanvas = document.createElement("canvas");
+                    const thumbCtx = thumbCanvas.getContext("2d");
+
+                    thumbCanvas.width = thumbViewport.width;
+                    thumbCanvas.height = thumbViewport.height;
+
+                    await page.render({
+                        canvasContext: thumbCtx,
+                        viewport: thumbViewport,
+                    }).promise;
+
+                    thumbList.push({
+                        id: i,
+                        src: thumbCanvas.toDataURL(),
+                    });
+                }
+
+                setPdfPages(pagesArr);
+                setThumbnails(thumbList);
+
+                const drawCanvas = drawCanvasRef.current;
+                drawCanvas.width = pagesArr[selectedPage - 1]?.width;
+                drawCanvas.height = pagesArr[selectedPage - 1]?.height;
+
+                // 🔹 Cleanup only for File object
+                if (typeof formData.pdfFile !== "string") {
+                    URL.revokeObjectURL(fileUrl);
+                }
+            } catch (err) {
+                console.error("PDF render failed:", err);
             }
+        };
 
-            setPdfPages(pagesArr);
-            setThumbnails(thumbList);
-
-            const drawCanvas = drawCanvasRef.current;
-            drawCanvas.width = pagesArr[selectedPage - 1]?.width;
-            drawCanvas.height = pagesArr[selectedPage - 1]?.height;
-
-            // 🔹 Cleanup only for File object
-            if (typeof formData.pdfFile !== "string") {
-                URL.revokeObjectURL(fileUrl);
-            }
-        } catch (err) {
-            console.error("PDF render failed:", err);
-        }
-    };
-
-    loadPDF();
-}, [formData.pdfFile, selectedPage]);
+        loadPDF();
+    }, [formData.pdfFile, selectedPage]);
 
 
     // ------------------ ADD TEXT ------------------
@@ -360,12 +348,7 @@ useEffect(() => {
         } catch (err) {
             console.error("Fetch failed", err);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: err.message || "Failed to fetch contract details",
-                confirmButtonColor: "#f98f5c",
-            });
+            showError("Error", err.message || "Failed to fetch contract details");
         } finally {
             setLoading(false);
         }
