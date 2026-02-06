@@ -198,7 +198,7 @@ const Header = ({ profileOpen, setProfileOpen, toggleMobileMenu, isMobileMenuOpe
 
 
   const handleLogout = () => {
-    showConfirm("Are you sure?", "You will be logged out!", "warning").then((result) => {
+    showConfirm("Are you sure?", "You will be logged out!", "Log out").then((result) => {
       if (result.isConfirmed) {
         localStorage.clear();
         navigate("/admin-login"); // redirect to dashboard (adjust route if needed)
