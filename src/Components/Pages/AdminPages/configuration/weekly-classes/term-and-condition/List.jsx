@@ -163,22 +163,23 @@ const List = () => {
   // Then check for missing data
   if (!termGroup.length && !termData.length) {
     return (
-      <>  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 w-full">
-        <h2 className="text-[22px] md:text-[28px] font-semibold">
-          Term Dates & Session Plan Mapping
-        </h2>
+      <>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 w-full">
+          <h2 className="text-[22px] md:text-[28px] font-semibold">
+            Term Dates & Session Plan Mapping
+          </h2>
 
 
-        {canCreate &&
-          <button
-            onClick={() => navigate('/weekly-classes/term-dates/create')}
-            className="bg-[#237FEA] flex items-center gap-2 text-white px-4 py-2 md:py-[10px] rounded-xl hover:bg-blue-700 text-[15px] font-semibold"
-          >
-            <img src="/members/add.png" className="w-4 md:w-5" alt="Add" />
-            Add New Term Group
-          </button>
-        }
-      </div>
+          {canCreate &&
+            <button
+              onClick={() => navigate('/weekly-classes/term-dates/create')}
+              className="bg-[#237FEA] flex items-center gap-2 text-white px-4 py-2 md:py-[10px] rounded-xl hover:bg-blue-700 text-[15px] font-semibold"
+            >
+              <img src="/members/add.png" className="w-4 md:w-5" alt="Add" />
+              Add New Term Group
+            </button>
+          }
+        </div>
         <div className="text-center p-4 border-dotted text-red-500 rounded-md text-sm md:text-base">
           No Term Groups or Term Data Available
         </div>
@@ -216,7 +217,7 @@ const List = () => {
     <div className="pt-1 bg-gray-50 min-h-screen md:px-4 md:px-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 w-full">
-        <h2 className="text-[22px] md:text-[28px] font-semibold">
+        <h2 className="text-[22px] md:text-[28px] font-bold">
           Term Dates & Session Plan Mapping
         </h2>
 
@@ -235,7 +236,7 @@ const List = () => {
       {/* Term Cards */}
       <div className="transition-all duration-300 h-full w-full">
         {classList.length > 0 ? (
-          <div className="rounded-3xl shadow bg-white p-5  flex flex-col gap-6">
+          <div className="rounded-[30px] shadow bg-white p-[10px] flex flex-col gap-6">
             {classList.map((item, index) => (
               <TermCard
                 key={index}

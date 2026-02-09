@@ -20,45 +20,122 @@ export default function TemplateBuilder({
 
   const sidebarBlocks = [
     { id: "text", label: "Text field" },
-    { id: "input", label: "Input" },
+    { id: "heading", label: "Heading" },
+    { id: "banner", label: "Banner/Header" },
     { id: "image", label: "Image" },
     { id: "btn", label: "Button" },
     { id: "sectionGrid", label: "Section Grid" },
+    { id: "featureGrid", label: "Feature Grid (Note)" },
+    { id: "socialLinks", label: "Social Links" },
+    { id: "navigation", label: "Navigation" },
+    { id: "divider", label: "Divider" },
+    { id: "accordion", label: "Accordion" },
+    { id: "card", label: "Card" },
+    { id: "cardRow", label: "Cards in Row" },
+    { id: "customSection", label: "Custom Section (BG)" },
   ];
 
   const addBlock = async (type) => {
+    const defaultStyle = {
+      backgroundColor: "transparent",
+      textColor: "#000000",
+      fontSize: 16,
+      textAlign: "left",
+      padding: 10,
+      borderRadius: 0,
+      fontWeight: "normal",
+      borderWidth: 0,
+      borderColor: "#000000",
+      width: "100%",
+      height: "auto",
+      fontFamily: "inherit",
+      maxWidth: "100%",
+      marginTop: 0,
+      marginBottom: 20,
+      backgroundImage: "",
+      display: "block",
+      flexDirection: "row",
+      gap: 0,
+      alignItems: "stretch",
+      justifyContent: "start",
+      boxShadow: "none",
+    };
+
     const newBlock = {
       id: crypto.randomUUID(),
       type,
-      content:
-        type === "text"
-          ? ""
-          : type === "btn"
-            ? ""
-            : "",
+      content: "",
       url: "",
-      placeholder: "Enter value" ,
-      style:
-        type === "btn"
-          ? {
-            backgroundColor: "#000000",
-            textColor: "#ffffff",
-            fontSize: 16,
-          }
-          : type === "text"
-            ? {
-              textColor: "#000000",
-              fontSize: 16,
-            }
-            : {},
-      columns:
-        type === "sectionGrid"
-          ? Array(2)
-            .fill(null)
-            .map(() => [])
-          : null,
+      placeholder: "Enter value",
+      style: { ...defaultStyle },
+      items: [], // For grids, lists, or accordions
+      links: [], // For social/nav
+      title: "", // For Card
+      description: "", // For Card
+      children: [], // For Custom Section
+      backgroundImage: "", // For Custom Section
     };
 
+    // Type-specific adjustments
+    if (type === "heading") {
+      newBlock.style.fontSize = 24;
+      newBlock.style.fontWeight = "bold";
+      newBlock.placeholder = "Enter Heading";
+    } else if (type === "customSection") {
+      newBlock.style.padding = 40;
+      newBlock.style.textAlign = "center";
+    } else if (type === "card") {
+      newBlock.title = "Card Title";
+      newBlock.description = "Card description goes here.";
+      newBlock.style.backgroundColor = "#ffffff";
+      newBlock.style.borderRadius = 12;
+      newBlock.style.padding = 20;
+    } else if (type === "banner") {
+      newBlock.style.padding = 0;
+    } else if (type === "btn") {
+      newBlock.style.backgroundColor = "#237FEA";
+      newBlock.style.textColor = "#ffffff";
+      newBlock.style.borderRadius = 8;
+      newBlock.style.textAlign = "center";
+      newBlock.content = "Click Here";
+    } else if (type === "sectionGrid") {
+      newBlock.columns = Array(2).fill(null).map(() => []);
+    } else if (type === "featureGrid") {
+      newBlock.style.backgroundColor = "#f9f9f9";
+      newBlock.style.borderRadius = 12;
+      newBlock.items = [
+        { label: "Name", value: "John Doe" },
+        { label: "Date", value: "2024-01-01" }
+      ];
+    } else if (type === "accordion") {
+      newBlock.items = [
+        { title: "Question 1", content: "Answer 1" },
+        { title: "Question 2", content: "Answer 2" }
+      ];
+    } else if (type === "socialLinks") {
+      newBlock.style.textAlign = "center";
+      newBlock.links = [
+        { platform: "facebook", url: "https://facebook.com" },
+        { platform: "instagram", url: "https://instagram.com" }
+      ];
+    } else if (type === "navigation") {
+      newBlock.style.textAlign = "center";
+      newBlock.links = [
+        { label: "Home", url: "/" },
+        { label: "About", url: "/about" }
+      ];
+    } else if (type === "divider") {
+      newBlock.style.padding = 20;
+    } else if (type === "cardRow") {
+      newBlock.style.display = "flex";
+      newBlock.style.flexDirection = "row";
+      newBlock.style.gap = 20;
+      newBlock.style.justifyContent = "start";
+      newBlock.cards = [
+        { id: crypto.randomUUID(), title: "Card 1", description: "Description 1", url: "", style: { backgroundColor: "#ffffff", borderRadius: 12, padding: 20 } },
+        { id: crypto.randomUUID(), title: "Card 2", description: "Description 2", url: "", style: { backgroundColor: "#ffffff", borderRadius: 12, padding: 20 } }
+      ];
+    }
 
     setBlocks((prev) => [...prev, newBlock]);
   };
@@ -68,32 +145,40 @@ export default function TemplateBuilder({
     setBlocks((prev) => prev.filter((b) => b.id !== id));
   };
 
-const duplicateBlock = (id) => {
-  const block = blocks.find((b) => b.id === id);
+  const duplicateBlock = (id) => {
+    const block = blocks.find((b) => b.id === id);
 
-  // ✅ deep clone (break shared references)
-  const clonedBlock = JSON.parse(JSON.stringify(block));
+    // ✅ deep clone (break shared references)
+    const clonedBlock = JSON.parse(JSON.stringify(block));
 
-  // ✅ assign brand new IDs
-  const regenerateIds = (blk) => {
-    blk.id = crypto.randomUUID();
+    // ✅ assign brand new IDs
+    const regenerateIds = (blk) => {
+      blk.id = crypto.randomUUID();
 
-    // sectionGrid → regenerate child IDs
-    if (blk.type === "sectionGrid" && Array.isArray(blk.columns)) {
-      blk.columns = blk.columns.map((column) =>
-        column.map((child) => {
-          const clonedChild = { ...child };
-          regenerateIds(clonedChild);
-          return clonedChild;
-        })
-      );
-    }
+      // sectionGrid → regenerate child IDs
+      if (blk.type === "sectionGrid" && Array.isArray(blk.columns)) {
+        blk.columns = blk.columns.map((column) =>
+          column.map((child) => {
+            const clonedChild = { ...child };
+            regenerateIds(clonedChild);
+            return clonedChild;
+          })
+        );
+      }
+
+      // cardRow → regenerate child card IDs
+      if (blk.type === "cardRow" && Array.isArray(blk.cards)) {
+        blk.cards = blk.cards.map((card) => ({
+          ...card,
+          id: crypto.randomUUID()
+        }));
+      }
+    };
+
+    regenerateIds(clonedBlock);
+
+    setBlocks((prev) => [...prev, clonedBlock]);
   };
-
-  regenerateIds(clonedBlock);
-
-  setBlocks((prev) => [...prev, clonedBlock]);
-};
 
 
   const onDragEnd = (result) => {
@@ -109,12 +194,7 @@ const duplicateBlock = (id) => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Canvas */}
-      <div className="flex-1 p-6 border-r border-gray-200">
-        <div className="flex justify-between items-center mb-5">
-
-
-
-        </div>
+      <div className="w-10/12 p-6 border-r border-gray-200">
         <div className="mb-6">
           <label className="font-medium text-gray-700">Subject line</label>
           <input
@@ -179,10 +259,9 @@ const duplicateBlock = (id) => {
             )}
           </Droppable>
         </DragDropContext>
-      </div>
 
-      {/* Sidebar */}
-      <div className="w-[260px] p-4 bg-white">
+      </div>
+        <div className="p-4 w-2/12 bg-white">
         <h3 className="font-semibold text-lg mb-3">Blocks</h3>
 
         <div className="space-y-2">
@@ -197,6 +276,8 @@ const duplicateBlock = (id) => {
           ))}
         </div>
       </div>
+
+      {/* Sidebar */}
 
 
     </div>

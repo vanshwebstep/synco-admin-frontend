@@ -269,7 +269,7 @@ export default function CreateTemplateSteps() {
                 </div>
                 <div className="w-full m-auto md:max-w-[1043px] rounded-4xl border border-[#E2E1E5] bg-white pb-10">
                     {/* Header */}
-                    <div className="px-10 pt-8 pb-6 border-b border-[#E2E1E5]">
+                    <div className="px-6 pt-8 pb-6 border-b border-[#E2E1E5]">
                         <h2 className="text-[22px] md:text-[24px] font-semibold text-center mb-6">
                             Create Template
                         </h2>
@@ -313,7 +313,7 @@ export default function CreateTemplateSteps() {
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="px-10 "
+                        className="ps-6 "
                     >
                         {step === 1 && (
                             <div className="space-y-6 mt-10 md:max-w-[50%] m-auto">
@@ -559,7 +559,7 @@ export default function CreateTemplateSteps() {
                                             blocks={builderBlocks}
                                             subject={builderSubject}
                                             onClose={() => setBuilderPreview(false)}
-                                             // ✅ only send when edit mode exists
+                                            // ✅ only send when edit mode exists
                                             editMode={isEditMode}
                                             templateId={isEditMode ? templateId : null}
                                         />
@@ -583,7 +583,7 @@ export default function CreateTemplateSteps() {
                                         <div className="rounded-xl space-y-4">
                                             <img className="w-full" src="/images/icons/TopNavigation.png" alt="" />
                                             <div className="min-h-80 p-4 ">
-                                                <div className="bg-gray-100 p-4 rounded-xl min-h-20 text-sm text-gray-800">
+                                                <div className="bg-gray-100 p-4 rounded-xl min-h-20 text-sm text-gray-800 whitespace-pre-wrap break-words">
                                                     {textform.message}
                                                 </div>
                                             </div>

@@ -40,39 +40,38 @@ const TermCard = ({ item, sessionData }) => {
   const canDelete = checkPermission({ module: 'term-group', action: 'delete' }) && checkPermission({ module: 'term', action: 'delete' });;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow hover:shadow-md transition">
-      <div className="flex flex-col md:flex-row justify-between p-4 gap-4 text-sm">
+    <div className="bg-white border border-[#E2E1E5] rounded-[16px] overflow-hidden  hover:shadow-md transition">
+      <div className="flex gap-4 p-4 text-sm">
         {/* Left block */}
-        <div className="flex-shrink-0 w-full md:w-1/12">
-          <p className="font-semibold line-clamp-2">{item.name}</p>
-          <p className="text-xs text-[#717073]">{item.Date}</p>
+        <div className="flex-shrink-0 md:w-[14%]">
+          <p className="font-bold text-[#282829] capitalize inter text-[18px] ">{item.name}</p>
+          <p className="text-[#282829] text-[16px] mt-1 font-semibold">{item.Date}</p>
         </div>
 
-        {/* Term summary & sessions */}
-        <div className="grid md:grid-cols-3 gap-4 md:gap-8 md:w-10/12 overflow-x-auto scrollbar-hide">
+        <div className="grid md:w-[80%] 2xl:ps-4 lg:grid-cols-3 items-start md:grid-cols-2 gap-6">
           {sessionData.map(({ id, term, icon, date, sessions }) => (
-            <div key={term} className="flex-shrink-0 w-full  flex flex-col gap-2">
-              <div className="flex items-center gap-3">
+            <div key={term} className="flex-shrink-0 justify-center w-full flex flex-col gap-2">
+              <div className="flex items-center gap-3 justify-around">
                 <img src={icon} alt={term} className="w-6 h-6 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-[#717073]">{term}</p>
-                  <p className="whitespace-pre-line text-sm text-gray-600">{date}</p>
+                  <p className="text-[#717073] text-[14px] font-bold">{term}</p>
+                  <p className="text-[14px] inter font-semibold text-[#717073]">{date}</p>
                 </div>
               </div>
 
               {/* Sessions inside each column */}
               <div className={`transition-all duration-500 overflow-hidden ${showSessions ? 'max-h-[1000px]' : 'max-h-0'}`}>
-                <ul className="space-y-1 text-xs mt-1">
+                <ul className="space-y-[7px] text-xs mt-[30px]">
                   {sessions.map((session, i) => (
                     <li key={i}>
                       <div
-                        className={`grid grid-cols-2 items-start ${i >= 6 ? 'font-semibold' : ''
+                        className={`flex justify-between gap-6 items-start ${i >= 6 ? 'font-semibold' : ''
                           }`}
                       >
-                        <span className="font-semibold truncate">
+                        <span className="md:w-7/12 font-bold text-[14px] gilory text-[#282829]">
                           {`Session ${i + 1}: ${session.groupName || 'No Session Found'}`}
                         </span>
-                        <span className="text-[#717073] text-left">{session.date}</span>
+                        <span className="text-[#282829] md:w-5/12 font-semibold text-[14px] gilory text-left">{session.date}</span>
                       </div>
                     </li>
                   ))}
@@ -81,10 +80,12 @@ const TermCard = ({ item, sessionData }) => {
               </div>
             </div>
           ))}
+
         </div>
 
+
         {/* Action buttons */}
-        <div className={`flex gap-3 md:w-1/12 mt-2 md:mt-0 ${showSessions ? 'items-start' : 'items-center'} ml-auto`}>
+        <div className={`flex md:w-[6%] justify-end gap-3 mt-2 md:mt-0 ${showSessions ? 'items-start' : 'items-center'} ml-auto`}>
           {canEdit && (
             <button onClick={() => handleEdit(item.id)} className="text-gray-500 hover:text-blue-500">
               <img className="w-5 h-5" src="/images/icons/edit.png" alt="Edit" />
@@ -99,10 +100,10 @@ const TermCard = ({ item, sessionData }) => {
       </div>
 
       {/* Toggle sessions */}
-      <div className="bg-gray-100 px-4 py-2 cursor-pointer" onClick={() => setShowSessions(!showSessions)}>
-        <div className="text-center text-[#237FEA] flex justify-center items-center gap-2">
+      <div className="bg-[#F6F6F9] px-4 py-2 cursor-pointer" onClick={() => setShowSessions(!showSessions)}>
+        <div className="text-center text-[#237FEA] text-[12px] font-semibold flex justify-center items-center gap-2">
           {showSessions ? 'Hide all session dates' : 'Show all session dates'}
-          <img className={`w-4 transition-transform ${showSessions ? 'rotate-180' : ''}`} src="/images/icons/bluearrowup.png" alt="Toggle" />
+          <img className={`w-3 transition-transform ${showSessions ? 'rotate-180' : ''}`} src="/images/icons/bluearrowup.png" alt="Toggle" />
         </div>
       </div>
     </div>

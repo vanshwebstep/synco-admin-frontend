@@ -5,9 +5,8 @@ import { Check } from "lucide-react";
 
 // import Loader from '../../../../contexts/Loader';
 import { format, parseISO } from "date-fns";
-import { motion } from "framer-motion";
-import { X } from "lucide-react"; // Optional: Use any icon or ✖️ if no icon lib
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Info, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 
 import { evaluate } from 'mathjs';
 
@@ -371,7 +370,6 @@ const BirthdayBookingForm = () => {
 
 
   const [clickedIcon, setClickedIcon] = useState(null);
-  const [selectedKeyInfo, setSelectedKeyInfo] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { venues, isEditVenue, setIsEditVenue, deleteVenue, fetchVenues } = useVenue() || {};
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -390,7 +388,7 @@ const BirthdayBookingForm = () => {
         deleteVenue(id);
       }
     });
-   
+
   };
 
   const formatLocalDate = (date) => {
@@ -875,18 +873,51 @@ const BirthdayBookingForm = () => {
     { value: "Guardian", label: "Guardian" },
   ];
 
- const hearOptions = [
-  { value: "Google", label: "Google" },
-  { value: "Facebook", label: "Facebook" },
-  { value: "Instagram", label: "Instagram" },
-  { value: "Friend", label: "Friend" },
-  { value: "Flyer", label: "Flyer" },
-];
+  const hearOptions = [
+    { value: "Google", label: "Google" },
+    { value: "Facebook", label: "Facebook" },
+    { value: "Instagram", label: "Instagram" },
+    { value: "Friend", label: "Friend" },
+    { value: "Flyer", label: "Flyer" },
+  ];
 
 
 
   console.log('ialCode', country2)
   console.log('dialCode2', dialCode)
+
+  function htmlToHtmlArray(html) {
+    if (!html) return [];
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+
+    // 1. Try to find explicit list items and keep their inner HTML
+    const liItems = Array.from(tempDiv.querySelectorAll("li"))
+      .map(li => li.innerHTML.trim())
+      .filter(h => h !== "");
+    if (liItems.length > 0) return liItems;
+
+    // 2. Try to split by common block elements
+    const blockItems = Array.from(tempDiv.querySelectorAll("p, div"))
+      .map(p => p.innerHTML.trim())
+      .filter(h => h !== "");
+    if (blockItems.length > 0) return blockItems;
+
+    // 3. Fallback: split by newlines if it's just raw text
+    const plainText = tempDiv.innerHTML.trim();
+    if (plainText) {
+      return plainText.split(/\n+/).map(t => t.trim()).filter(t => t !== "");
+    }
+
+    return [];
+  }
+
+  // Extract birthday party key info items
+  const birthdayKeyInfoRaw = Array.isArray(keyInfoData)
+    ? keyInfoData.find(item => item.serviceType === 'birthday_party')?.keyInformation
+    : keyInfoData?.keyInformation;
+
+  const birthdayKeyInfo = htmlToHtmlArray(birthdayKeyInfoRaw);
 
   const handleSubmitComment = async (e) => {
 
@@ -908,7 +939,7 @@ const BirthdayBookingForm = () => {
     };
 
     try {
-     setLoading(true);
+      setLoading(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -921,7 +952,7 @@ const BirthdayBookingForm = () => {
       }
 
 
-      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+      // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
       setComment('');
@@ -985,9 +1016,6 @@ const BirthdayBookingForm = () => {
   // console.log('genralinfo', generalInfo)
 
   // console.log('keyInfoData', keyInfoData)
-  const selectedLabel =
-    keyInfoOptions.find((opt) => opt.value === selectedKeyInfo)?.label ||
-    "Key Information";
 
 
   const sessionDatesSet = new Set(sessionDates);
@@ -1832,64 +1860,74 @@ const BirthdayBookingForm = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full my-10">
-              {/* Placeholder (acts like a select box) */}
-              <div
+            {/* Premium Key Information Accordion */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full my-10 bg-white border border-blue-100 rounded-[2rem] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden"
+            >
+              {/* Accordion Header */}
+              <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between text-[20px] p-3 border border-gray-200 rounded-xl cursor-pointer bg-white shadow-md hover:border-gray-400 transition"
+                className="w-full flex items-center justify-between p-8 hover:bg-blue-50/30 transition-colors duration-300 relative overflow-hidden group"
               >
-                <span
-                  className={`${selectedKeyInfo ? "font-medium text-gray-900" : "text-gray-500"
-                    }`}
-                >
-                  {selectedLabel}
-                </span>
-                {isOpen ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                )}
-              </div>
+                {/* Decorative background element */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-500" />
 
-              {/* Options (bullet style) */}
-              {isOpen && (
-                <div className="mt-3 space-y-2 e sha rounded-xl p-3 bo0">
-                  {keyInfoOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition 
-                                 ${selectedKeyInfo === option.value
-                          ? ""
-                          : "hover:bg-gray-50 border border-transparent"
-                        }`}
-                    //    onClick={() => {
-                    //        setSelectedKeyInfo(option.value);
-                    //        // close after select
-                    //    }}
-                    >
-                      {/* Custom Bullet */}
-                      <span
-                        className={`w-3 h-3 rounded-full bg-gradient-to-r 
-                                   ${selectedKeyInfo === option.value
-                            ? "from-blue-500 to-blue-400 shadow-sm"
-                            : "from-gray-400 to-gray-300"
-                          }`}
-                      ></span>
-
-                      {/* Label */}
-                      <span
-                        className={`${selectedKeyInfo === option.value
-                          ? "font-semibold text-blue-700"
-                          : "text-gray-700"
-                          }`}
-                      >
-                        {option.label || 'N/A'}
-                      </span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-3 relative text-left">
+                  <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
+                    <Info className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-[24px] font-bold text-gray-900 leading-tight">Key Information</h2>
                 </div>
-              )}
-            </div>
+
+                <div className="relative">
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  </motion.div>
+                </div>
+              </button>
+
+              {/* Accordion Content */}
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  >
+                    <div className="p-8 pt-0 relative border-t border-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative pt-6">
+                        {birthdayKeyInfoRaw.length > 0 ? (
+                          birthdayKeyInfoRaw.map((option, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-md transition-all duration-300 group"
+                            >
+                              <div className="mt-1 flex-shrink-0">
+                                <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
+                                  <CheckCircle2 className="w-4 h-4 text-blue-600 group-hover:text-white" />
+                                </div>
+                              </div>
+                              <div>{option}</div>
+                            </motion.div>
+                          ))
+                        ) : (
+                          <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">No key information available for this service.</div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
             <div className="bg-white my-10 rounded-3xl p-6 space-y-4">
               <h2 className="text-[24px] font-semibold">Comment</h2>
@@ -2001,7 +2039,7 @@ const BirthdayBookingForm = () => {
                     if (!selectedPackage && !selectedDate) msg = "Please select Package and Date";
                     else if (!selectedPackage) msg = "Please select package";
                     else if (!selectedDate) msg = "Please select Date";
-                     showWarning("Required Fields", msg);
+                    showWarning("Required Fields", msg);
                     return;
                   }
 

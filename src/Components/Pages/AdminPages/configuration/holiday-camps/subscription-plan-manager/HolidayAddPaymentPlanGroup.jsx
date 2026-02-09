@@ -233,7 +233,7 @@ const HolidayAddPaymentPlanGroup = () => {
             </>
         )
     }
-        const priceFields = ["price", "joiningFee"];
+    const priceFields = ["price", "joiningFee"];
 
     const { checkPermission } = usePermission();
 
@@ -269,8 +269,8 @@ const HolidayAddPaymentPlanGroup = () => {
 
             <div className={`flex flex-col md:flex-row bg-white rounded-3xl ${previewShowModal ? ' m-auto  md:p-10' : 'w-full  md:p-12 p-4'}`}>
                 {previewShowModal && (
-                    <div className="flex items-center rounded-3xl max-w-fit justify-left bg-white md:w-full px-4 py-6 sm:px-6 md:py-10">
-                        <div className="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-4xl shadow-2xl">
+                    <div className="flex items-center rounded-3xl  justify-left bg-white md:w-full px-4 py-6 sm:px-6 md:py-10">
+                        <div className="bg-white rounded-3xl p-4 sm:p-6 w-full shadow-2xl">
 
                             {/* Header */}
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E2E1E5] pb-4 mb-4 gap-2">
@@ -663,7 +663,7 @@ const HolidayAddPaymentPlanGroup = () => {
                                                         ))}
                                                     </select>
                                                 ) : field.type === "number" ? (
-                                                   <input
+                                                    <input
                                                         type="text"
                                                         value={formData[field.name]}
                                                         onChange={(e) => {
@@ -728,7 +728,7 @@ const HolidayAddPaymentPlanGroup = () => {
                                                     toolbar: 'fontsizeselect capitalize bold italic underline alignleft aligncenter alignjustify',
                                                     height: 200,
                                                     branding: false,
-                                                       content_style: `
+                                                    content_style: `
   body {
     background-color: #f3f4f6;
  font-family: "Poppins", sans-serif !important;
@@ -797,7 +797,7 @@ const HolidayAddPaymentPlanGroup = () => {
                                                         'fontsizeselect capitalize bold italic underline alignleft aligncenter alignjustify',
                                                     height: 200,
                                                     branding: false,
-                                                      content_style: `
+                                                    content_style: `
   body {
     background-color: #f3f4f6;
  font-family: "Poppins", sans-serif !important;

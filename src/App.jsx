@@ -730,7 +730,7 @@ const AppRoutes = () => {
           </AdminLayout>
         </ProtectedRoute>
       } />
-      <Route path="/holiday-camp/find-a-camp/book-camp/" element={
+      <Route path="/holiday-camp/find-a-camp/book-camp" element={
         <ProtectedRoute>
           <AdminLayout>
             <RoleBasedRoute>

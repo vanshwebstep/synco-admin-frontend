@@ -161,7 +161,7 @@ showError("Failed to fetch comments", error.message || error.error || "Please tr
       }
 
 
-      showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+      // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
         
 
       setComment('');

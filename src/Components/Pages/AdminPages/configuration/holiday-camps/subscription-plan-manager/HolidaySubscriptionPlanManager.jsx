@@ -94,10 +94,10 @@ const HolidaySubscriptionPlanManager = () => {
   const canEdit = checkPermission({ module: 'payment-group', action: 'update' });
   const canDelete = checkPermission({ module: 'payment-group', action: 'delete' });
   return (
-    <div className="p-4 md:p-6 bg-gray-50 ">
+    <div className={`p-4 md:p-6 ${previewShowModal ? 'max-w-[1045px]' : 'max-w-full'} bg-gray-50 `}>
 
       {previewShowModal && (
-        <>
+         <>
           <h2
             onClick={() => setPreviewShowModal(false)}
             className="text-xl md:text-[28px] font-semibold flex items-center gap-2 md:gap-3 cursor-pointer hover:opacity-80 transition-opacity mb-4 duration-200">
@@ -108,12 +108,12 @@ const HolidaySubscriptionPlanManager = () => {
             />
             <span className="truncate">{selectedGroup?.name} Preview</span>
           </h2>
-          <div className="flex items-center rounded-3xl max-w-fit justify-left bg-white w-full px-4 py-6 sm:px-6 md:py-10">
-            <div className="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-4xl shadow-2xl">
+          <div className="w-full  items-center rounded-3xl  justify-left bg-white w-full px-4 py-6 sm:px-6 md:py-10">
+            <div className="bg-white w-full rounded-3xl p-4 sm:p-6 w-full  shadow-2xl">
 
               {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E2E1E5] pb-4 mb-4 gap-2">
-                <h2 className="font-semibold text-[20px] sm:text-[24px]">Subscription Plan</h2>
+                <h2 className="font-semibold text-[20px] lg:text-[24px]">Subscription Plan</h2>
                 <button
                   onClick={() => setPreviewShowModal(false)}
                   className="text-gray-400 hover:text-black text-xl font-bold"
@@ -132,9 +132,9 @@ const HolidaySubscriptionPlanManager = () => {
                       <button
                         key={key}
                         onClick={() => setActiveTab(key)}
-                        className={`px-6 py-2 text-[16px] md:w-auto w-full font-medium rounded-xl transition ${activeTab === key
+                        className={`px-6 py-2 text-[16px] md:w-auto w-full font-semibold rounded-[14px] transition ${activeTab === key
                           ? "bg-[#237FEA] text-white"
-                          : "bg-white text-[#237FEA]"
+                          : "bg-white text-[#282829]"
                           }`}
                       >
                         {key} Student{key > 1 ? "s" : ""}
@@ -144,17 +144,17 @@ const HolidaySubscriptionPlanManager = () => {
                 </div>
 
                 {/* Plan Cards */}
-                <div className="grid pt-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="flex sm:flex-row flex-col flex-wrap pt-2 mx-auto justify-center gap-3">
                   {sortedPlans?.map((plan, idx) => (
                     <div
                       key={plan?.id}
-                      className="border border-[#E2E1E5] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow transition"
+                      className="border md:w-[32%] border-[#E2E1E5]  rounded-[20px] p-4 sm:p-5 flex flex-col justify-between transition"
                     >
                       <h3 className="text-[18px] sm:text-[20px] font-semibold mb-2">
                         {plan.title}
                       </h3>
                       <p className="text-[24px] sm:text-[32px] font-semibold mb-4">
-                        £{plan?.price?.toFixed(2)}/<span className="text-sm">{plan.interval?.toLowerCase()}</span>
+                        £{plan?.price?.toFixed(2)}/<span className="text-sm text-[#717073]">{plan.interval?.toLowerCase()}</span>
                       </p>
                       <hr className="mb-4 text-[#E2E1E5]" />
                       <ul className="space-y-2 text-[14px] text-[16px] font-semibold pb-10">

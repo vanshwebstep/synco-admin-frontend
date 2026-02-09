@@ -169,7 +169,7 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
                 return;
             }
 
-showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+// showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
             
 
             setComment('');

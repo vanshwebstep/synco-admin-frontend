@@ -107,7 +107,7 @@ const CreateLead = () => {
                 return;
             }
 
-            showSuccess("Comment Created", "Comment has been added successfully!");
+            // showSuccess("Comment Created", "Comment has been added successfully!");
 
             setComment("");
             fetchComments();

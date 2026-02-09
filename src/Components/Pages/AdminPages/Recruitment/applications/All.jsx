@@ -8,7 +8,7 @@ import {
     MessageSquare,
     Download,
     ChevronLeft,
-    ChevronRight,
+    ChevronRight, Filter
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRecruitmentTemplate } from "../../contexts/RecruitmentContext";
@@ -22,6 +22,7 @@ import { showError, showWarning, showConfirm } from "../../../../../utils/swalHe
 import PhoneInput from "react-phone-input-2";
 const All = () => {
     const [selectedVenue, setSelectedVenue] = useState(null);
+    const [showFilter, setShowFilter] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -495,7 +496,7 @@ const All = () => {
     if (loading) return <Loader />;
     return (
         <div className="flex gap-5">
-            <div>
+            <div className={`transition-all duration-300 ${showFilter ? "md:w-8/12" : "w-full"}`}>
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {finalSummaryCards.map((card, i) => (
@@ -526,6 +527,10 @@ const All = () => {
                 <div className="flex justify-between items-center p-4 mt-3">
                     <h2 className="font-semibold text-2xl">All  Applications</h2>
                     <div className="flex gap-4 items-center">
+
+                        <div className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
+                            <Filter size={16} className='cursor-pointer' onClick={() => setShowFilter(!showFilter)} />
+                        </div>
                         <button className="bg-white border border-[#E2E1E5] rounded-full flex justify-center items-center h-10 w-10"><TiUserAdd className="text-xl" /></button>
                         {/* <button onClick={() => setIsOpen(true)}
                             className="flex items-center gap-2 bg-[#237FEA] text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition">
@@ -751,382 +756,384 @@ const All = () => {
                 )}
             </div>
 
-            <div className="md:w-[30%]  fullwidth20 flex-shrink-0 gap-5 md:ps-3">
-                {/* Search */}
-                <div className="mb-4 bg-white rounded-2xl p-4">
-                    <h3 className="font-semibold text-black text-[24px] mb-4">
-                        Search now
-                    </h3>
-
-                    <label className="text-[16px] font-semibold text-[#282829]">Search Candidate</label>
-                    <div className="relative mt-1">
-                        <Search className="absolute left-3 top-3.5 text-gray-400" size={16} />
-                        <input
-                            type="text"
-                            value={studentName}
-                            onChange={handleInputChange}
-                            placeholder="Search by Candidate name"
-                            className="pl-9 pr-3 py-3 w-full border border-[#E2E1E5] rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
-
-                    <label className="text-[16px] font-semibold mt-2 block">Venue(s)</label>
-                    <div className="relative mt-1">
-                        <Select
-                            options={venueOptions}
-                            value={selectedVenue}
-                            isClearable
-                            onChange={handleVenueChange}
-                            placeholder="Choose Venue"
-                            className="text-sm"
-                            classNamePrefix="react-select"
-                        />
-                    </div>
-                </div>
-
-                {/* Filter by Date */}
-                <div className="bg-white p-4 rounded-xl">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-black text-[24px]">
-                            Filter by date
+            {showFilter && (
+                <div className="md:w-4/12 md:mt-0 p-4  mt-4 text-base space-y-5">
+                    {/* Search */}
+                    <div className="mb-4 bg-white rounded-2xl p-4">
+                        <h3 className="font-semibold text-black text-[24px] mb-4">
+                            Search now
                         </h3>
-                        <button
-                            onClick={applyFilter}
-                            className="px-5 mt-4 bg-[#237FEA] hover:bg-blue-700 text-white flex gap-2 items-center text-[16px] py-3 rounded-2xl transition"
-                        >
-                            <img
-                                src="/reportsIcons/filter.png"
-                                className="w-4"
-                                alt=""
+
+                        <label className="text-[16px] font-semibold text-[#282829]">Search Candidate</label>
+                        <div className="relative mt-1">
+                            <Search className="absolute left-3 top-3.5 text-gray-400" size={16} />
+                            <input
+                                type="text"
+                                value={studentName}
+                                onChange={handleInputChange}
+                                placeholder="Search by Candidate name"
+                                className="pl-9 pr-3 py-3 w-full border border-[#E2E1E5] rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                             />
-                            Apply Filters
-                        </button>
-                    </div>
+                        </div>
 
-                    {/* Status Checkboxes */}
-                    <div className="p-4 bg-[#FAFAFA] rounded-xl mb-4 mt-4">
-                        <p className="text-[17px] font-semibold mb-2 text-black">Choose Type</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {Object.keys(checkedStatuses).map((key) => {
-                                const label = key; // in case you want to rename display later
-                                return (
-                                    <label
-                                        key={key}
-                                        className="flex items-center w-full  text-[16px] font-semibold gap-2 cursor-pointer"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            className="peer hidden"
-                                            checked={checkedStatuses[key]}
-                                            onChange={() => handleCheckboxChange(key)}
-                                        />
-                                        <span className="w-4 h-4 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
-                                            <Check className="w-4 h-4 transition-all" strokeWidth={3} />
-                                        </span>
-                                        <span className="text-[16px]">{key}</span>
-                                    </label>
-                                );
-                            })}
+                        <label className="text-[16px] font-semibold mt-2 block">Venue(s)</label>
+                        <div className="relative mt-1">
+                            <Select
+                                options={venueOptions}
+                                value={selectedVenue}
+                                isClearable
+                                onChange={handleVenueChange}
+                                placeholder="Choose Venue"
+                                className="text-sm"
+                                classNamePrefix="react-select"
+                            />
                         </div>
                     </div>
 
-
-                    {/* Calendar */}
-                    <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
-                        {/* Header */}
-                        <div className="flex justify-center gap-5 items-center mb-3">
+                    {/* Filter by Date */}
+                    <div className="bg-white p-4 rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-semibold text-black text-[24px]">
+                                Filter by date
+                            </h3>
                             <button
-                                onClick={goToPreviousMonth}
-                                className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
+                                onClick={applyFilter}
+                                className="px-5 mt-4 bg-[#237FEA] hover:bg-blue-700 text-white flex gap-2 items-center text-[16px] py-3 rounded-2xl transition"
                             >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-
-                            <p className="font-semibold text-[20px]">
-                                {currentDate.toLocaleString("default", { month: "long" })} {year}
-                            </p>
-                            <button
-                                onClick={goToNextMonth}
-                                className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
-                            >
-                                <ChevronRight className="w-5 h-5" />
+                                <img
+                                    src="/reportsIcons/filter.png"
+                                    className="w-4"
+                                    alt=""
+                                />
+                                Apply Filters
                             </button>
                         </div>
 
-                        {/* Day Labels */}
-                        <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
-                            {["M", "T", "W", "T", "F", "S", "S"].map((day, indx) => (
-                                <div key={indx} className="font-medium text-center">
-                                    {day}
-                                </div>
-                            ))}
+                        {/* Status Checkboxes */}
+                        <div className="p-4 bg-[#FAFAFA] rounded-xl mb-4 mt-4">
+                            <p className="text-[17px] font-semibold mb-2 text-black">Choose Type</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {Object.keys(checkedStatuses).map((key) => {
+                                    const label = key; // in case you want to rename display later
+                                    return (
+                                        <label
+                                            key={key}
+                                            className="flex items-center w-full  text-[16px] font-semibold gap-2 cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="peer hidden"
+                                                checked={checkedStatuses[key]}
+                                                onChange={() => handleCheckboxChange(key)}
+                                            />
+                                            <span className="w-4 h-4 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
+                                                <Check className="w-4 h-4 transition-all" strokeWidth={3} />
+                                            </span>
+                                            <span className="text-[16px]">{key}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                        {/* Calendar Weeks */}
-                        <div className="flex flex-col  gap-1">
-                            {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
-                                const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
 
-
-                                return (
-                                    <div
-                                        key={weekIndex}
-                                        className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
-                                    >
-                                        {week.map((date, i) => {
-                                            const isStart = isSameDate(date, fromDate);
-                                            const isEnd = isSameDate(date, toDate);
-                                            const isStartOrEnd = isStart || isEnd;
-                                            const isInBetween = date && isInRange(date);
-                                            const isExcluded = !date; // replace with your own excluded logic
-
-                                            let className =
-                                                " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
-                                            let innerDiv = null;
-
-                                            if (!date) {
-                                                className += "";
-                                            } else if (isExcluded) {
-                                                className +=
-                                                    "bg-gray-300 text-white opacity-60 cursor-not-allowed";
-                                            } else if (isStartOrEnd) {
-                                                // Outer pill connector background
-                                                className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
-                                                    }`;
-                                                // Inner circle but with left/right rounding
-                                                innerDiv = (
-                                                    <div
-                                                        className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
-                                       
-                                       `}
-                                                    >
-                                                        {date.getDate()}
-                                                    </div>
-                                                );
-                                            } else if (isInBetween) {
-                                                // Middle range connector
-                                                className += "bg-sky-100 text-gray-800";
-                                            } else {
-                                                className += "hover:bg-gray-100 text-gray-800";
-                                            }
-
-                                            return (
-                                                <div
-                                                    key={i}
-                                                    onClick={() => date && !isExcluded && handleDateClick(date)}
-                                                    className={className}
-                                                >
-                                                    {innerDiv || (date ? date.getDate() : "")}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="grid blockButton md:grid-cols-3 gap-3 mt-4">
-                    <button onClick={() => handleCoachMail(selectedIds)} className="flex-1 flex items-center justify-center text-[#717073] gap-1 border border-[#717073] rounded-lg py-3 text-sm hover:bg-gray-50">
-                        <Mail size={16} className="text-[#717073]" /> Send Email
-                    </button>
-                    <button className="flex-1 flex items-center justify-center gap-1 border text-[#717073] border-[#717073] rounded-lg py-3 text-sm hover:bg-gray-50">
-                        <MessageSquare size={16} className="text-[#717073]" /> Send Text
-                    </button>
-                    <button onClick={handleVenueManagerExport} className="flex items-center justify-center gap-1 bg-[#237FEA] text-white text-sm py-3 rounded-lg hover:bg-blue-700 transition">
-                        <Download size={16} /> Export Data
-                    </button>
-                </div>
-                {isOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                        <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
-                            {/* Modal Header */}
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Add New Lead</h2>
+                        {/* Calendar */}
+                        <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
+                            {/* Header */}
+                            <div className="flex justify-center gap-5 items-center mb-3">
                                 <button
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-gray-400 hover:text-gray-600"
+                                    onClick={goToPreviousMonth}
+                                    className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
                                 >
-                                    ✕
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+
+                                <p className="font-semibold text-[20px]">
+                                    {currentDate.toLocaleString("default", { month: "long" })} {year}
+                                </p>
+                                <button
+                                    onClick={goToNextMonth}
+                                    className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            {/* Form */}
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                {/* Name */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input
-                                        placeholder="First Name"
-                                        value={formData.firstName}
-                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                        className={inputClass}
-                                    />
-                                    <input
-                                        placeholder="Last Name"
-                                        value={formData.lastName}
-                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                        className={inputClass}
-                                    />
+                            {/* Day Labels */}
+                            <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
+                                {["M", "T", "W", "T", "F", "S", "S"].map((day, indx) => (
+                                    <div key={indx} className="font-medium text-center">
+                                        {day}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Calendar Weeks */}
+                            <div className="flex flex-col  gap-1">
+                                {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
+                                    const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
+
+
+                                    return (
+                                        <div
+                                            key={weekIndex}
+                                            className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
+                                        >
+                                            {week.map((date, i) => {
+                                                const isStart = isSameDate(date, fromDate);
+                                                const isEnd = isSameDate(date, toDate);
+                                                const isStartOrEnd = isStart || isEnd;
+                                                const isInBetween = date && isInRange(date);
+                                                const isExcluded = !date; // replace with your own excluded logic
+
+                                                let className =
+                                                    " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
+                                                let innerDiv = null;
+
+                                                if (!date) {
+                                                    className += "";
+                                                } else if (isExcluded) {
+                                                    className +=
+                                                        "bg-gray-300 text-white opacity-60 cursor-not-allowed";
+                                                } else if (isStartOrEnd) {
+                                                    // Outer pill connector background
+                                                    className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
+                                                        }`;
+                                                    // Inner circle but with left/right rounding
+                                                    innerDiv = (
+                                                        <div
+                                                            className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
+                                       
+                                       `}
+                                                        >
+                                                            {date.getDate()}
+                                                        </div>
+                                                    );
+                                                } else if (isInBetween) {
+                                                    // Middle range connector
+                                                    className += "bg-sky-100 text-gray-800";
+                                                } else {
+                                                    className += "hover:bg-gray-100 text-gray-800";
+                                                }
+
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        onClick={() => date && !isExcluded && handleDateClick(date)}
+                                                        className={className}
+                                                    >
+                                                        {innerDiv || (date ? date.getDate() : "")}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="grid blockButton md:grid-cols-3 gap-3 mt-4">
+                        <button onClick={() => handleCoachMail(selectedIds)} className="flex-1 flex items-center justify-center text-[#717073] gap-1 border border-[#717073] rounded-lg py-3 text-sm hover:bg-gray-50">
+                            <Mail size={16} className="text-[#717073]" /> Send Email
+                        </button>
+                        <button className="flex-1 flex items-center justify-center gap-1 border text-[#717073] border-[#717073] rounded-lg py-3 text-sm hover:bg-gray-50">
+                            <MessageSquare size={16} className="text-[#717073]" /> Send Text
+                        </button>
+                        <button onClick={handleVenueManagerExport} className="flex items-center justify-center gap-1 bg-[#237FEA] text-white text-sm py-3 rounded-lg hover:bg-blue-700 transition">
+                            <Download size={16} /> Export Data
+                        </button>
+                    </div>
+                    {isOpen && (
+                        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
+                                {/* Modal Header */}
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-lg font-semibold">Add New Lead</h2>
+                                    <button
+                                        onClick={() => setIsOpen(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        ✕
+                                    </button>
                                 </div>
 
-                                {/* DOB & Age */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="relative">
-                                        <DatePicker
-                                            selected={formData.dob ? new Date(formData.dob) : null}
-                                            onChange={(date) => {
-                                                const dob = date ? date.toLocaleDateString("en-CA") : null;
-
-                                                setFormData({
-                                                    ...formData,
-                                                    dob,
-                                                    age: calculateAge(dob),
-                                                });
-                                            }}
-
-                                            placeholderText="Date of Birth"
-                                            dateFormat="yyyy-MM-dd"
-                                            showYearDropdown
-                                            showMonthDropdown
-                                            dropdownMode="select"
-                                            maxDate={new Date()}
+                                {/* Form */}
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    {/* Name */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <input
+                                            placeholder="First Name"
+                                            value={formData.firstName}
+                                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                            className={inputClass}
+                                        />
+                                        <input
+                                            placeholder="Last Name"
+                                            value={formData.lastName}
+                                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                             className={inputClass}
                                         />
                                     </div>
 
-                                    <input
-                                        placeholder="Age"
-                                        value={formData.age}
-                                        readOnly
-                                        className={`${inputClass} bg-gray-50 cursor-not-allowed`}
-                                    />
-                                </div>
+                                    {/* DOB & Age */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="relative">
+                                            <DatePicker
+                                                selected={formData.dob ? new Date(formData.dob) : null}
+                                                onChange={(date) => {
+                                                    const dob = date ? date.toLocaleDateString("en-CA") : null;
 
-                                {/* Phone & Email */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="flex items-center border border-gray-300 rounded-xl px-3 py-3 mt-2">
-                                        {/* Flag Dropdown */}
-                                        <PhoneInput
-                                            country="uk"
-                                            value="+44"
-                                            disableDropdown={true}
-                                            disableCountryCode={true}
-                                            countryCodeEditable={false}
-                                            inputStyle={{
-                                                width: "0px",
-                                                maxWidth: '20px',
-                                                height: "0px",
-                                                opacity: 0,
-                                                pointerEvents: "none", // ✅ prevents blocking typing
-                                                position: "absolute",
-                                            }}
-                                            buttonClass="!bg-white !border-none !p-0"
-                                        />
+                                                    setFormData({
+                                                        ...formData,
+                                                        dob,
+                                                        age: calculateAge(dob),
+                                                    });
+                                                }}
+
+                                                placeholderText="Date of Birth"
+                                                dateFormat="yyyy-MM-dd"
+                                                showYearDropdown
+                                                showMonthDropdown
+                                                dropdownMode="select"
+                                                maxDate={new Date()}
+                                                className={inputClass}
+                                            />
+                                        </div>
+
                                         <input
-                                            placeholder="Phone Number"
-                                            value={formData.phoneNumber}
-                                            onChange={(e) =>
-                                                setFormData({ ...formData, phoneNumber: e.target.value })
-                                            }
-                                            className="border-none w-full focus:outline-none"
-
+                                            placeholder="Age"
+                                            value={formData.age}
+                                            readOnly
+                                            className={`${inputClass} bg-gray-50 cursor-not-allowed`}
                                         />
                                     </div>
-                                    <input
-                                        type="email"
-                                        placeholder="Email Address"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className={inputClass}
-                                    />
-                                </div>
 
-                                {/* Postcode & Experience */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input
-                                        placeholder="Postcode"
-                                        value={formData.postcode}
-                                        onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                                        className={inputClass}
-                                    />
+                                    {/* Phone & Email */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex items-center border border-gray-300 rounded-xl px-3 py-3 mt-2">
+                                            {/* Flag Dropdown */}
+                                            <PhoneInput
+                                                country="uk"
+                                                value="+44"
+                                                disableDropdown={true}
+                                                disableCountryCode={true}
+                                                countryCodeEditable={false}
+                                                inputStyle={{
+                                                    width: "0px",
+                                                    maxWidth: '20px',
+                                                    height: "0px",
+                                                    opacity: 0,
+                                                    pointerEvents: "none", // ✅ prevents blocking typing
+                                                    position: "absolute",
+                                                }}
+                                                buttonClass="!bg-white !border-none !p-0"
+                                            />
+                                            <input
+                                                placeholder="Phone Number"
+                                                value={formData.phoneNumber}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, phoneNumber: e.target.value })
+                                                }
+                                                className="border-none w-full focus:outline-none"
 
+                                            />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            placeholder="Email Address"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className={inputClass}
+                                        />
+                                    </div>
+
+                                    {/* Postcode & Experience */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <input
+                                            placeholder="Postcode"
+                                            value={formData.postcode}
+                                            onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
+                                            className={inputClass}
+                                        />
+
+                                        <Select
+                                            options={experienceOptions}
+                                            styles={selectStyles}
+                                            placeholder="Select experience"
+                                            value={experienceOptions.find(
+                                                (o) => o.value === formData.managementExperience
+                                            )}
+                                            onChange={(selected) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    managementExperience: selected?.value || "",
+                                                })
+                                            }
+                                        />
+
+                                    </div>
+
+                                    {/* Gender */}
                                     <Select
-                                        options={experienceOptions}
+                                        options={genderOptions}
                                         styles={selectStyles}
-                                        placeholder="Select experience"
-                                        value={experienceOptions.find(
-                                            (o) => o.value === formData.managementExperience
-                                        )}
+                                        placeholder="Select Gender"
+                                        value={genderOptions.find((o) => o.value === formData.gender)}
                                         onChange={(selected) =>
                                             setFormData({
                                                 ...formData,
-                                                managementExperience: selected?.value || "",
+                                                gender: selected?.value || "",
                                             })
                                         }
                                     />
 
-                                </div>
 
-                                {/* Gender */}
-                                <Select
-                                    options={genderOptions}
-                                    styles={selectStyles}
-                                    placeholder="Select Gender"
-                                    value={genderOptions.find((o) => o.value === formData.gender)}
-                                    onChange={(selected) =>
-                                        setFormData({
-                                            ...formData,
-                                            gender: selected?.value || "",
-                                        })
-                                    }
-                                />
+                                    {/* DBS & FA Level */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <label className="col-span-2">Qualification</label>
 
+                                        <Select
+                                            isMulti
+                                            isClearable
+                                            styles={selectStyles}
+                                            options={qualificationOptions}
+                                            value={qualificationOptions.filter(o =>
+                                                formData.qualifications.includes(o.value)
+                                            )}
+                                            onChange={(selected) =>
+                                                handleMultiSelectChange("qualifications", selected)
+                                            }
+                                            placeholder="Select qualifications"
+                                            className="col-span-2"
+                                        />
+                                    </div>
 
-                                {/* DBS & FA Level */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <label className="col-span-2">Qualification</label>
+                                    {/* Actions */}
+                                    <div className="flex justify-end gap-3 mt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsOpen(false)}
+                                            className="px-4 py-2 rounded-lg bg-gray-200"
+                                        >
+                                            Cancel
+                                        </button>
 
-                                    <Select
-                                        isMulti
-                                        isClearable
-                                        styles={selectStyles}
-                                        options={qualificationOptions}
-                                        value={qualificationOptions.filter(o =>
-                                            formData.qualifications.includes(o.value)
-                                        )}
-                                        onChange={(selected) =>
-                                            handleMultiSelectChange("qualifications", selected)
-                                        }
-                                        placeholder="Select qualifications"
-                                        className="col-span-2"
-                                    />
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex justify-end gap-3 mt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsOpen(false)}
-                                        className="px-4 py-2 rounded-lg bg-gray-200"
-                                    >
-                                        Cancel
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 rounded-lg bg-[#237FEA] text-white"
-                                    >
-                                        Save Lead
-                                    </button>
-                                </div>
-                            </form>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 rounded-lg bg-[#237FEA] text-white"
+                                        >
+                                            Save Lead
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
         </div>
     );

@@ -14,6 +14,7 @@ import { useDiscounts } from "../contexts/DiscountContext";
 import PlanTabs from "../weekly-classes/find-a-class/PlanTabs";
 import { evaluate } from 'mathjs';
 import { showError, showLoading, showSuccess } from "../../../../utils/swalHelper";
+import Loader from "../contexts/Loader";
 
 const BookACamp = () => {
     const [expression, setExpression] = useState('');
@@ -28,6 +29,7 @@ const BookACamp = () => {
         medicalInformation: " ",
         class: "",
         time: "",
+        classScheduleId: "",
     };
 
     const [formData, setFormData] = useState({
@@ -192,10 +194,11 @@ const BookACamp = () => {
 
             const defaultStudent = {
                 ...emptyStudent,
-                class: result.className || "",
+                class: result.id || "",
                 time: `${result.startTime} - ${result.endTime}`,
                 startTime: result.startTime || "",
                 endTime: result.endTime || "",
+                classScheduleId: result.id || "",
             };
 
             // numberOfStudents is always 1 at load
@@ -276,6 +279,24 @@ const BookACamp = () => {
     const keyInfoOptions = keyInfoArray.map((item) => ({ value: item, label: item }));
     const selectedLabel = keyInfoOptions.find((opt) => opt.value === selectedKeyInfo)?.label || "Key Information";
 
+    const ClassOptions = holidayCampsData?.venueClasses?.map((item) => ({
+        value: item.id,
+        label: item.className,
+    })) || [];
+
+    const handleClassChange = (index, classId) => {
+        const selectedClass = holidayCampsData?.venueClasses?.find(cls => cls.id === classId);
+        setFormData((prev) => {
+            const next = JSON.parse(JSON.stringify(prev));
+            next.students[index].class = classId;
+            next.students[index].classScheduleId = classId;
+            if (selectedClass) {
+                next.students[index].time = `${selectedClass.startTime || ''} - ${selectedClass.endTime || ''}`;
+            }
+            return next;
+        });
+    };
+
     const formatTimeAgo = (timestamp) => {
         const now = new Date();
         const past = new Date(timestamp);
@@ -321,9 +342,16 @@ const BookACamp = () => {
                     gender: prevStudents[i]?.gender || "",
                     medicalInformation: prevStudents[i]?.medicalInformation || "",
 
-                    // Keep entered class/time OR inherit from first student
-                    class: prevStudents[i]?.class || firstStudent.class || "",
-                    time: prevStudents[i]?.time || firstStudent.time || "",
+                    // Keep entered class/time OR inherit from first student ONLY for index 0
+                    class: i === 0
+                        ? (prevStudents[i]?.class || firstStudent.class || "")
+                        : (prevStudents[i]?.class || ""),
+                    time: i === 0
+                        ? (prevStudents[i]?.time || firstStudent.time || "")
+                        : (prevStudents[i]?.time || ""),
+                    classScheduleId: i === 0
+                        ? (prevStudents[i]?.classScheduleId || firstStudent.classScheduleId || "")
+                        : (prevStudents[i]?.classScheduleId || ""),
                 }));
 
                 next.students = newStudents;
@@ -466,13 +494,12 @@ const BookACamp = () => {
 
         // 🔄 Show Loading Popup
         showLoading("Processing...", "Please wait while we submit your booking.");
-       
+
 
         try {
             const payload = {
                 venueId: holidayCampsData?.venue?.id,
                 totalStudents: formData?.general?.numberOfStudents,
-                classScheduleId: id,
                 holidayCampId: formData?.general?.holidayCamps,
                 paymentPlanId: formData?.general?.paymentPlainId,
                 students: formData?.students,
@@ -507,16 +534,16 @@ const BookACamp = () => {
                 setShowPayment(null);
                 navigate('/holiday-camp/members/list')
             } else {
-showError("Submission Failed", result?.message || "Something went wrong. Please try again.");
-               
+                showError("Submission Failed", result?.message || "Something went wrong. Please try again.");
+
             }
         } catch (err) {
             console.error("Submit Error:", err);
 
             // ❌ NETWORK OR CODE ERROR
-          
+
             showError("Network Error", "Could not submit booking. Please check your internet or try again later.");
-                
+
         }
     };
 
@@ -629,9 +656,15 @@ showError("Submission Failed", result?.message || "Something went wrong. Please 
     };
 
     useEffect(() => {
-        fetchCamp();
-        fetchHolidayCampMain();
-        fetchHolidayDiscounts();
+        const allData = async () => {
+            setLoading(true);
+            await fetchCamp();
+            await fetchKeyInfo();
+            await fetchHolidayCampMain();
+            await fetchHolidayDiscounts();
+            setLoading(false);
+        }
+        allData();
     }, [fetchCamp]);
 
     // Inputs definitions:
@@ -862,43 +895,74 @@ showError("Submission Failed", result?.message || "Something went wrong. Please 
                                 )}
                             </>
                         ) : (
-                            <>
-                                <div className={`flex items-center border border-gray-300 rounded-xl px-4 py-3 mt-2 ${input.name === "Venue" || input.name === "address" ? "gap-2" : ""}`}>
-                                    {(input.name === "Venue" || input.name === "address") && (
-                                        <Search className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                            !(section === "students" && index > 0 && input.name === "class") && (
+                                <>
+                                    <div className={`flex items-center border border-gray-300 rounded-xl px-4 py-3 mt-2 ${input.name === "Venue" || input.name === "address" ? "gap-2" : ""}`}>
+                                        {(input.name === "Venue" || input.name === "address") && (
+                                            <Search className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                        )}
+
+                                        <input
+                                            type={input.type}
+                                            required
+                                            placeholder={input.placeholder}
+                                            disabled={
+                                                input.name === "age" ||
+                                                (section === "students" && index === 0 && (input.name === "class" || input.name === "time"))
+                                            }
+                                            readOnly={section === "students" && index === 0 && (input.name === "class" || input.name === "time")}
+                                            min={input.name === "numberOfStudents" ? input.min : undefined}
+                                            max={input.name === "numberOfStudents" ? input.max : undefined}
+                                            value={
+                                                section === "parent"
+                                                    ? formData.parent[index]?.[input.name] ?? ""
+                                                    : section === "students"
+                                                        ? formData.students[index]?.[input.name] ?? ""
+                                                        : formData[section]?.[input.name] ?? ""
+                                            }
+                                            onChange={(e) => handleChange(section, input.name, e.target.value, index)}
+                                            className={`w-full text-base border-none focus:outline-none bg-transparent ${section === "students" && index === 0 && (input.name === "class" || input.name === "time") ? "text-gray-500 cursor-not-allowed" : ""
+                                                }`}
+                                        />
+                                    </div>
+
+                                    {/* ERROR BELOW INPUT */}
+                                    {section === "general" && validateErrors[input.name] && (
+                                        <p className="text-red-500 text-sm mt-1">{validateErrors[input.name]}</p>
                                     )}
-
-                                    <input
-                                        type={input.type}
-                                        required
-                                        placeholder={input.placeholder}
-                                        disabled={input.name === "age" || input.name === "class"}
-                                        min={input.name === "numberOfStudents" ? input.min : undefined}
-                                        max={input.name === "numberOfStudents" ? input.max : undefined}
-                                        value={
-                                            section === "parent"
-                                                ? formData.parent[index]?.[input.name] ?? ""
-                                                : section === "students"
-                                                    ? formData.students[index]?.[input.name] ?? ""
-                                                    : formData[section]?.[input.name] ?? ""
-                                        }
-                                        onChange={(e) => handleChange(section, input.name, e.target.value, index)}
-                                        className="w-full text-base border-none focus:outline-none bg-transparent"
-                                    />
-                                </div>
-
-                                {/* ERROR BELOW INPUT */}
-                                {section === "general" && validateErrors[input.name] && (
-                                    <p className="text-red-500 text-sm mt-1">{validateErrors[input.name]}</p>
-                                )}
-                                {section === "students" && validateErrors[`${input.name}_${index}`] && (
-                                    <p className="text-red-500 text-sm mt-1">{validateErrors[`${input.name}_${index}`]}</p>
-                                )}
-                                {section === "parent" && validateErrors[`${input.name}_${index}`] && (
-                                    <p className="text-red-500 text-sm mt-1">{validateErrors[`${input.name}_${index}`]}</p>
-                                )}
-                            </>
+                                    {section === "students" && validateErrors[`${input.name}_${index}`] && (
+                                        <p className="text-red-500 text-sm mt-1">{validateErrors[`${input.name}_${index}`]}</p>
+                                    )}
+                                    {section === "parent" && validateErrors[`${input.name}_${index}`] && (
+                                        <p className="text-red-500 text-sm mt-1">{validateErrors[`${input.name}_${index}`]}</p>
+                                    )}
+                                </>
+                            )
                         )
+                    )}
+
+                    {/* Conditional rendering for Class Dropdown in Students (index > 0) */}
+                    {section === "students" && index > 0 && input.name === "class" && (
+                        <>
+                            <Select
+                                options={ClassOptions}
+                                placeholder="Select Class"
+                                value={ClassOptions.find(opt => opt.value === formData.students[index]?.class) || null}
+                                onChange={(selected) => handleClassChange(index, selected?.value || "")}
+                                className="mt-2"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderRadius: "12px",
+                                        padding: "5px",
+                                        borderColor: "#d1d5db",
+                                    }),
+                                }}
+                            />
+                            {validateErrors[`class_${index}`] && (
+                                <p className="text-red-500 text-sm mt-1">{validateErrors[`class_${index}`]}</p>
+                            )}
+                        </>
                     )}
 
                     {/* SELECT using react-select */}
@@ -1021,7 +1085,13 @@ showError("Submission Failed", result?.message || "Something went wrong. Please 
             ))}
         </div>
     );
-
+    if (loading) {
+        return (
+            <>
+                <Loader />
+            </>
+        )
+    }
 
     return (
         <div className="md:p-6 min-h-screen">

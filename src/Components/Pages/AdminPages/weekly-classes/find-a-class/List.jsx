@@ -1,19 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
-import { Check, ListRestartIcon } from "lucide-react";
+import { Filter, ListRestartIcon } from "lucide-react";
 import Loader from '../../contexts/Loader';
-import { FiSearch, FiFilter } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import { Switch } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { evaluate } from 'mathjs';
-import { Info } from "lucide-react"; // or use a custom icon if needed
 import ResizeMap from "../../Common/ResizeMap"
 import { useFindClass } from '../../contexts/FindClassContext';
-import { FiMapPin } from "react-icons/fi";
-import { FaFacebookF, FaInstagram, FaWhatsapp, FaPinterestP } from "react-icons/fa";
 import PlanTabs from './PlanTabs';
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
@@ -30,7 +27,7 @@ const List = () => {
   const { fetchFindClasses, findClasses, loading } = useFindClass();
   const [openMapId, setOpenMapId] = useState(null);
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     fetchFindClasses()
   }, [fetchFindClasses]);
@@ -49,45 +46,6 @@ const List = () => {
     setShowModal(null);
   };
   // Parking
-  const handleParkingClick = (venueId) => {
-    if (activeParkingVenueId === venueId) {
-      setActiveParkingVenueId(null);
-    } else {
-      resetModals();
-      setActiveParkingVenueId(venueId);
-    }
-  };
-
-  // Congestion
-  const handleCongestionClick = (venueId) => {
-    if (activeCongestionVenueId === venueId) {
-      setActiveCongestionVenueId(null);
-    } else {
-      resetModals();
-      setActiveCongestionVenueId(venueId);
-    }
-  };
-
-  // Team
-  const handleTeamClick = (venueId) => {
-    if (showteamModal === venueId) {
-      setShowteamModal(null);
-    } else {
-      resetModals();
-      setShowteamModal(venueId);
-    }
-  };
-
-  // Location
-  const handleLocationClick = (venueId) => {
-    if (showModal === venueId) {
-      setShowModal(null);
-    } else {
-      resetModals();
-      setShowModal(venueId);
-    }
-  };
-
 
   const [selectedPlans, setSelectedPlans] = useState([]);
 
@@ -101,23 +59,8 @@ const List = () => {
   const visibleVenues = showAll ? venues : venues.slice(0, 5);
 
   const [selectedUserIds, setSelectedUserIds] = useState([]);
-  const toggleCheckbox = (userId) => {
-    setSelectedUserIds((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
-  const isAllSelected = venues.length > 0 && selectedUserIds.length === venues.length;
 
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedUserIds([]);
-    } else {
-      const allIds = venues.map((user) => user.id);
-      setSelectedUserIds(allIds);
-    }
-  };
+
 
 
 
@@ -248,31 +191,7 @@ const List = () => {
   };
 
 
-  const handleClick = (val) => {
-    if (val === 'C') {
-      setExpression('');
-      setResult('');
-    } else if (val === '⌫') {
-      setExpression((prev) => prev.slice(0, -1));
-    } else if (val === '=') {
-      try {
-        const evalResult = evaluate(expression);
-        setResult(evalResult);
-      } catch (err) {
-        setResult('Error');
-      }
-    } else {
-      setExpression((prev) => prev + val);
-    }
-  };
 
-  const buttons = [
-    ['(', ')', '⌫', 'C'],
-    ['7', '8', '9', '/'],
-    ['4', '5', '6', '*'],
-    ['1', '2', '3', '-'],
-    ['0', '.', '=', '+'],
-  ];
   const filteredClasses = Array.isArray(findClasses)
     ? findClasses.filter((venue) => {
       const nameMatch =
@@ -417,8 +336,6 @@ const List = () => {
 
     console.log("✅ Completed handleIconClick for", type);
   };
-  console.log('calendarData', calendarData)
-
 
 
   useEffect(() => {
@@ -472,24 +389,13 @@ const List = () => {
   };
   // console.log('calendarData', calendarData)
 
-  const getActiveTerm = () =>
-    calendarData.find((term) => {
-      const start = new Date(term.startDate);
-      const end = new Date(term.endDate);
-      return currentDate >= start && currentDate <= end;
-    });
+
 
   const isExcluded = (date, term) =>
     term?.exclusionDates?.some(
       (ex) => isSameDate(new Date(ex), date)
     );
 
-  const isTermStartOrEnd = (date, term) =>
-    isSameDate(date, new Date(term?.startDate)) || isSameDate(date, new Date(term?.endDate));
-
-  const isWithinTerm = (date, term) =>
-    date >= new Date(term?.startDate) &&
-    date <= new Date(term?.endDate);
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -551,17 +457,10 @@ const List = () => {
       <div className="md:flex w-full gap-4">
         <div className={`transition-all duration-300 ${isOpen ? " md:w-[20.8%]" : " overflow-hidden"}`}>
           {/* Toggle Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#0098d9] text-white rounded-xl mb-4"
-          >
-            {isOpen ? "Hide" : "Show"}
-          </button>
-
 
           <AnimatePresence>
             {isOpen && (
-              <motion.div className=" bg-white p-6 rounded-3xl shadow-sm text-sm space-y-5 transition-all duration-300" initial={{ opacity: 0 }}
+              <motion.div className="max-w-[320px] bg-white p-6 rounded-3xl  text-sm space-y-5 transition-all duration-300" initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}>
                 {/* Search */}
@@ -683,6 +582,12 @@ const List = () => {
         </div>
         <div
           className={`${isOpen ? "md:w-[80.2%]" : "w-12/12"} transition-all   duration-300 flex-1 `}>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0098d9] text-white rounded-xl mb-4"
+          >
+            Filters <Filter size={16} />
+          </button>
           {
             venues.length > 1 ? (
 
@@ -695,14 +600,14 @@ const List = () => {
                       <>
                         <div
                           key={idx}
-                          className="w-full bg-white rounded-3xl relative p-2 border border-[#D9D9D9] shadow-sm" // ✅ min height
+                          className="w-full bg-white rounded-[30px] relative p-2 border border-[#E2E1E5]" // ✅ min height
                         >
-                          <div className="bg-[#2E2F3E] text-white p-4 rounded-2xl mb-2 flex flex-wrap justify-between md:items-center text-sm gap-4">
-                            <div className="flex items-center gap-2 min-w-[250px] truncate  max-w-[80%]">
-                              <img src="/images/icons/Location.png" alt="" />
+                          <div className="bg-[#3D444F] text-white p-4 rounded-[22px] mb-2 flex flex-wrap justify-between md:items-center text-sm gap-4">
+                            <div className="flex items-center gap-2  truncate  max-w-[80%]">
+                              <img src="/images/icons/Location.png" className='w-5' alt="" />
                               <div className="flex  ">
-                                <span className="font-medium text-[16px] xl:text-[15px] 2xl:text-[16px]">
-                                  {venue.address}
+                                <span className="font-semibold text-[16px]">
+                                  {venue?.venueName + ', ' + venue.address}
                                   {venue.postal_code && !venue.address.includes(venue.postal_code) && (
                                     <span> PostCode - {venue.postal_code}</span>
                                   )}
@@ -750,158 +655,160 @@ const List = () => {
 
                           </div>
 
-                          <div className=' overflow-x-auto'><div className="p-5 md:flex flex-col lg:flex-row gap-8 min-w-[900px] rounded-2xl  bg-[#FCF9F6]  "> {/* ✅ responsive layout */}
-                            {/* Meta Info */}
-                            <div className="w-full lg:w-3/12 space-y-1 ">
-                              <div className='flex gap-5 items-center'>
-                                <div>
-                                  <div className="font-semibold text-[20px] text-black max-w-30 min-w-30  truncate ">{venue.venueName}</div>
-                                  <div className="whitespace-nowrap font-semibold text-[14px]">
+                          <div className='overflow-x-auto'>
+                            <div className="overflow-x-auto p-6 md:flex gap-10 rounded-[22px] bg-[#FCF9F6]">
+                              {/* Meta Info */}
+                              <div className="w-full lg:w-[25%] justify-between flex gap-8">
+                                <div className="space-y-1">
+                                  <div className="font-semibold md:text-[18px] text-[16px] 2xl:text-[20px] capitalize text-black">
+                                    {venue.venueName}
+                                  </div>
+                                  <div className="text-[#717073] font-medium text-[15px]">
                                     {(venue.distanceMiles / 1609.34).toFixed(2)} miles
                                   </div>
                                 </div>
 
-                                <div className="">
-                                  {/* <div className="text-[16px] capitalize font-semibold text-[#384455]">
-                                  {Object.keys(venue.classes)
-                                    .filter(day => venue.classes[day]?.length)
-                                    .join(", ")}
-                                </div> */}
-
+                                <div className="space-y-4">
+                                  {venue?.days.map((day, index) => (
+                                    <div key={index} className="space-y-1">
+                                      <div className="text-[#384455] text-[16px] capitalize font-semibold">
+                                        {day}
+                                      </div>
+                                      <div className="text-[#717073] font-medium text-[15px]">
+                                        {venue.facility || "N/A"}
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
-                              <div>
 
-                              </div>
-                            </div>
+                              {/* Classes Section */}
+                              <div className="flex-1 pl-10 border-l border-[#E2E1E5] space-y-6">
+                                {venue.classes && Object.keys(venue.classes).length > 0 ? (
+                                  Object.entries(venue.classes).map(([day, classList]) => (
+                                    <div key={day} className="space-y-4">
+                                      {classList.map((s, i) => (
+                                        <div
+                                          key={s.classId}
+                                          className="flex items-center justify-between gap-4"
+                                        >
+                                          {/* Class Info Wrapper */}
+                                          <div className="flex items-center gap-12 flex-1">
+                                            {/* Class ID/Number */}
+                                            <div className="font-bold text-[16px] text-[#282829] w-20">
+                                              Class {i + 1}
+                                            </div>
 
-                            <div className="w-full parent relative lg:w-9/12 pl-4 border-l border-[#ccc]  space-y-4">
-                              {venue.classes && Object.keys(venue.classes).length > 0 ? (
-                                Object.entries(venue.classes).map(([day, classList]) => (
-                                  <div key={day} className="">
-                                    <div className="w-full dayssss  text-[16px] capitalize font-semibold text-[#384455]">
-                                      {day}
-                                    </div>
-                                    <div className="whitespace-nowrap facility mt-5 font-semibold text-[14px]">{venue.facility || "N/A"}</div>
-                                    {classList.map((s, i) => (
-                                      <div
-                                        key={s.classId}
-                                        className=" w-full md:flex space-x-2 items-center mb-2 justify-between space-y-4"
-                                      >
+                                            {/* Age Range / Name */}
+                                            <div className="font-semibold text-[16px] text-[#384455] w-32">
+                                              {s.className}
+                                            </div>
 
-                                        <div className='md:flex space-x-3 md:space-y-0 space-y-4 items-center justify-between'>
-                                          <div className="font-bold text-[16px] text-black whitespace-nowrap">Class {i + 1}</div>
+                                            {/* Time */}
+                                            <div className="flex items-center gap-2 whitespace-nowrap w-48">
+                                              <img
+                                                src="/images/icons/fcTImeIcon.png"
+                                                className="w-5 h-5 opacity-70"
+                                                alt=""
+                                              />
+                                              <span className="font-semibold text-[16px] text-[#384455]">
+                                                {s.time}
+                                              </span>
+                                            </div>
 
-                                          {/* Class Name */}
-                                          <div className="font-semibold text-[16px] min-w-25 max-w-25 ">{s.className}</div>
-
-                                          {/* Time */}
-                                          <div className="font-semibold text-[16px] whitespace-nowrap flex  gap-2 items-center min-w-50">
-                                            <img src="/images/icons/fcTImeIcon.png" className='min-w-5 min-h-5 max-w-5 max-h-5' alt="" />
-                                            {s.time}
+                                            {/* Status Badge */}
+                                            <div className="w-32">
+                                              {s.capacity === 0 ? (
+                                                <span className="inline-block px-3 py-1.5 rounded-[8px] bg-[#FEECEC] text-[#FF5C40] text-[14px] font-semibold whitespace-nowrap">
+                                                  Fully booked
+                                                </span>
+                                              ) : (
+                                                <span className="inline-block px-3 py-1.5 rounded-[8px] bg-[#EEF8F1] text-[#34AE56] text-[14px] font-semibold whitespace-nowrap">
+                                                  +{s.capacity} spaces
+                                                </span>
+                                              )}
+                                            </div>
                                           </div>
 
-                                          {/* Capacity */}
-                                          <div className="text-sm">
-                                            {s.capacity === 0 ? (
-                                              <span className="text-[#FF5C40] whitespace-nowrap bg-[#fcede9] p-2 rounded-md text-[14px] font-semibold">
-                                                Fully booked
-                                              </span>
+                                          {/* Action Buttons */}
+                                          <div className="flex gap-3 items-center">
+                                            {s.capacity === 0 && canAddToWaitingList ? (
+                                              <button
+                                                onClick={() => {
+                                                  const hasTermGroups =
+                                                    Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
+                                                  const hasTerms =
+                                                    Array.isArray(venue.terms) && venue.terms.length > 0;
+                                                  if (!hasTermGroups || !hasTerms) {
+                                                    showWarning(
+                                                      "Please select term groups first",
+                                                      "Term groups and terms are required to book a free trial."
+                                                    );
+                                                    return;
+                                                  }
+                                                  handleAddToWaitingList(s.classId);
+                                                }}
+                                                className="bg-[#237FEA] text-white px-6 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-[#1b6cd1] transition-colors whitespace-nowrap"
+                                              >
+                                                Add to Waiting List
+                                              </button>
                                             ) : (
-                                              <span className="text-[#34AE56] whitespace-nowrap bg-[#eef3eb] p-2 rounded-md text-[14px] font-semibold">
-                                                +{s.capacity} spaces
-                                              </span>
+                                              <>
+                                                {s.allowFreeTrial && venue.terms && venue.termGroups && canBookFreeTrial && (
+                                                  <button
+                                                    onClick={() => {
+                                                      const hasTermGroups =
+                                                        Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
+                                                      const hasTerms =
+                                                        Array.isArray(venue.terms) && venue.terms.length > 0;
+                                                      if (!hasTermGroups || !hasTerms) {
+                                                        showWarning(
+                                                          "Please select term groups first",
+                                                          "Term groups and terms are required to book a free trial."
+                                                        );
+                                                        return;
+                                                      }
+                                                      handleBookFreeTrial(s.classId);
+                                                    }}
+                                                    className="border border-[#717073] text-black px-6 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
+                                                  >
+                                                    Book a FREE Trial
+                                                  </button>
+                                                )}
+                                                {canBookMembership && (
+                                                  <button
+                                                    onClick={() => {
+                                                      const hasTermGroups =
+                                                        Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
+                                                      const hasTerms =
+                                                        Array.isArray(venue.terms) && venue.terms.length > 0;
+                                                      if (!hasTermGroups || !hasTerms) {
+                                                        showWarning(
+                                                          "Please select term groups first",
+                                                          "Term groups and terms are required to book a free trial."
+                                                        );
+                                                        return;
+                                                      }
+                                                      handleBookMembership(s.classId);
+                                                    }}
+                                                    className="border border-[#717073] text-black px-6 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
+                                                  >
+                                                    Book a Membership
+                                                  </button>
+                                                )}
+                                              </>
                                             )}
                                           </div>
                                         </div>
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-2 flex-wrap  md:justify-end">
-                                          {s.capacity === 0 && canAddToWaitingList ? (
-                                            <button
-                                              onClick={() => {
-                                                const hasTermGroups =
-                                                  Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
-
-                                                const hasTerms =
-                                                  Array.isArray(venue.terms) && venue.terms.length > 0;
-
-                                                if (!hasTermGroups || !hasTerms) {
-                                                  showWarning(
-                                                    "Please select term groups first",
-                                                    "Term groups and terms are required to book a free trial."
-                                                  );
-                                                  return;
-                                                }
-
-                                                handleAddToWaitingList(s.classId);
-                                              }}
-                                              className=" z-10 bg-[#237FEA] text-white border border-[#237FEA] px-3 py-2 rounded-xl text-sm font-medium"
-                                            >
-                                              Add to Waiting List
-                                            </button>
-                                          ) : (
-                                            <>
-                                              {s.allowFreeTrial && venue.terms && venue.termGroups && canBookFreeTrial && (
-                                                <button
-                                                  onClick={() => {
-                                                    const hasTermGroups =
-                                                      Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
-
-                                                    const hasTerms =
-                                                      Array.isArray(venue.terms) && venue.terms.length > 0;
-
-                                                    if (!hasTermGroups || !hasTerms) {
-                                                      showWarning(
-                                                        "Please select term groups first",
-                                                        "Term groups and terms are required to book a free trial."
-                                                      );
-                                                      return;
-                                                    }
-
-                                                    handleBookFreeTrial(s.classId);
-                                                  }}
-                                                  className="z-10 whitespace-nowrap border border-[#BEBEBE] px-3 py-2 rounded-xl text-[14px] font-semibold"
-                                                >
-                                                  Book a FREE Trial
-                                                </button>
-
-                                              )}
-                                              {canBookMembership && (
-                                                <button
-                                                  onClick={() => {
-                                                    const hasTermGroups =
-                                                      Array.isArray(venue.termGroups) && venue.termGroups.length > 0;
-
-                                                    const hasTerms =
-                                                      Array.isArray(venue.terms) && venue.terms.length > 0;
-
-                                                    if (!hasTermGroups || !hasTerms) {
-                                                      showWarning(
-                                                        "Please select term groups first",
-                                                        "Term groups and terms are required to book a free trial."
-                                                      );
-                                                      return;
-                                                    }
-
-                                                    handleBookMembership(s.classId);
-                                                  }}
-                                                  className="z-10 font-semibold whitespace-nowrap border border-[#BEBEBE] px-3 py-2 rounded-xl text-[14px] font-medium"
-                                                >
-                                                  Book a Membership
-                                                </button>
-                                              )}
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-
-
+                                      ))}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-center text-gray-500 font-medium py-8">
+                                    No classes available for this venue
                                   </div>
-                                ))
-                              ) : (
-                                <div className="text-center text-gray-500 font-medium py-8">No classes available for this venue</div>
-                              )}
+                                )}
+                              </div>
                             </div>
 
                             {activeCongestionVenueId === venue.venueId && (
@@ -1062,29 +969,29 @@ const List = () => {
                             )}
 
                           </div>
-                            {showModal === venue.venueId && (
-                              <div className=" absolute bg-opacity-30 flex right-2 items-center top-15 justify-center z-50">
-                                <div ref={iconContainerRef} className="flex z-[999999999] items-center justify-center w-full px-2 py-6 sm:px-2 md:py-2">
-                                  <div ref={(el) => (modalRefs.current[venue.venueId] = el)} className="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-4xl shadow-2xl">
-                                    {/* Header */}
-                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E2E1E5] pb-4 mb-4 gap-2">
-                                      <h2 className="font-semibold text-[20px] sm:text-[24px]">Subscription Plan</h2>
-                                      <button className="text-gray-400 hover:text-black text-xl font-bold">
-                                        <img src="/images/icons/cross.png" onClick={() => setShowModal(null)} alt="close" className="w-5 h-5" />
-                                      </button>
-                                    </div>
-                                    <PlanTabs selectedPlans={selectedPlans} />
+                          {showModal === venue.venueId && (
+                            <div className=" absolute bg-opacity-30 flex right-2 items-center top-15 justify-center z-50">
+                              <div ref={iconContainerRef} className="flex z-[999999999] items-center justify-center w-full px-2 py-6 sm:px-2 md:py-2">
+                                <div ref={(el) => (modalRefs.current[venue.venueId] = el)} className="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-4xl shadow-2xl">
+                                  {/* Header */}
+                                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E2E1E5] pb-4 mb-4 gap-2">
+                                    <h2 className="font-semibold text-[20px] sm:text-[24px]">Subscription Plan</h2>
+                                    <button className="text-gray-400 hover:text-black text-xl font-bold">
+                                      <img src="/images/icons/cross.png" onClick={() => setShowModal(null)} alt="close" className="w-5 h-5" />
+                                    </button>
                                   </div>
+                                  <PlanTabs selectedPlans={selectedPlans} />
                                 </div>
                               </div>
-                            )}
+                            </div>
+                          )}
 
 
 
-
-                          </div>
 
                         </div>
+
+
                         <div>{openMapId === venue.venueId && (
                           <div ref={iconContainerRef}>
                             <div
@@ -1139,7 +1046,7 @@ const List = () => {
       </div>
 
 
-    </div>
+    </div >
   );
 };
 
@@ -1147,35 +1054,3 @@ export default List;
 
 
 
-
-//  <div   ref={modalRef}  className="absolute  bg-opacity-30 min-w-[489px] flex right-8 mt-16 items-center justify-center z-50">
-
-//     <div className="max-w-full mx-auto  min-w-[409px]  p-6 bg-white rounded-2xl shadow-2xl">
-//       <div className="text-right bg-gray-100 p-4 rounded-lg mb-4 min-h-[80px]">
-//         <div className="text-gray-600 text-md break-words">{expression || '0'}</div>
-//         <div className="text-blue-600 font-bold text-2xl">{result !== '' && `= ${result}`}</div>
-//       </div>
-
-//       <div className="grid grid-cols-4 gap-3">
-//         {buttons.flat().map((btn) => (
-//           <button
-//             key={btn}
-//             onClick={() => handleClick(btn)}
-//             className={`
-//       py-3 rounded-xl text-lg font-semibold shadow
-//       ${btn === '='
-//                 ? 'bg-blue-600 text-white'
-//                 : btn === 'C'
-//                   ? 'bg-red-100 text-red-700'
-//                   : btn === '⌫'
-//                     ? 'bg-yellow-100 text-yellow-700'
-//                     : 'bg-white hover:bg-gray-100 text-gray-800'
-//               }
-//     `}
-//           >
-//             {btn}
-//           </button>
-//         ))}
-//       </div>
-//     </div>
-//   </div>

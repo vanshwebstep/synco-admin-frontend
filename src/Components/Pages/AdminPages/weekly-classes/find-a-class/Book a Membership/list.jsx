@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { FiSearch } from "react-icons/fi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { showWarning, showConfirm, showError } from "../../../../../../utils/swalHelper";
 import { format } from "date-fns";
 import { evaluate } from "mathjs";
 import PhoneInput from "react-phone-input-2";
 import DatePicker from "react-datepicker";
 import Select from "react-select";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, CheckCircle2 } from "lucide-react";
 
 import PlanTabs from "../PlanTabs";
 import Loader from "../../../contexts/Loader";
@@ -26,7 +26,7 @@ import { useNotification } from "../../../contexts/NotificationContext";
 const List = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { createBookMembership, createBookMembershipByfreeTrial, createBookMembershipByWaitingList } = useBookFreeTrial()
+    const { createBookMembership, createBookMembershipByfreeTrial, createBookMembershipByWaitingList, isBooked, setIsBooked } = useBookFreeTrial()
     const [expression, setExpression] = useState('');
     const [numberOfStudents, setNumberOfStudents] = useState('1');
     const { keyInfoData, fetchKeyInfo } = useMembers();
@@ -56,7 +56,7 @@ const List = () => {
         // When library fires onChange, just update the dial code
         setDialCode("+" + data.dialCode);
     };
-  
+
     const handleCountryChange = (countryData) => {
         setCountry(countryData.countryCode);
         setDialCode2("+" + countryData.dialCode);
@@ -182,7 +182,7 @@ const List = () => {
         : allPaymentPlans;
     // console.log('singleClassSchedulesOnly', singleClassSchedulesOnly)
 
-  const handleStudentClassChange = (index, selectedOption) => {
+    const handleStudentClassChange = (index, selectedOption) => {
         const selectedClass = singleClassSchedulesOnly?.venueClasses?.find(
             (cls) => cls.id === selectedOption.value
         );
@@ -286,7 +286,7 @@ const List = () => {
     useEffect(() => {
         const fetchData = async () => {
             if (finalClassId) {
-
+                setIsBooked(false);
                 await fetchFindClassID(finalClassId);
                 await fetchKeyInfo();
                 await fetchComments();
@@ -654,12 +654,12 @@ const List = () => {
         const amountToSend = calculateAmount(selectedDate);
         const payload = {
             venueId: singleClassSchedulesOnly?.venue?.id,
-           
+
             startDate: selectedDate,
             totalStudents: students.length,
             keyInformation: selectedKeyInfo,
 
-           students: students.map((s, index) => ({
+            students: students.map((s, index) => ({
                 ...s,
                 dateOfBirth: toDateOnly(s.dateOfBirth),
                 classScheduleId:
@@ -697,6 +697,7 @@ const List = () => {
             else {
                 await createBookMembership(payload);
             }
+            setIsBooked(true);
 
         } catch (error) {
             console.error("Error while submitting:", error);
@@ -810,13 +811,13 @@ const List = () => {
         { value: "Guardian", label: "Guardian" },
     ];
 
-const hearOptions = [
-  { value: "Google", label: "Google" },
-  { value: "Facebook", label: "Facebook" },
-  { value: "Instagram", label: "Instagram" },
-  { value: "Friend", label: "Friend" },
-  { value: "Flyer", label: "Flyer" },
-];
+    const hearOptions = [
+        { value: "Google", label: "Google" },
+        { value: "Facebook", label: "Facebook" },
+        { value: "Instagram", label: "Instagram" },
+        { value: "Friend", label: "Friend" },
+        { value: "Flyer", label: "Flyer" },
+    ];
 
 
 
@@ -877,7 +878,7 @@ const hearOptions = [
             }
 
 
-            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+            // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
 
@@ -890,45 +891,53 @@ const hearOptions = [
             setLoadingData(false);
         }
     }
-    // Function to convert HTML to plain text while preserving list structure
-    function htmlToArray(html) {
+    function stripHtml(html) {
+        if (!html) return "";
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = html;
+        return tempDiv.textContent || tempDiv.innerText || "";
+    }
+
+    function htmlToHtmlArray(html) {
+        if (!html) return [];
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = html;
 
-        const items = [];
+        // 1. Try to find explicit list items and keep their inner HTML
+        const liItems = Array.from(tempDiv.querySelectorAll("li"))
+            .map(li => li.innerHTML.trim())
+            .filter(h => h !== "");
+        if (liItems.length > 0) return liItems;
 
-        function traverse(node) {
-            node.childNodes.forEach((child) => {
-                if (child.nodeName === "LI") {
-                    const text = child.textContent.trim();
-                    if (text) items.push(text);
-                } else if (child.nodeName === "OL" || child.nodeName === "UL") {
-                    traverse(child);
-                } else if (child.nodeType !== 3) { // skip text nodes outside li
-                    traverse(child);
-                }
-            });
+        // 2. Try to split by common block elements
+        const blockItems = Array.from(tempDiv.querySelectorAll("p, div"))
+            .map(p => p.innerHTML.trim())
+            .filter(h => h !== "");
+        if (blockItems.length > 0) return blockItems;
+
+        // 3. Fallback: split by newlines if it's just raw text
+        const plainText = tempDiv.innerHTML.trim();
+        if (plainText) {
+            return plainText.split(/\n+/).map(t => t.trim()).filter(t => t !== "");
         }
 
-        traverse(tempDiv);
-
-        // If no <li> found, fallback to plain text
-        if (items.length === 0) {
-            const plainText = tempDiv.textContent.trim();
-            if (plainText) items.push(plainText);
-        }
-
-        return items;
+        return [];
     }
 
-    // Example usage:
-    const keyInfoArray = htmlToArray(keyInfoData?.keyInformation);
+    // Extract membership key info items
+    const membershipKeyInfo = Array.isArray(keyInfoData)
+        ? keyInfoData.find(item => item.serviceType === 'membership')?.keyInformation
+        : keyInfoData?.keyInformation;
 
-    // Map into dynamic options
+    const keyInfoArray = htmlToHtmlArray(membershipKeyInfo);
+
+    // Map into dynamic options preserving HTML
     const keyInfoOptions = keyInfoArray.map((item) => ({
         value: item,
         label: item,
     }));
+
+    console.log("keyInfoOptions", membershipKeyInfo)
 
     const genderOptions = [
         { value: "male", label: "Male" },
@@ -1498,57 +1507,57 @@ const hearOptions = [
                                     </div>
 
                                     {/* Row 4 */}
-                                  <div className="flex gap-4">
+                                    <div className="flex gap-4">
 
-  {/* CLASS */}
-  <div className="w-1/2">
-    <label className="block text-[16px] font-semibold">Class</label>
+                                        {/* CLASS */}
+                                        <div className="w-1/2">
+                                            <label className="block text-[16px] font-semibold">Class</label>
 
-    {index === 0 ? (
-      <input
-        type="text"
-        value={singleClassSchedulesOnly?.className || ""}
-        readOnly
-        className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3"
-      />
-    ) : (
-      <Select
-        className="w-full mt-2 text-base"
-         classNamePrefix="react-select"
-        placeholder="Select class"
-        options={venueClassOptions}
-        value={
-          venueClassOptions.find(
-            (opt) => opt.value === student.selectedClassId
-          ) || null
-        }
-        onChange={(option) =>
-          handleStudentClassChange(index, option)
-        }
-      />
-    )}
-  </div>
+                                            {index === 0 ? (
+                                                <input
+                                                    type="text"
+                                                    value={singleClassSchedulesOnly?.className || ""}
+                                                    readOnly
+                                                    className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3"
+                                                />
+                                            ) : (
+                                                <Select
+                                                    className="w-full mt-2 text-base"
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Select class"
+                                                    options={venueClassOptions}
+                                                    value={
+                                                        venueClassOptions.find(
+                                                            (opt) => opt.value === student.selectedClassId
+                                                        ) || null
+                                                    }
+                                                    onChange={(option) =>
+                                                        handleStudentClassChange(index, option)
+                                                    }
+                                                />
+                                            )}
+                                        </div>
 
-  {/* TIME */}
-  <div className="w-1/2">
-    <label className="block text-[16px] font-semibold">Time</label>
+                                        {/* TIME */}
+                                        <div className="w-1/2">
+                                            <label className="block text-[16px] font-semibold">Time</label>
 
-    <input
-      type="text"
-      readOnly
-      value={
-        index === 0
-          ? `${singleClassSchedulesOnly?.startTime || ""} - ${singleClassSchedulesOnly?.endTime || ""}`
-          : student.selectedClassData
-          ? `${student.selectedClassData.startTime} - ${student.selectedClassData.endTime}`
-          : ""
-      }
-      className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3"
-      placeholder="Automatic entry"
-    />
-  </div>
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={
+                                                    index === 0
+                                                        ? `${singleClassSchedulesOnly?.startTime || ""} - ${singleClassSchedulesOnly?.endTime || ""}`
+                                                        : student.selectedClassData
+                                                            ? `${student.selectedClassData.startTime} - ${student.selectedClassData.endTime}`
+                                                            : ""
+                                                }
+                                                className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3"
+                                                placeholder="Automatic entry"
+                                            />
+                                        </div>
 
-</div>
+                                    </div>
 
 
                                 </motion.div>
@@ -1816,64 +1825,82 @@ const hearOptions = [
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full my-10">
-                            {/* Placeholder (acts like a select box) */}
-                            <div
+                        {/* Premium Key Information Accordion */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="w-full my-10 bg-white border border-blue-100 rounded-[2rem] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden"
+                        >
+                            {/* Accordion Header */}
+                            <button
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="flex items-center justify-between text-[20px] p-3 border border-gray-200 rounded-xl cursor-pointer bg-white shadow-md hover:border-gray-400 transition"
+                                className="w-full flex items-center justify-between p-8 hover:bg-blue-50/30 transition-colors duration-300 relative overflow-hidden group"
                             >
-                                <span
-                                    className={`${selectedKeyInfo ? "font-medium text-gray-900" : "text-gray-500"
-                                        }`}
-                                >
-                                    {selectedLabel}
-                                </span>
-                                {isOpen ? (
-                                    <ChevronUp className="w-5 h-5 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-5 h-5 text-gray-500" />
-                                )}
-                            </div>
+                                {/* Decorative background element */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-500" />
 
-                            {/* Options (bullet style) */}
-                            {isOpen && (
-                                <div className="mt-3 space-y-2 e sha rounded-xl p-3 bo0">
-                                    {keyInfoOptions.map((option) => (
-                                        <div
-                                            key={option.value}
-                                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition 
-                                 ${selectedKeyInfo === option.value
-                                                    ? ""
-                                                    : "hover:bg-gray-50 border border-transparent"
-                                                }`}
-                                        //    onClick={() => {
-                                        //        setSelectedKeyInfo(option.value);
-                                        //        // close after select
-                                        //    }}
-                                        >
-                                            {/* Custom Bullet */}
-                                            <span
-                                                className={`w-3 h-3 rounded-full bg-gradient-to-r 
-                                   ${selectedKeyInfo === option.value
-                                                        ? "from-blue-500 to-blue-400 shadow-sm"
-                                                        : "from-gray-400 to-gray-300"
-                                                    }`}
-                                            ></span>
-
-                                            {/* Label */}
-                                            <span
-                                                className={`${selectedKeyInfo === option.value
-                                                    ? "font-semibold text-blue-700"
-                                                    : "text-gray-700"
-                                                    }`}
-                                            >
-                                                {option.label}
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div className="flex items-center gap-3 relative text-left">
+                                    <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
+                                        <Info className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h2 className="text-[24px] font-bold text-gray-900 leading-tight">Key Information</h2>
                                 </div>
-                            )}
-                        </div>
+
+                                <div className="relative">
+                                    <motion.div
+                                        animate={{ rotate: isOpen ? 180 : 0 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <ChevronDown className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                                    </motion.div>
+                                </div>
+                            </button>
+
+                            {/* Accordion Content */}
+                            <AnimatePresence>
+                                {isOpen && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                                    >
+                                        <div className="p-8 pt-0 relative border-t border-gray-50">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative pt-6">
+                                                {membershipKeyInfo.length > 0 ? (
+                                                    membershipKeyInfo.map((option, index) => (
+                                                        <motion.div
+                                                            key={index}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: index * 0.05 }}
+                                                            className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-md transition-all duration-300 group"
+                                                        >
+                                                            <div className="mt-1 flex-shrink-0">
+                                                                <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
+                                                                    <CheckCircle2 className="w-4 h-4 text-blue-600 group-hover:text-white" />
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                className="text-[16px] text-gray-700 leading-relaxed font-medium"
+
+                                                            >
+                                                                {
+                                                                    option
+                                                                }
+                                                            </div>
+                                                        </motion.div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">No key information available for this service.</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+
 
                         <div className="bg-white my-10 rounded-3xl p-6 space-y-4">
                             <h2 className="text-[24px] font-semibold">Comment</h2>
@@ -1995,12 +2022,15 @@ const hearOptions = [
                                     // If both are selected, proceed
                                     setShowPopup(true);
                                 }}
-                                className={`text-white font-semibold text-[18px] px-6 py-3 rounded-lg ${isSubmitting || membershipPlan && selectedDate
-                                    ? "bg-[#237FEA] border border-[#237FEA]"
-                                    : "bg-gray-400 border-gray-400 cursor-not-allowed"
+                                className={`text-white font-semibold text-[18px] px-6 py-3 rounded-lg ${isBooked
+                                    ? "bg-green-600 border-green-600 cursor-default"
+                                    : isSubmitting || membershipPlan && selectedDate
+                                        ? "bg-[#237FEA] border border-[#237FEA]"
+                                        : "bg-gray-400 border-gray-400 cursor-not-allowed"
                                     }`}
                             >
-                                {isSubmitting ? "Submitting..." : "Setup Direct Debit"}
+                                {isBooked
+                                    ? "Booked" : isSubmitting ? "Submitting..." : "Setup Direct Debit"}
                             </button>
 
 

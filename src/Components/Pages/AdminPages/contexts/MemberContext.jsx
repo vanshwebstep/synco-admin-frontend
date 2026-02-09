@@ -187,23 +187,36 @@ export const MemberProvider = ({ children }) => {
     const fetchKeyInfo = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/key-information`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/api/admin/key-information/list`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-            const result = await response.json();
-            const formatted = result.data;
+            const result = await response.json(); // ✅ parse once
 
-            setKeyInfoData(formatted);
+            if (!response.ok) {
+                throw new Error(result?.message || "Failed to fetch key information");
+            }
+
+            setKeyInfoData(result.data);
+
         } catch (error) {
             console.error("Failed to fetch key info:", error);
+
+            // ✅ show backend error in swal
+            showError(error.message || "Something went wrong while fetching key info");
         } finally {
             setLoading(false);
         }
     }, [token]);
 
-    const KeyInformationCreate = useCallback(async (keyinfo, perms) => {
+
+    const KeyInformationCreate = useCallback(async (keyinfo, service) => {
         try {
             await fetch(`${API_BASE_URL}/api/admin/key-information`, {
                 method: "PUT",
@@ -211,7 +224,7 @@ export const MemberProvider = ({ children }) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ keyInformation: keyinfo }),
+                body: JSON.stringify({ keyInformation: [keyinfo], serviceType: service }),
             });
 
             await fetchKeyInfo();

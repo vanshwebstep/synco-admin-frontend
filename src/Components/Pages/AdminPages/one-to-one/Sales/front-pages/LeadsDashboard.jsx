@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Check,
   User,
-  UserRoundPlus, X
+  UserRoundPlus, X,
+  Filter
 } from "lucide-react";
 import { TiUserAdd } from "react-icons/ti";
 import * as XLSX from "xlsx";
@@ -27,7 +28,7 @@ const LeadsDashboard = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem("adminToken");
   const [isOpen, setIsOpen] = useState(false);
-
+  const [showFilter, setShowFilter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mainLoading, setMainLoading] = useState(false);
   const [noLoaderShow, setNoLoaderShow] = useState(false);
@@ -214,9 +215,9 @@ const LeadsDashboard = () => {
       if (!formData.packageInterest) missingFields.push("Package Interest");
       if (!formData.availability) missingFields.push("Availability");
       if (!formData.source) missingFields.push("Source");
-            showWarning("Missing Fields", `Please fill out the following required field(s):\n\n${missingFields.map(f => `<li>• ${f}</li>`).join("")}`);
+      showWarning("Missing Fields", `Please fill out the following required field(s):\n\n${missingFields.map(f => `<li>• ${f}</li>`).join("")}`);
 
-   
+
       return;
     }
 
@@ -244,8 +245,8 @@ const LeadsDashboard = () => {
 
       // ✅ Success alert
       showSuccess("Lead Created", "The lead has been successfully added.");
-    
- setCurrentPage(1);
+
+      setCurrentPage(1);
       await fetchLeads(); // refresh roles or data
       setIsOpen(false);   // close modal or form
       setFormData({});    // reset form if needed
@@ -254,7 +255,7 @@ const LeadsDashboard = () => {
       console.error("Create lead error:", error);
 
       showWarning("Error", error.message || "Something went wrong while creating the lead.");
-      
+
     } finally {
       setLoading(false);
     }
@@ -269,7 +270,7 @@ const LeadsDashboard = () => {
       return;
     }
 
- setCurrentPage(1);
+    setCurrentPage(1);
 
     fetchLeads(value);
 
@@ -373,19 +374,19 @@ const LeadsDashboard = () => {
 
   const calendarDays = getDaysArray();
 
-const goToPreviousMonth = () => {
-  setCurrentDate(new Date(year, month - 1, 1));
-};
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
 
-const goToNextMonth = () => {
-  setCurrentDate(new Date(year, month + 1, 1));
-};
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
 
 
   const isInRange = (date) => {
-  if (!fromDate || !toDate || !date) return false;
-  return date >= fromDate && date <= toDate;
-};
+    if (!fromDate || !toDate || !date) return false;
+    return date >= fromDate && date <= toDate;
+  };
   const isSameDate = (d1, d2) => {
     if (!d1 || !d2) return false;
     const date1 = d1 instanceof Date ? d1 : new Date(d1);
@@ -429,9 +430,9 @@ const goToNextMonth = () => {
     // ✅ SweetAlert if only one date is selected
     if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
       showWarning("Incomplete Date Range", hasFrom
-          ? "Please select a To Date to complete the date range."
-          : "Please select a From Date to complete the date range.",)
-     
+        ? "Please select a To Date to complete the date range."
+        : "Please select a From Date to complete the date range.",)
+
       return; // stop further execution
     }
 
@@ -441,8 +442,8 @@ const goToNextMonth = () => {
     // Else: send range as createdAtFrom/To
     const dateRangeMembership = checkedStatuses.trialDate ? range : [];
     const otherDateRange = checkedStatuses.trialDate ? [] : range;
- setCurrentPage(1);
- 
+    setCurrentPage(1);
+
     fetchLeads(
       "",                  // venueName
       checkedStatuses.paid,   // status1
@@ -499,7 +500,7 @@ const goToNextMonth = () => {
 
       <div className="min-h-screen overflow-hidden bg-gray-50 py-6 flex flex-col lg:flex-row ">
         {/* Left Section */}
-        <div className="md:w-8/12 gap-6 md:pe-3 mb-4 md:mb-0">
+        <div className={`transition-all duration-300 ${showFilter ? "md:w-8/12" : "w-full"}`}>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {summaryCards.map((card, i) => {
@@ -536,6 +537,9 @@ const goToNextMonth = () => {
             <div className="flex justify-between items-center p-4">
               <h2 className="font-semibold text-2xl">One to One Leads</h2>
               <div className="flex gap-4 items-center">
+                <div className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
+                  <Filter size={16} className='cursor-pointer' onClick={() => setShowFilter(!showFilter)} />
+                </div>
                 <button className="bg-white border border-[#E2E1E5] rounded-full flex justify-center items-center h-10 w-10"><TiUserAdd className="text-xl" /></button>
                 <button onClick={() => setIsOpen(true)}
                   className="flex items-center gap-2 bg-[#237FEA] text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition">
@@ -586,7 +590,7 @@ const goToNextMonth = () => {
                             onClick={() => {
                               if (lead?.booking) {
                                 showWarning("Already Booked", "This lead has already been booked.");
-                              
+
                                 return;
                               }
 
@@ -633,118 +637,118 @@ const goToNextMonth = () => {
                       })}
                     </tbody>
                   </table>
- {totalItems > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
+                  {totalItems > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
 
-                {/* Rows per page */}
-                <div className="flex items-center gap-2 mb-3 sm:mb-0">
-                  <span>Rows per page:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    className="border rounded-md px-2 py-1"
-                  >
-                    {[5, 10, 20, 50].map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                  </select>
+                      {/* Rows per page */}
+                      <div className="flex items-center gap-2 mb-3 sm:mb-0">
+                        <span>Rows per page:</span>
+                        <select
+                          value={rowsPerPage}
+                          onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                          className="border rounded-md px-2 py-1"
+                        >
+                          {[5, 10, 20, 50].map((num) => (
+                            <option key={num} value={num}>
+                              {num}
+                            </option>
+                          ))}
+                        </select>
 
-                  <span className="ml-2">
-                    {Math.min(startIndex + 1, totalItems)} –{" "}
-                    {Math.min(startIndex + rowsPerPage, totalItems)} of {totalItems}
-                  </span>
-                </div>
+                        <span className="ml-2">
+                          {Math.min(startIndex + 1, totalItems)} –{" "}
+                          {Math.min(startIndex + rowsPerPage, totalItems)} of {totalItems}
+                        </span>
+                      </div>
 
-                {/* Pagination buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md border ${currentPage === 1
-                      ? "text-gray-400 border-gray-200"
-                      : "hover:bg-gray-100 border-gray-300"
-                      }`}
-                  >
-                    Prev
-                  </button>
-
-                  {(() => {
-                    const buttons = [];
-                    const maxVisible = 5;
-                    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-                    let endPage = startPage + maxVisible - 1;
-
-                    if (endPage > totalPages) {
-                      endPage = totalPages;
-                      startPage = Math.max(1, endPage - maxVisible + 1);
-                    }
-
-                    if (startPage > 1) {
-                      buttons.push(
+                      {/* Pagination buttons */}
+                      <div className="flex items-center gap-2">
                         <button
-                          key={1}
-                          onClick={() => setCurrentPage(1)}
+                          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                          disabled={currentPage === 1}
                           className={`px-3 py-1 rounded-md border ${currentPage === 1
-                            ? "bg-blue-500 text-white border-blue-500"
+                            ? "text-gray-400 border-gray-200"
                             : "hover:bg-gray-100 border-gray-300"
                             }`}
                         >
-                          1
+                          Prev
                         </button>
-                      );
-                      if (startPage > 2) buttons.push(<span key="s-ellipsis">...</span>);
-                    }
 
-                    for (let i = startPage; i <= endPage; i++) {
-                      buttons.push(
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i)}
-                          className={`px-3 py-1 rounded-md border ${currentPage === i
-                            ? "bg-blue-500 text-white border-blue-500"
-                            : "hover:bg-gray-100 border-gray-300"
-                            }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
+                        {(() => {
+                          const buttons = [];
+                          const maxVisible = 5;
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                          let endPage = startPage + maxVisible - 1;
 
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1)
-                        buttons.push(<span key="e-ellipsis">...</span>);
-                      buttons.push(
+                          if (endPage > totalPages) {
+                            endPage = totalPages;
+                            startPage = Math.max(1, endPage - maxVisible + 1);
+                          }
+
+                          if (startPage > 1) {
+                            buttons.push(
+                              <button
+                                key={1}
+                                onClick={() => setCurrentPage(1)}
+                                className={`px-3 py-1 rounded-md border ${currentPage === 1
+                                  ? "bg-blue-500 text-white border-blue-500"
+                                  : "hover:bg-gray-100 border-gray-300"
+                                  }`}
+                              >
+                                1
+                              </button>
+                            );
+                            if (startPage > 2) buttons.push(<span key="s-ellipsis">...</span>);
+                          }
+
+                          for (let i = startPage; i <= endPage; i++) {
+                            buttons.push(
+                              <button
+                                key={i}
+                                onClick={() => setCurrentPage(i)}
+                                className={`px-3 py-1 rounded-md border ${currentPage === i
+                                  ? "bg-blue-500 text-white border-blue-500"
+                                  : "hover:bg-gray-100 border-gray-300"
+                                  }`}
+                              >
+                                {i}
+                              </button>
+                            );
+                          }
+
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1)
+                              buttons.push(<span key="e-ellipsis">...</span>);
+                            buttons.push(
+                              <button
+                                key={totalPages}
+                                onClick={() => setCurrentPage(totalPages)}
+                                className={`px-3 py-1 rounded-md border ${currentPage === totalPages
+                                  ? "bg-blue-500 text-white border-blue-500"
+                                  : "hover:bg-gray-100 border-gray-300"
+                                  }`}
+                              >
+                                {totalPages}
+                              </button>
+                            );
+                          }
+
+                          return buttons;
+                        })()}
+
                         <button
-                          key={totalPages}
-                          onClick={() => setCurrentPage(totalPages)}
+                          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                          disabled={currentPage === totalPages}
                           className={`px-3 py-1 rounded-md border ${currentPage === totalPages
-                            ? "bg-blue-500 text-white border-blue-500"
+                            ? "text-gray-400 border-gray-200"
                             : "hover:bg-gray-100 border-gray-300"
                             }`}
                         >
-                          {totalPages}
+                          Next
                         </button>
-                      );
-                    }
-
-                    return buttons;
-                  })()}
-
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md border ${currentPage === totalPages
-                      ? "text-gray-400 border-gray-200"
-                      : "hover:bg-gray-100 border-gray-300"
-                      }`}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
               ) : (
@@ -754,187 +758,192 @@ const goToNextMonth = () => {
               )
             }
 
-           
+
           </div>
         </div>
 
         {/* Right Sidebar */}
-        <div className="md:w-4/12  flex-shrink-0   gap-5 md:ps-3">
-          <div className="space-y-3 bg-white p-6 mb-5  rounded-3xl shadow-sm ">
-            <h2 className="text-[24px] font-semibold">Search Now </h2>
-            <div className="">
-              <label htmlFor="" className="text-base font-semibold">Search Student</label>
-              <div className="relative mt-2 ">
-                <input
-                  type="text"
-                  placeholder="Search by student name"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  className="w-full border border-gray-300 rounded-xl px-3 text-[16px] py-3 pl-9 focus:outline-none"
-                />
-                <FiSearch className="absolute left-3 top-4 text-[20px]" />
-              </div>
-            </div>
-
-          </div>
-
-          <div className="space-y-3 bg-white p-6 rounded-3xl shadow-sm ">
-            <div className="">
-              <div className="flex justify-between items-center mb-5 ">
-                <h2 className="text-[24px] font-semibold">Filter by Date </h2>
-                <button onClick={applyFilter} className="flex gap-2 items-center bg-[#237FEA] text-white px-3 py-2 rounded-lg text-sm text-[16px]">
-                  <img src='/DashboardIcons/filtericon.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-                  Apply filter
-                </button>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg w-full">
-                <div className="font-semibold mb-2 text-[18px]">Choose type</div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-semibold text-[16px]">
-
-                  {filterOptions.map(({ label, key }) => (
-                    <label key={key} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="peer hidden"
-                        checked={checkedStatuses[key]}
-                        onChange={() => handleCheckboxChange(key)}
-                      />
-                      <span className="w-5 h-5 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
-                        <Check className="w-4 h-4 transition-all" strokeWidth={3} />
-                      </span>
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-
-
-              <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
-                {/* Header */}
-                <div className="flex justify-center gap-5 items-center mb-3">
-                  <button
-                    onClick={goToPreviousMonth}
-                    className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-
-                  <p className="font-semibold text-[20px]">
-                    {currentDate.toLocaleString("default", { month: "long" })} {year}
-                  </p>
-                  <button
-                    onClick={goToNextMonth}
-                    className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+        {
+          showFilter && (
+            <div className="md:w-4/12  flex-shrink-0   gap-5 md:ps-3">
+              <div className="space-y-3 bg-white p-6 mb-5  rounded-3xl shadow-sm ">
+                <h2 className="text-[24px] font-semibold">Search Now </h2>
+                <div className="">
+                  <label htmlFor="" className="text-base font-semibold">Search Student</label>
+                  <div className="relative mt-2 ">
+                    <input
+                      type="text"
+                      placeholder="Search by student name"
+                      value={searchTerm}
+                      onChange={handleSearch}
+                      className="w-full border border-gray-300 rounded-xl px-3 text-[16px] py-3 pl-9 focus:outline-none"
+                    />
+                    <FiSearch className="absolute left-3 top-4 text-[20px]" />
+                  </div>
                 </div>
 
-                {/* Day Labels */}
-                <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
-                  {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
-                    <div key={day} className="font-medium text-center">
-                      {day}
+              </div>
+
+              <div className="space-y-3 bg-white p-6 rounded-3xl shadow-sm ">
+                <div className="">
+                  <div className="flex justify-between items-center mb-5 ">
+                    <h2 className="text-[24px] font-semibold">Filter by Date </h2>
+                    <button onClick={applyFilter} className="flex gap-2 items-center bg-[#237FEA] text-white px-3 py-2 rounded-lg text-sm text-[16px]">
+                      <img src='/DashboardIcons/filtericon.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                      Apply filter
+                    </button>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg w-full">
+                    <div className="font-semibold mb-2 text-[18px]">Choose type</div>
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-semibold text-[16px]">
+
+                      {filterOptions.map(({ label, key }) => (
+                        <label key={key} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="peer hidden"
+                            checked={checkedStatuses[key]}
+                            onChange={() => handleCheckboxChange(key)}
+                          />
+                          <span className="w-5 h-5 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
+                            <Check className="w-4 h-4 transition-all" strokeWidth={3} />
+                          </span>
+                          <span>{label}</span>
+                        </label>
+                      ))}
                     </div>
-                  ))}
-                </div>
-
-                {/* Calendar Weeks */}
-                <div className="flex flex-col  gap-1">
-                  {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
-                    const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
+                  </div>
 
 
-                    return (
-                      <div
-                        key={weekIndex}
-                        className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
+
+                  <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
+                    {/* Header */}
+                    <div className="flex justify-center gap-5 items-center mb-3">
+                      <button
+                        onClick={goToPreviousMonth}
+                        className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
                       >
-                        {week.map((date, i) => {
-                          const isStart = isSameDate(date, fromDate);
-                          const isEnd = isSameDate(date, toDate);
-                          const isStartOrEnd = isStart || isEnd;
-                          const isInBetween = date && isInRange(date);
-                          const isExcluded = !date; // replace with your own excluded logic
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
 
-                          let className =
-                            " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
-                          let innerDiv = null;
+                      <p className="font-semibold text-[20px]">
+                        {currentDate.toLocaleString("default", { month: "long" })} {year}
+                      </p>
+                      <button
+                        onClick={goToNextMonth}
+                        className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
 
-                          if (!date) {
-                            className += "";
-                          } else if (isExcluded) {
-                            className +=
-                              "bg-gray-300 text-white opacity-60 cursor-not-allowed";
-                          } else if (isStartOrEnd) {
-                            // Outer pill connector background
-                            className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
-                              }`;
-                            // Inner circle but with left/right rounding
-                            innerDiv = (
-                              <div
-                                className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
+                    {/* Day Labels */}
+                    <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
+                      {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+                        <div key={day} className="font-medium text-center">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar Weeks */}
+                    <div className="flex flex-col  gap-1">
+                      {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
+                        const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
+
+
+                        return (
+                          <div
+                            key={weekIndex}
+                            className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
+                          >
+                            {week.map((date, i) => {
+                              const isStart = isSameDate(date, fromDate);
+                              const isEnd = isSameDate(date, toDate);
+                              const isStartOrEnd = isStart || isEnd;
+                              const isInBetween = date && isInRange(date);
+                              const isExcluded = !date; // replace with your own excluded logic
+
+                              let className =
+                                " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
+                              let innerDiv = null;
+
+                              if (!date) {
+                                className += "";
+                              } else if (isExcluded) {
+                                className +=
+                                  "bg-gray-300 text-white opacity-60 cursor-not-allowed";
+                              } else if (isStartOrEnd) {
+                                // Outer pill connector background
+                                className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
+                                  }`;
+                                // Inner circle but with left/right rounding
+                                innerDiv = (
+                                  <div
+                                    className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
                   
                   `}
-                              >
-                                {date.getDate()}
-                              </div>
-                            );
-                          } else if (isInBetween) {
-                            // Middle range connector
-                            className += "bg-sky-100 text-gray-800";
-                          } else {
-                            className += "hover:bg-gray-100 text-gray-800";
-                          }
+                                  >
+                                    {date.getDate()}
+                                  </div>
+                                );
+                              } else if (isInBetween) {
+                                // Middle range connector
+                                className += "bg-sky-100 text-gray-800";
+                              } else {
+                                className += "hover:bg-gray-100 text-gray-800";
+                              }
 
-                          return (
-                            <div
-                              key={i}
-                              onClick={() => date && !isExcluded && handleDateClick(date)}
-                              className={className}
-                            >
-                              {innerDiv || (date ? date.getDate() : "")}
-                            </div>
-                          );
-                        })}
-                      </div>
+                              return (
+                                <div
+                                  key={i}
+                                  onClick={() => date && !isExcluded && handleDateClick(date)}
+                                  className={className}
+                                >
+                                  {innerDiv || (date ? date.getDate() : "")}
+                                </div>
+                              );
+                            })}
+                          </div>
 
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-2 justify-between mt-5">
+                <button
+                  onClick={() => {
+                    if (selectedUserIds && selectedUserIds.length > 0) {
+                      sendOnetoOneMail(selectedUserIds);
+                    } else {
+                      showWarning("No Students Selected", "Please select at least one Lead before sending an email.");
+
+                    }
+                  }}
+                  className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"
+                >
+                  <img
+                    src="/images/icons/mail.png"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    alt=""
+                  />
+                  Send Email
+                </button>
+                <button className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]">
+                  <img src='/images/icons/sendText.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                  Send Text
+                </button>
+                <button onClick={exportToExcel} className="flex gap-2 items-center justify-center bg-[#237FEA] text-white px-3 py-2 rounded-xl  text-[16px]">
+                  <img src='/images/icons/download.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                  Export Data
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 justify-between mt-5">
-            <button
-              onClick={() => {
-                if (selectedUserIds && selectedUserIds.length > 0) {
-                  sendOnetoOneMail(selectedUserIds);
-                } else {
-                  showWarning("No Students Selected", "Please select at least one Lead before sending an email.");
-                  
-                }
-              }}
-              className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"
-            >
-              <img
-                src="/images/icons/mail.png"
-                className="w-4 h-4 sm:w-5 sm:h-5"
-                alt=""
-              />
-              Send Email
-            </button>
-            <button className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]">
-              <img src='/images/icons/sendText.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-              Send Text
-            </button>
-            <button onClick={exportToExcel} className="flex gap-2 items-center justify-center bg-[#237FEA] text-white px-3 py-2 rounded-xl  text-[16px]">
-              <img src='/images/icons/download.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-              Export Data
-            </button>
-          </div>
-        </div>
+
+          )
+        }
 
 
       </div>
@@ -1017,8 +1026,8 @@ const goToNextMonth = () => {
                   className="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-400 outline-none"
                 >
                   <option value="">Select Package</option>
-                  <option value="silver">Silver</option>
-                  <option value="gold">Gold</option>
+                  <option value="Silver">Silver</option>
+                  <option value="Gold">Gold</option>
                 </select>
               </div>
 

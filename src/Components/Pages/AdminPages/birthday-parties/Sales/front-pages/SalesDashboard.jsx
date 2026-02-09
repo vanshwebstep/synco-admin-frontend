@@ -14,7 +14,7 @@ import {
     Download,
     ChevronLeft,
     ChevronRight,
-    Check,
+    Check, Filter,
     CirclePoundSterling, X, CircleDollarSign
 } from "lucide-react";
 import { TiUserAdd } from "react-icons/ti";
@@ -29,6 +29,7 @@ import { showError, showWarning } from "../../../../../../utils/swalHelper";
 const SalesDashboard = () => {
     const navigate = useNavigate();
     const [noLoaderShow, setNoLoaderShow] = useState(false);
+    const [showFilter, setShowFilter] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const token = localStorage.getItem("adminToken");
@@ -733,7 +734,7 @@ const SalesDashboard = () => {
             <div className="min-h-screen overflow-hidden bg-gray-50 py-6 flex flex-col lg:flex-row ">
                 {/* Left Section */}
 
-                <div className="md:w-8/12 gap-6 md:pe-3 mb-4 md:mb-0">
+                <div className={`transition-all duration-300 ${showFilter ? "md:w-8/12" : "w-full"}`}>
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {summaryCards.map((card, i) => {
@@ -787,6 +788,12 @@ const SalesDashboard = () => {
                             </button>
 
                         )}</div>
+
+                        <div className="flex justify-end items-center mb-5">
+                            <div className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
+                                <Filter size={16} className='cursor-pointer' onClick={() => setShowFilter(!showFilter)} />
+                            </div>
+                        </div>
 
 
                         {paginatedData.length > 0 ? (
@@ -985,279 +992,285 @@ const SalesDashboard = () => {
                 </div>
 
                 {/* Right Sidebar */}
-                <div className="md:w-4/12  flex-shrink-0   gap-5 md:ps-3">
-                    <div className="space-y-3 bg-white p-6 mb-5  rounded-3xl shadow-sm ">
-                        <h2 className="text-[24px] font-semibold">Search Now </h2>
-                        <div className="">
-                            <label htmlFor="" className="text-base font-semibold">Search Student</label>
-                            <div className="relative mt-2 ">
-                                <input
-                                    type="text"
-                                    placeholder="Search by student name"
-                                    value={searchTerm}
-                                    onChange={handleSearch}
-                                    className="w-full border border-gray-300 rounded-xl px-3 text-[16px] py-3 pl-9 focus:outline-none"
-                                />
-                                <FiSearch className="absolute left-3 top-4 text-[20px]" />
-                            </div>
-                        </div>
 
-                    </div>
-
-                    <div className="space-y-3 bg-white p-6 rounded-3xl shadow-sm ">
-                        <div className="">
-                            <div className="flex justify-between items-center mb-5 ">
-                                <h2 className="text-[24px] font-semibold">Filter by Date </h2>
-                                <button onClick={applyFilter} className="flex gap-2 items-center bg-[#237FEA] text-white px-3 py-2 rounded-lg text-sm text-[16px]">
-                                    <img src='/DashboardIcons/filtericon.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-                                    Apply filter
-                                </button>
-
-                            </div>
-                            <div className="bg-gray-50 p-4 rounded-lg w-full">
-                                <div className="font-semibold mb-2 text-[18px]">Choose type</div>
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-semibold text-[16px]">
-
-                                    {filterOptions.map(({ label, key }) => (
-                                        <label key={key} className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                className="peer hidden"
-                                                checked={checkedStatuses[key]}
-                                                onChange={() => handleCheckboxChange(key)}
-                                            />
-                                            <span className="w-5 h-5 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
-                                                <Check className="w-4 h-4 transition-all" strokeWidth={3} />
-                                            </span>
-                                            <span>{label}</span>
-                                        </label>
-                                    ))}
-
-
-                                </div>
-                            </div>
-
-                            {showPopup && (
-                                <div
-                                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                                    onClick={() => setShowPopup(false)}
-                                >
-                                    <div
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="bg-white rounded-2xl p-6 w-[300px] space-y-4 shadow-lg"
-                                    >
-                                        <h2 className="text-lg font-semibold capitalize">
-                                            Select {activeFilterKey}
-                                        </h2>
-
-                                        {/* 🧠 Dynamic Content */}
-                                        {activeFilterKey === "package" && (
-                                            <select
-                                                className="w-full border rounded-lg p-2"
-                                                onChange={(e) => setSelectedPackages(e.target.value)}
-                                                value={selectedPackages}
-                                            >
-                                                <option value="">Select Package</option>
-                                                <option value="Gold">Gold</option>
-                                                <option value="Silver">Silver</option>
-                                            </select>
-                                        )}
-
-                                        {activeFilterKey === "source" && (
-                                            <select
-                                                className="w-full border rounded-lg p-2"
-                                                onChange={(e) => setSelectedSources(e.target.value)}
-                                                value={selectedSources}
-                                            >
-                                                <option value="">Select Source</option>
-                                                <option value="Referral">Referral</option>
-                                                <option value="Online">Online</option>
-                                                <option value="Flyer">Flyer</option>
-                                            </select>
-                                        )}
-
-
-                                        {activeFilterKey === "agent" && (
-                                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                                {agentList.map((agent) => {
-                                                    const isSelected = savedAgent.some((a) => a.id === agent.id);
-                                                    return (
-                                                        <label key={agent.id} className="flex items-center gap-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => {
-                                                                    setSavedAgent((prev) =>
-                                                                        isSelected
-                                                                            ? prev.filter((a) => a.id !== agent.id)
-                                                                            : [...prev, agent]
-                                                                    );
-                                                                }}
-                                                            />
-                                                            <span>{agent.name}</span>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-
-                                        {activeFilterKey === "coach" && (
-                                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                                {coachList.map((coach) => {
-                                                    const isSelected = savedCoach.some((c) => c.id === coach.id);
-                                                    return (
-                                                        <label key={coach.id} className="flex items-center gap-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => {
-                                                                    setSavedCoach((prev) =>
-                                                                        isSelected
-                                                                            ? prev.filter((c) => c.id !== coach.id)
-                                                                            : [...prev, coach]
-                                                                    );
-                                                                }}
-                                                            />
-                                                            <span>{coach.name}</span>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-
-                                        <button
-                                            className="w-full bg-blue-600 text-white rounded-md py-2 font-medium"
-                                            onClick={() => setShowPopup(false)}
-                                        >
-                                            Done
-                                        </button>
+                {
+                    showFilter && (
+                        <div className="md:w-4/12  flex-shrink-0   gap-5 md:ps-3">
+                            <div className="space-y-3 bg-white p-6 mb-5  rounded-3xl shadow-sm ">
+                                <h2 className="text-[24px] font-semibold">Search Now </h2>
+                                <div className="">
+                                    <label htmlFor="" className="text-base font-semibold">Search Student</label>
+                                    <div className="relative mt-2 ">
+                                        <input
+                                            type="text"
+                                            placeholder="Search by student name"
+                                            value={searchTerm}
+                                            onChange={handleSearch}
+                                            className="w-full border border-gray-300 rounded-xl px-3 text-[16px] py-3 pl-9 focus:outline-none"
+                                        />
+                                        <FiSearch className="absolute left-3 top-4 text-[20px]" />
                                     </div>
                                 </div>
-                            )}
-                            <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
-                                {/* Header */}
-                                <div className="flex justify-center gap-5 items-center mb-3">
-                                    <button
-                                        onClick={goToPreviousMonth}
-                                        className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
 
-                                    <p className="font-semibold text-[20px]">
-                                        {currentDate.toLocaleString("default", { month: "long" })} {year}
-                                    </p>
-                                    <button
-                                        onClick={goToNextMonth}
-                                        className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
+                            </div>
 
-                                {/* Day Labels */}
-                                <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
-                                    {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
-                                        <div key={day} className="font-medium text-center">
-                                            {day}
+                            <div className="space-y-3 bg-white p-6 rounded-3xl shadow-sm ">
+                                <div className="">
+                                    <div className="flex justify-between items-center mb-5 ">
+                                        <h2 className="text-[24px] font-semibold">Filter by Date </h2>
+                                        <button onClick={applyFilter} className="flex gap-2 items-center bg-[#237FEA] text-white px-3 py-2 rounded-lg text-sm text-[16px]">
+                                            <img src='/DashboardIcons/filtericon.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                                            Apply filter
+                                        </button>
+
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg w-full">
+                                        <div className="font-semibold mb-2 text-[18px]">Choose type</div>
+                                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-semibold text-[16px]">
+
+                                            {filterOptions.map(({ label, key }) => (
+                                                <label key={key} className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="peer hidden"
+                                                        checked={checkedStatuses[key]}
+                                                        onChange={() => handleCheckboxChange(key)}
+                                                    />
+                                                    <span className="w-5 h-5 inline-flex text-gray-500 items-center justify-center border border-[#717073] rounded-sm bg-transparent peer-checked:text-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors">
+                                                        <Check className="w-4 h-4 transition-all" strokeWidth={3} />
+                                                    </span>
+                                                    <span>{label}</span>
+                                                </label>
+                                            ))}
+
+
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
 
-                                {/* Calendar Weeks */}
-                                <div className="flex flex-col  gap-1">
-                                    {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
-                                        const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
-
-
-                                        return (
+                                    {showPopup && (
+                                        <div
+                                            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                                            onClick={() => setShowPopup(false)}
+                                        >
                                             <div
-                                                key={weekIndex}
-                                                className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="bg-white rounded-2xl p-6 w-[300px] space-y-4 shadow-lg"
                                             >
-                                                {week.map((date, i) => {
-                                                    const isStart = isSameDate(date, fromDate);
-                                                    const isEnd = isSameDate(date, toDate);
-                                                    const isStartOrEnd = isStart || isEnd;
-                                                    const isInBetween = date && isInRange(date);
-                                                    const isExcluded = !date; // replace with your own excluded logic
+                                                <h2 className="text-lg font-semibold capitalize">
+                                                    Select {activeFilterKey}
+                                                </h2>
 
-                                                    let className =
-                                                        " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
-                                                    let innerDiv = null;
+                                                {/* 🧠 Dynamic Content */}
+                                                {activeFilterKey === "package" && (
+                                                    <select
+                                                        className="w-full border rounded-lg p-2"
+                                                        onChange={(e) => setSelectedPackages(e.target.value)}
+                                                        value={selectedPackages}
+                                                    >
+                                                        <option value="">Select Package</option>
+                                                        <option value="Gold">Gold</option>
+                                                        <option value="Silver">Silver</option>
+                                                    </select>
+                                                )}
 
-                                                    if (!date) {
-                                                        className += "";
-                                                    } else if (isExcluded) {
-                                                        className +=
-                                                            "bg-gray-300 text-white opacity-60 cursor-not-allowed";
-                                                    } else if (isStartOrEnd) {
-                                                        // Outer pill connector background
-                                                        className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
-                                                            }`;
-                                                        // Inner circle but with left/right rounding
-                                                        innerDiv = (
-                                                            <div
-                                                                className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
+                                                {activeFilterKey === "source" && (
+                                                    <select
+                                                        className="w-full border rounded-lg p-2"
+                                                        onChange={(e) => setSelectedSources(e.target.value)}
+                                                        value={selectedSources}
+                                                    >
+                                                        <option value="">Select Source</option>
+                                                        <option value="Referral">Referral</option>
+                                                        <option value="Online">Online</option>
+                                                        <option value="Flyer">Flyer</option>
+                                                    </select>
+                                                )}
+
+
+                                                {activeFilterKey === "agent" && (
+                                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                                        {agentList.map((agent) => {
+                                                            const isSelected = savedAgent.some((a) => a.id === agent.id);
+                                                            return (
+                                                                <label key={agent.id} className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={isSelected}
+                                                                        onChange={() => {
+                                                                            setSavedAgent((prev) =>
+                                                                                isSelected
+                                                                                    ? prev.filter((a) => a.id !== agent.id)
+                                                                                    : [...prev, agent]
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <span>{agent.name}</span>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                {activeFilterKey === "coach" && (
+                                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                                        {coachList.map((coach) => {
+                                                            const isSelected = savedCoach.some((c) => c.id === coach.id);
+                                                            return (
+                                                                <label key={coach.id} className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={isSelected}
+                                                                        onChange={() => {
+                                                                            setSavedCoach((prev) =>
+                                                                                isSelected
+                                                                                    ? prev.filter((c) => c.id !== coach.id)
+                                                                                    : [...prev, coach]
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <span>{coach.name}</span>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                <button
+                                                    className="w-full bg-blue-600 text-white rounded-md py-2 font-medium"
+                                                    onClick={() => setShowPopup(false)}
+                                                >
+                                                    Done
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="rounded p-4 mt-6 text-center text-base w-full max-w-md mx-auto">
+                                        {/* Header */}
+                                        <div className="flex justify-center gap-5 items-center mb-3">
+                                            <button
+                                                onClick={goToPreviousMonth}
+                                                className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
+                                            >
+                                                <ChevronLeft className="w-5 h-5" />
+                                            </button>
+
+                                            <p className="font-semibold text-[20px]">
+                                                {currentDate.toLocaleString("default", { month: "long" })} {year}
+                                            </p>
+                                            <button
+                                                onClick={goToNextMonth}
+                                                className="w-8 h-8 rounded-full bg-white text-black hover:bg-black hover:text-white border border-black flex items-center justify-center"
+                                            >
+                                                <ChevronRight className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        {/* Day Labels */}
+                                        <div className="grid grid-cols-7 text-xs gap-1 text-[18px] text-gray-500 mb-1">
+                                            {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+                                                <div key={day} className="font-medium text-center">
+                                                    {day}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Calendar Weeks */}
+                                        <div className="flex flex-col  gap-1">
+                                            {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => {
+                                                const week = calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7);
+
+
+                                                return (
+                                                    <div
+                                                        key={weekIndex}
+                                                        className="grid grid-cols-7 text-[18px] h-12 py-1  rounded"
+                                                    >
+                                                        {week.map((date, i) => {
+                                                            const isStart = isSameDate(date, fromDate);
+                                                            const isEnd = isSameDate(date, toDate);
+                                                            const isStartOrEnd = isStart || isEnd;
+                                                            const isInBetween = date && isInRange(date);
+                                                            const isExcluded = !date; // replace with your own excluded logic
+
+                                                            let className =
+                                                                " w-full h-12 aspect-square flex items-center justify-center transition-all duration-200 ";
+                                                            let innerDiv = null;
+
+                                                            if (!date) {
+                                                                className += "";
+                                                            } else if (isExcluded) {
+                                                                className +=
+                                                                    "bg-gray-300 text-white opacity-60 cursor-not-allowed";
+                                                            } else if (isStartOrEnd) {
+                                                                // Outer pill connector background
+                                                                className += ` bg-sky-100 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""
+                                                                    }`;
+                                                                // Inner circle but with left/right rounding
+                                                                innerDiv = (
+                                                                    <div
+                                                                        className={`bg-blue-700 rounded-full text-white w-12 h-12 flex items-center justify-center font-bold
                   
                   `}
-                                                            >
-                                                                {date.getDate()}
-                                                            </div>
-                                                        );
-                                                    } else if (isInBetween) {
-                                                        // Middle range connector
-                                                        className += "bg-sky-100 text-gray-800";
-                                                    } else {
-                                                        className += "hover:bg-gray-100 text-gray-800";
-                                                    }
+                                                                    >
+                                                                        {date.getDate()}
+                                                                    </div>
+                                                                );
+                                                            } else if (isInBetween) {
+                                                                // Middle range connector
+                                                                className += "bg-sky-100 text-gray-800";
+                                                            } else {
+                                                                className += "hover:bg-gray-100 text-gray-800";
+                                                            }
 
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            onClick={() => date && !isExcluded && handleDateClick(date)}
-                                                            className={className}
-                                                        >
-                                                            {innerDiv || (date ? date.getDate() : "")}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                            return (
+                                                                <div
+                                                                    key={i}
+                                                                    onClick={() => date && !isExcluded && handleDateClick(date)}
+                                                                    className={className}
+                                                                >
+                                                                    {innerDiv || (date ? date.getDate() : "")}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
 
-                                        );
-                                    })}
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            <div className="grid grid-cols-3 gap-2 mt-5 justify-between">
+                                <button
+                                    onClick={() => {
+                                        if (selectedUserIds && selectedUserIds.length > 0) {
+                                            sendOnetoOneMail(selectedUserIds);
+                                        } else {
+                                            showWarning("No Students Selected", "Please select at least one student before sending an email.");
+                                        }
+                                    }}
+                                    className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"
+                                >
+                                    <img
+                                        src="/images/icons/mail.png"
+                                        className="w-4 h-4 sm:w-5 sm:h-5"
+                                        alt=""
+                                    />
+                                    Send Email
+                                </button>
+                                <button className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]">
+                                    <img src='/images/icons/sendText.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                                    Send Text
+                                </button>
+                                <button onClick={exportToExcel} className="flex gap-2 items-center justify-center bg-[#237FEA] text-white px-3 py-2 rounded-xl  text-[16px]">
+                                    <img src='/images/icons/download.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
+                                    Export Data
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-5 justify-between">
-                        <button
-                            onClick={() => {
-                                if (selectedUserIds && selectedUserIds.length > 0) {
-                                    sendOnetoOneMail(selectedUserIds);
-                                } else {
-                                    showWarning("No Students Selected", "Please select at least one student before sending an email.");
-                                }
-                            }}
-                            className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]"
-                        >
-                            <img
-                                src="/images/icons/mail.png"
-                                className="w-4 h-4 sm:w-5 sm:h-5"
-                                alt=""
-                            />
-                            Send Email
-                        </button>
-                        <button className="flex gap-1 items-center justify-center bg-none border border-[#717073] text-[#717073] px-2 py-2 rounded-xl  text-[16px]">
-                            <img src='/images/icons/sendText.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-                            Send Text
-                        </button>
-                        <button onClick={exportToExcel} className="flex gap-2 items-center justify-center bg-[#237FEA] text-white px-3 py-2 rounded-xl  text-[16px]">
-                            <img src='/images/icons/download.png' className='w-4 h-4 sm:w-5 sm:h-5' alt="" />
-                            Export Data
-                        </button>
-                    </div>
-                </div>
+
+                    )
+                }
 
 
             </div>
@@ -1340,8 +1353,8 @@ const SalesDashboard = () => {
                                     className="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-400 outline-none"
                                 >
                                     <option value="">Select Package</option>
-                                    <option value="silver">Silver</option>
-                                    <option value="gold">Gold</option>
+                                    <option value="Silver">Silver</option>
+                                    <option value="Gold">Gold</option>
                                 </select>
                             </div>
 

@@ -12,6 +12,7 @@ const tabs = [
 ];
 
 const BirthdayLeads = () => {
+    const [showFilter, setShowFilter] = useState(false);
 
   const [activeTab, setActiveTab] = useState(
     localStorage.getItem("activeTab") || tabs[0].name

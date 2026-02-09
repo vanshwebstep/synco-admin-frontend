@@ -170,7 +170,7 @@ const ParentProfile = ({ profile }) => {
             }
 
 
-            showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+            // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
 
 
             setComment('');

@@ -3,7 +3,7 @@ import { FiSearch, FiMail, FiFileText, FiChevronUp, FiChevronDown } from "react-
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunicationTemplate } from "../../contexts/CommunicationContext";
 import { useNavigate } from "react-router-dom";
-import { showConfirm, showSuccess,showError } from "../../../../../utils/swalHelper";
+import { showConfirm, showSuccess, showError } from "../../../../../utils/swalHelper";
 
 export default function SettingList() {
     const { fetchCommunicationTemplate, apiTemplates, deleteCommunicationTemplate } = useCommunicationTemplate();
@@ -206,9 +206,15 @@ export default function SettingList() {
                                     <div key={i} className="mb-5">
 
                                         {block.type === "text" && (
-                                            <p style={{ color: block.style?.textColor, fontSize: block.style?.fontSize }}>
-                                                {block.content}
-                                            </p>
+                                            <div
+                                                style={{
+                                                    color: block.style?.textColor,
+                                                    fontSize: block.style?.fontSize,
+                                                    whiteSpace: "pre-wrap",
+                                                    overflowWrap: "break-word"
+                                                }}
+                                                dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                                            />
                                         )}
 
                                         {block.type === "image" && (
@@ -249,9 +255,15 @@ export default function SettingList() {
                                                             <div key={child.id} className="mb-3">
 
                                                                 {child.type === "text" && (
-                                                                    <p style={{ color: child.style?.textColor, fontSize: child.style?.fontSize }}>
-                                                                        {child.content}
-                                                                    </p>
+                                                                    <div
+                                                                        style={{
+                                                                            color: child.style?.textColor,
+                                                                            fontSize: child.style?.fontSize,
+                                                                            whiteSpace: "pre-wrap",
+                                                                            overflowWrap: "break-word"
+                                                                        }}
+                                                                        dangerouslySetInnerHTML={{ __html: child.content || "" }}
+                                                                    />
                                                                 )}
 
                                                                 {child.type === "image" && (

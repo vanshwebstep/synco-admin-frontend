@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FiSearch } from "react-icons/fi";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Select, { components } from "react-select";
-import { Check, } from "lucide-react";
+import { Check, Filter } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
 import { useBookFreeTrial } from '../../contexts/BookAFreeTrialContext';
 import { useNavigate } from "react-router-dom";
