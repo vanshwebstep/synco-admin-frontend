@@ -249,8 +249,6 @@ const StudentProfile = () => {
     console.log('studentwweedws', students)
     // All good, update
     handleUpdateBirthday('students', students)
-    showSuccess("Students Updated", "All student records updated successfully.");
-   
   };
 
 

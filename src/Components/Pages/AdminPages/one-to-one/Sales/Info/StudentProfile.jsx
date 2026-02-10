@@ -291,11 +291,8 @@ const StudentProfile = () => {
         return showWarning('Missing Gender', 'Please select a gender.');
       }
     }
-    console.log('studentwweedws', students)
     // All good, update
     handleUpdate('students', students);
-
-    showSuccess("Students Updated", "All student records updated successfully.");
   };
 
   return (

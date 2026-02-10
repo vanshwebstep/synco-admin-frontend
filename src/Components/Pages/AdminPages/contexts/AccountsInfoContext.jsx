@@ -24,7 +24,7 @@ export const AccountsInfoProvider = ({ children }) => {
     }
 
     try {
-      showLoading("Updating...", "Please wait while we save changes.");
+      
 
       const headers = {
         "Content-Type": "application/json",
@@ -59,7 +59,7 @@ export const AccountsInfoProvider = ({ children }) => {
 
       await showSuccess(
         "Updated!",
-        "Student information has been successfully updated."
+        `${result?.message || 'Student information has been successfully updated.'}`
       );
 
       fetchOneToOneMembers(oneToOneData?.id);
@@ -110,7 +110,6 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      showLoading("Updating...", "Please wait while we save changes.");
 
       const response = await fetch(`${API_BASE_URL}/api/admin/account-information/${mainId}`, requestOptions);
 
@@ -169,7 +168,7 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      showLoading("Updating...", "Please wait while we save changes.");
+     
 
       const response = await fetch(`${API_BASE_URL}/api/admin/birthday-party/booking/update/${data.id}`, requestOptions);
 
@@ -227,7 +226,7 @@ export const AccountsInfoProvider = ({ children }) => {
     };
 
     try {
-      showLoading("Updating...", "Please wait while we save changes.");
+    
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/booking/update/${data.id}`, requestOptions);
 
