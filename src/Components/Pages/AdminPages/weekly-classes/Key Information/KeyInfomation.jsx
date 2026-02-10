@@ -63,15 +63,6 @@ const KeyInformation = () => {
   }
 
   const renderContent = (content) => {
-    if (Array.isArray(content)) {
-      return (
-        <ul className="list-disc pl-5 space-y-2">
-          {content.map((item, idx) => (
-            <li key={idx} className="text-gray-700">{item}</li>
-          ))}
-        </ul>
-      );
-    }
     return (
       <div
         className="text-gray-800 prose prose-blue max-w-none"
@@ -182,7 +173,7 @@ const KeyInformation = () => {
                     </button>
                   </div>
                   <div className="p-6">
-                    {renderContent(item.keyInformation)}
+                    {renderContent(JSON.parse(item.keyInformationRaw))}
                   </div>
                 </div>
               ))

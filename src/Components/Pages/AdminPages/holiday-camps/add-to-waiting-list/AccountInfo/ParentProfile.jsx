@@ -28,6 +28,7 @@ const ParentProfile = ({ profile }) => {
     const navigate = useNavigate();
     console.log('profiless', profile)
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -39,7 +40,7 @@ const ParentProfile = ({ profile }) => {
     const totalPages = Math.ceil(commentsList.length / commentsPerPage);
     const { adminInfo, setAdminInfo } = useNotification();
     const token = localStorage.getItem("adminToken");
-     const [loadingData, setLoadingData] = useState(false);
+    const [loadingData, setLoadingData] = useState(false);
     const goToPage = (page) => {
         if (page < 1) page = 1;
         if (page > totalPages) page = totalPages;
@@ -129,8 +130,8 @@ const ParentProfile = ({ profile }) => {
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
-           
+            showError("Failed to fetch comments", error.message || error.error || "Failed to fetch comments. Please try again later.");
+
         }
     }, []);
 
@@ -157,7 +158,7 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
         };
 
         try {
-           setLoadingData(true);
+            setLoadingComment(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
@@ -169,17 +170,17 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
                 return;
             }
 
-// showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
-            
+            // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+
 
             setComment('');
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
-              
-        }finally{
-            setLoadingData(false);
+
+        } finally {
+            setLoadingComment(false);
         }
     }
 
@@ -659,6 +660,7 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >
@@ -1325,7 +1327,7 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
                                                 showWarning("Missing Field", "Please select a reason for cancellation.");
                                                 return;
                                             }
-                                                 
+
 
                                             // If all validations pass → call submit function
                                             cancelMembershipSubmit(cancelData, "allMembers");
@@ -1597,8 +1599,8 @@ showError("Failed to fetch comments", error.message || error.error || "Failed to
                                         className="w-1/2 bg-[#237FEA] text-white rounded-xl py-3 text-[18px] font-medium hover:shadow-md transition-shadow"
                                         onClick={() => {
                                             if (!freezeData.freezeStartDate || !freezeData.freezeDurationMonths || !freezeData.reactivateOn) {
-                                              showWarning("Incomplete Form", "Please fill in all the required fields before submitting.");   
-                                               
+                                                showWarning("Incomplete Form", "Please fill in all the required fields before submitting.");
+
                                                 return;
                                             }
 

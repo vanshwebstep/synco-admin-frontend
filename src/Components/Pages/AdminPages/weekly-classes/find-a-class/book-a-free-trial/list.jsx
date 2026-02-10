@@ -84,6 +84,7 @@ const List = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedPlans, setSelectedPlans] = useState([]);
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -185,9 +186,16 @@ const List = () => {
 
     // Extract trial key info items
     const trialKeyInfo = Array.isArray(keyInfoData)
-        ? keyInfoData.find(item => item.serviceType === 'trial')?.keyInformation
-        : keyInfoData?.keyInformation;
-
+        ? keyInfoData.find(item => item.serviceType === 'trial')?.keyInformationRaw
+        : keyInfoData?.keyInformationRaw;
+    const renderContent = (content) => {
+        return (
+            <div
+                className="text-gray-800 prose prose-blue max-w-none"
+                dangerouslySetInnerHTML={{ __html: content }}
+            />
+        );
+    };
     const keyInfoArray = htmlToHtmlArray(trialKeyInfo);
 
     // Map into dynamic options preserving HTML
@@ -590,7 +598,7 @@ const List = () => {
 
         try {
             // Loader skipped
-
+            setLoadingComment(true)
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book/free-trials/comment/create`, requestOptions);
 
@@ -610,6 +618,8 @@ const List = () => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
+        }finally{
+             setLoadingComment(false)
         }
     }
 
@@ -1617,26 +1627,8 @@ const List = () => {
                                     >
                                         <div className="p-8 pt-0 relative border-t border-gray-50">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative pt-6">
-                                                {Array.isArray(trialKeyInfo) && trialKeyInfo.length > 0 ? (
-                                                    trialKeyInfo.map((option, index) => (
-                                                        <motion.div
-                                                            key={index}
-                                                            initial={{ opacity: 0, x: -10 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            transition={{ delay: index * 0.05 }}
-                                                            className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-md transition-all duration-300 group"
-                                                        >
-                                                            <div className="mt-1 flex-shrink-0">
-                                                                <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
-                                                                    <CheckCircle2 className="w-4 h-4 text-blue-600 group-hover:text-white" />
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="text-[16px] text-gray-700 leading-relaxed font-medium">
-                                                                {option}
-                                                            </div>
-                                                        </motion.div>
-                                                    ))
+                                                {trialKeyInfo ? (
+                                                    renderContent(JSON.parse(trialKeyInfo))
                                                 ) : (
                                                     <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                                                         No key information available for this service.

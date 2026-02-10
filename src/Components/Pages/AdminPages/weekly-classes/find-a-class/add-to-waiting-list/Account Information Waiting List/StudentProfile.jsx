@@ -34,6 +34,7 @@ const StudentProfile = ({ profile }) => {
     const navigate = useNavigate();
     const [students, setStudents] = useState(profile?.students || []);
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -151,7 +152,7 @@ const StudentProfile = ({ profile }) => {
 
         try {
             // Loader skipped
-
+            setLoadingComment(true)
 
             const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
 
@@ -171,6 +172,9 @@ const StudentProfile = ({ profile }) => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
+             setLoadingComment(false)
+        } finally {
+            setLoadingComment(false)
         }
     }
 
@@ -558,6 +562,7 @@ const StudentProfile = ({ profile }) => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >
@@ -1202,9 +1207,9 @@ const StudentProfile = ({ profile }) => {
                                         onClick={() => {
                                             // Validation
                                             if (!cancelData.cancellationType) {
-                                               
+
                                                 showWarning("Missing Field", "Please select a cancellation type.");
-                                                   
+
                                                 return;
                                             }
 
@@ -1215,7 +1220,7 @@ const StudentProfile = ({ profile }) => {
 
                                             if (!cancelData.cancelReason) {
                                                 showWarning("Missing Field", "Please select a reason for cancellation.");
-                                                   
+
                                                 return;
                                             }
 
@@ -1490,7 +1495,7 @@ const StudentProfile = ({ profile }) => {
                                         onClick={() => {
                                             if (!freezeData.freezeStartDate || !freezeData.freezeDurationMonths || !freezeData.reactivateOn) {
                                                 showWarning("Incomplete Form", "Please fill in all the required fields before submitting.");
-                                                   
+
                                                 return;
                                             }
 

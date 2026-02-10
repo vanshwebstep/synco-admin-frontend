@@ -99,6 +99,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
   const [openResultModal, setOpenResultModal] = useState(false);
   const [openOfferModal, setOpenOfferModal] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
+  const [loadingComment, setLoadingComment] = useState(false);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5; // Number of comments per page
@@ -259,7 +260,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-    showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
+      showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
     }
   }, []);
 
@@ -290,7 +291,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
     };
 
     try {
-    setLoading(true);
+       setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -311,8 +312,8 @@ const CandidateInfo = ({ steps, setSteps }) => {
     } catch (error) {
       console.error("Error creating member:", error);
       showError("Network Error", error.message || "An error occurred while submitting the form.");
-    }finally{
-      setLoading(false);
+    } finally {
+       setLoadingComment(false);
     }
   }
   const recruitedMode = form.status?.toLowerCase() === "recruited";
@@ -553,7 +554,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
         await rejectCoach(id);
       }
     });
-  
+
 
     if (result.isConfirmed) {
       await rejectCoach(id);
@@ -593,7 +594,7 @@ const CandidateInfo = ({ steps, setSteps }) => {
         await submitRecruitment(id);
       }
     });
-   
+
 
     // If user cancels, stop execution
     if (!result.isConfirmed) return;
@@ -677,8 +678,8 @@ const CandidateInfo = ({ steps, setSteps }) => {
         await sendCoachMail([id]);
       }
     });
-    
-    
+
+
   };
   const getStatusStyles = (status) => {
     switch (status?.toLowerCase()) {
@@ -1171,7 +1172,8 @@ const CandidateInfo = ({ steps, setSteps }) => {
                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
               />
               <button
-                className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-[#237FEA]"
+                disabled={loadingComment}
+                className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                 onClick={handleSubmitComment}
               >
                 <img src="/images/icons/sent.png" alt="" />

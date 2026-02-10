@@ -97,6 +97,7 @@ const OverView = ({ steps, setSteps }) => {
   const [openOfferModal, setOpenOfferModal] = useState(false);
   const [openDiscoverDayModal, setOpenDiscoverDayModal] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
+  const [loadingComment, setLoadingComment] = useState(false);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5; // Number of comments per page
@@ -258,7 +259,7 @@ const OverView = ({ steps, setSteps }) => {
     };
 
     try {
-      setLoading(true);
+       setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -267,7 +268,7 @@ const OverView = ({ steps, setSteps }) => {
 
       if (!response.ok) {
         showError("Error", "Failed to Add Comment");
-       
+
         return;
       }
 
@@ -278,8 +279,8 @@ const OverView = ({ steps, setSteps }) => {
     } catch (error) {
       console.error("Error creating member:", error);
       showError("Error", "Network Error");
-    }finally{
-      setLoading(false);
+    } finally {
+       setLoadingComment(false);
     }
   }
   const handleChange = (field, value) => {
@@ -884,7 +885,8 @@ const OverView = ({ steps, setSteps }) => {
                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
               />
               <button
-                className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-[#237FEA]"
+                disabled={loadingComment}
+                className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                 onClick={handleSubmitComment}
               >
                 <img src="/images/icons/sent.png" alt="" />

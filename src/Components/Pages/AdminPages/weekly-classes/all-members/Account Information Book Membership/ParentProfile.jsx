@@ -36,6 +36,7 @@ const ParentProfile = ({ profile }) => {
     const paymentPlans = profile?.paymentPlans;
     const [editingIndex, setEditingIndex] = useState(null);
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -135,7 +136,7 @@ const ParentProfile = ({ profile }) => {
 
         try {
             // Loader skipped
-
+            setLoadingComment(true)
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
 
@@ -154,7 +155,10 @@ const ParentProfile = ({ profile }) => {
             fetchComments();
         } catch (error) {
             console.error("Error creating member:", error);
+            setLoadingComment(false)
             showError("Network Error", error.message || "An error occurred while submitting the form.");
+        } finally {
+            setLoadingComment(false)
         }
     }
     // console.log('profile', profile)
@@ -674,6 +678,7 @@ const ParentProfile = ({ profile }) => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >

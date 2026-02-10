@@ -92,6 +92,7 @@ const BookACamp = () => {
     // Comments state
     const [commentsList, setCommentsList] = useState([]);
     const [comment, setComment] = useState("");
+    const [commentLoading, setCommentLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5;
     const indexOfLastComment = currentPage * commentsPerPage;
@@ -582,7 +583,8 @@ const BookACamp = () => {
         const tokenLocal = localStorage.getItem("adminToken");
         if (!tokenLocal) return;
         try {
-            showLoading("Creating Comment", "Please wait while we add your comment.");
+            
+            setCommentLoading(true);
             const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenLocal}` },
@@ -599,6 +601,8 @@ const BookACamp = () => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred.");
+        } finally {
+            setCommentLoading(false);
         }
     };
 
@@ -1310,7 +1314,7 @@ const BookACamp = () => {
                         <div className="flex items-center gap-2">
                             <img src={adminInfo?.profile ? `${adminInfo.profile}` : '/members/dummyuser.png'} alt="User" className="w-14 h-14 rounded-full object-cover" />
                             <input type="text" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment" className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12" />
-                            <button className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600" onClick={handleSubmitComment}>
+                            <button disabled={commentLoading} className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600" onClick={handleSubmitComment}>
                                 <img src="/images/icons/sent.png" alt="" />
                             </button>
                         </div>

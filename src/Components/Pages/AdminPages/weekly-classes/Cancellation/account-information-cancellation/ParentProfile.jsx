@@ -100,6 +100,7 @@ const ParentProfile = ({ ParentProfile }) => {
         notes: "",
     });
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -216,7 +217,7 @@ const ParentProfile = ({ ParentProfile }) => {
 
         try {
             // Loader skipped
-
+            setLoadingComment(true)
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
 
@@ -234,8 +235,11 @@ const ParentProfile = ({ ParentProfile }) => {
             setComment('');
             fetchComments();
         } catch (error) {
+             setLoadingComment(false)
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
+        }finally{
+             setLoadingComment(false)
         }
     }
     const canCancelTrial =
@@ -474,6 +478,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >
@@ -1051,15 +1056,15 @@ const ParentProfile = ({ ParentProfile }) => {
                                         className="w-1/2 bg-[#237FEA] text-white rounded-xl py-3 text-[18px] font-medium hover:shadow-md transition-shadow"
                                         onClick={() => {
                                             if (!selectedDate) {
-                                               showWarning("Validation Error", "Please select a date first.");
-                                                
+                                                showWarning("Validation Error", "Please select a date first.");
+
                                                 return;
                                             }
 
                                             if (!reason) {
-                                             
+
                                                 showWarning("Validation Error", "Please select a reason for non-attendance!");
-                                                   
+
                                                 return;
                                             }
 
@@ -1410,7 +1415,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                         onClick={() => {
                                             if (!freezeData.freezeStartDate || !freezeData.freezeDurationMonths || !freezeData.reactivateOn) {
                                                 showWarning("Incomplete Form", "Please fill in all the required fields before submitting:");
-                                                   
+
                                                 return;
                                             }
 

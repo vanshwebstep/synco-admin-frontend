@@ -14,9 +14,9 @@ import { useLocation } from "react-router-dom";
 import { showConfirm, showError, showSuccess, showWarning } from "../../../../../../utils/swalHelper";
 import { set } from "date-fns";
 const General = () => {
-  const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const location = useLocation();
-
+    const [loadingComment, setLoadingComment] = useState(false);
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get("id"); // <-- this will be "9"  console.log('id',id)
     const { data } = useAccountsInfo();
@@ -212,7 +212,7 @@ const General = () => {
         };
 
         try {
-            setLoading(true);
+            setLoadingComment(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -234,6 +234,8 @@ const General = () => {
             console.error("Error creating member:", error);
             showError(error.message || error.error || "Failed to create comment. Please try again later.");
 
+        } finally {
+            setLoadingComment(false);
         }
     }
 
@@ -466,7 +468,7 @@ const General = () => {
                     showError(error.message || "An error occurred while cancelling the package.");
                 });
         });
-       
+
     };
     const handleRenewPackage = () => {
         showConfirm("Are you sure?", "This package will be renewed for the user.", "question").then((result) => {
@@ -503,7 +505,7 @@ const General = () => {
                     showError(error.message || "An error occurred while renewing the package.");
                 });
         });
-       
+
     };
 
     return (
@@ -546,6 +548,7 @@ const General = () => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >

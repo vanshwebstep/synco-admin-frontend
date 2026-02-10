@@ -7,7 +7,7 @@ import { showSuccess, showError } from "../../../../../utils/swalHelper";
 const CreateLead = () => {
     const { adminInfo } = useNotification();
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+    const [loadingComment, setLoadingComment] = useState(false);
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -90,7 +90,7 @@ const CreateLead = () => {
 
         try {
             // Loader skipped
-
+            setLoadingComment(true)
             const response = await fetch(`${API_BASE_URL}/api/admin/lead/comment/create`, {
                 method: "POST",
                 headers: {
@@ -114,6 +114,8 @@ const CreateLead = () => {
         } catch (error) {
             console.error("Error creating comment:", error);
             showError("Network Error", error.message || "An error occurred while submitting.");
+        } finally {
+            setLoadingComment(false)
         }
     };
     const handleAddLead = async (e) => {

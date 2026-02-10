@@ -19,6 +19,7 @@ import { useNotification } from '../../../../contexts/NotificationContext';
 import PhoneInput from 'react-phone-input-2';
 
 const ParentProfile = ({ ParentProfile }) => {
+    const [loadingComment, setLoadingComment] = useState(false);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const [selectedDate, setSelectedDate] = useState(null);
     const navigate = useNavigate();
@@ -127,7 +128,7 @@ const ParentProfile = ({ ParentProfile }) => {
         try {
             // Loader skipped
 
-
+ setLoadingComment(true)
             const response = await fetch(`${API_BASE_URL}/api/admin/book/free-trials/comment/create`, requestOptions);
 
             const result = await response.json();
@@ -146,6 +147,8 @@ const ParentProfile = ({ ParentProfile }) => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
+        }finally{
+             setLoadingComment(false)
         }
     }
 
@@ -559,6 +562,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >

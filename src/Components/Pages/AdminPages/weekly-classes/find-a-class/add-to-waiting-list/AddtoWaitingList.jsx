@@ -31,6 +31,7 @@ import { useMembers } from '../../../contexts/MemberContext';
 import { useNotification } from '../../../contexts/NotificationContext';
 import { useTermContext } from '../../../contexts/TermDatesSessionContext';
 const AddtoWaitingList = () => {
+  const [loadingComment, setLoadingComment] = useState(false);
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('');
   const navigate = useNavigate();
@@ -157,9 +158,16 @@ const AddtoWaitingList = () => {
 
   // Extract waiting list key info items
   const waitingListKeyInfo = Array.isArray(keyInfoData)
-    ? keyInfoData.find(item => item.serviceType === 'waiting_list')?.keyInformation
-    : keyInfoData?.keyInformation;
-
+    ? keyInfoData.find(item => item.serviceType === 'waiting_list')?.keyInformationRaw
+    : keyInfoData?.keyInformationRaw;
+  const renderContent = (content) => {
+    return (
+      <div
+        className="text-gray-800 prose prose-blue max-w-none"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  };
   const keyInfoArray = htmlToHtmlArray(waitingListKeyInfo);
 
   // Map into dynamic options preserving HTML
@@ -558,7 +566,7 @@ const AddtoWaitingList = () => {
 
     try {
       // Loader skipped
-
+ setLoadingComment(true)
 
       const response = await fetch(`${API_BASE_URL}/api/admin/waiting-list/comment/create`, requestOptions);
 
@@ -577,7 +585,10 @@ const AddtoWaitingList = () => {
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
+       setLoadingComment(false)
       showError("Network Error", error.message || "An error occurred while submitting the form.");
+    }finally{
+       setLoadingComment(false)
     }
   }
   const token = localStorage.getItem("adminToken");
@@ -1642,26 +1653,8 @@ const AddtoWaitingList = () => {
                   >
                     <div className="p-8 pt-0 relative border-t border-gray-50">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative pt-6">
-                        {Array.isArray(waitingListKeyInfo) && waitingListKeyInfo.length > 0 ? (
-                          waitingListKeyInfo.map((option, index) => (
-                            <motion.div
-                              key={index}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-md transition-all duration-300 group"
-                            >
-                              <div className="mt-1 flex-shrink-0">
-                                <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
-                                  <CheckCircle2 className="w-4 h-4 text-blue-600 group-hover:text-white" />
-                                </div>
-                              </div>
-
-                              <div className="text-[16px] text-gray-700 leading-relaxed font-medium">
-                                {option ?? "—"}
-                              </div>
-                            </motion.div>
-                          ))
+                        {waitingListKeyInfo ? (
+                          renderContent(JSON.parse(waitingListKeyInfo))
                         ) : (
                           <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                             No key information available for this service.

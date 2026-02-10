@@ -15,7 +15,7 @@ import { showConfirm, showError, showSuccess, showWarning } from "../../../../..
 const General = () => {
     const { oneToOneData, fetchOneToOneMembers } = useAccountsInfo();
     const location = useLocation();
- const [loadingData, setLoadingData] = useState(false);
+    const [loadingData, setLoadingData] = useState(false);
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get("id"); // <-- this will be "9"  console.log('id',id)
     const [formData, setFormData] = useState({
@@ -119,6 +119,7 @@ const General = () => {
         });
     };
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -211,7 +212,7 @@ const General = () => {
         };
 
         try {
-            setLoadingData(true);
+            setLoadingComment(true);
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
 
@@ -232,7 +233,9 @@ const General = () => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Failed to Add Comment", error.message || "An error occurred while adding the comment. Please try again.");
-
+            setLoadingComment(false);
+        } finally {
+            setLoadingComment(false);
         }
     }
 
@@ -418,346 +421,347 @@ const General = () => {
         </div>
     );
 
-  const handleCancelPackage = async () => {
-    const result = await showConfirm(
-        "Cancel this package?",
-        "This will cancel the selected package for the user."
-    );
-
-    if (!result?.isConfirmed) return;
-
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-        showError("Admin token not found. Please login again.");
-        return;
-    }
-
-    try {
-        setLoadingData(true);
-
-        const response = await fetch(
-            `${API_BASE_URL}/api/admin/one-to-one/cancel/${id}`,
-            {
-                method: "PUT",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            }
+    const handleCancelPackage = async () => {
+        const result = await showConfirm(
+            "Cancel this package?",
+            "This will cancel the selected package for the user."
         );
 
-        const data = await response.json();
+        if (!result?.isConfirmed) return;
 
-        if (!response.ok) {
-            throw new Error(data?.message || "Something went wrong");
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+            showError("Admin token not found. Please login again.");
+            return;
         }
 
-        showSuccess(data?.message || "Package cancelled successfully.");
+        try {
+            setLoa(true);
 
-        // refresh data
-        fetchOneToOneMembers(id);
-        // router.refresh();
+            const response = await fetch(
+                `${API_BASE_URL}/api/admin/one-to-one/cancel/${id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-    } catch (error) {
-        showError(error?.message || "Unable to cancel the package.");
-    } finally {
-        setLoadingData(false);
-    }
-};
+            const data = await response.json();
 
-            const handleRenewPackage = () => {
-                showConfirm("Renew this package?", "This will renew the selected package for the user.").then((result) => {
+            if (!response.ok) {
+                throw new Error(data?.message || "Something went wrong");
+            }
 
-                    if (!result.isConfirmed) return;
+            showSuccess(data?.message || "Package cancelled successfully.");
 
-                    const token = localStorage.getItem("adminToken");
-                    if (!token) {
-                        showError("Admin token not found. Please login again.");
-                        return;
+            // refresh data
+            fetchOneToOneMembers(id);
+            // router.refresh();
+
+        } catch (error) {
+            showError(error?.message || "Unable to cancel the package.");
+        } finally {
+            setLoadingData(false);
+        }
+    };
+
+    const handleRenewPackage = () => {
+        showConfirm("Renew this package?", "This will renew the selected package for the user.").then((result) => {
+
+            if (!result.isConfirmed) return;
+
+            const token = localStorage.getItem("adminToken");
+            if (!token) {
+                showError("Admin token not found. Please login again.");
+                return;
+            }
+
+            setLoadingData(true);
+
+            const myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            fetch(`${API_BASE_URL}/api/admin/one-to-one/renew/${id}`, {
+                method: "PUT",
+                headers: myHeaders,
+                redirect: "follow",
+            })
+                .then(async (response) => {
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data?.message || "Something went wrong");
                     }
 
-                    setLoadingData(true);
+                    showSuccess(data?.message || "Package renewed successfully.");
 
-                    const myHeaders = new Headers();
-                    myHeaders.append("Authorization", `Bearer ${token}`);
-
-                    fetch(`${API_BASE_URL}/api/admin/one-to-one/renew/${id}`, {
-                        method: "PUT",
-                        headers: myHeaders,
-                        redirect: "follow",
-                    })
-                        .then(async (response) => {
-                            const data = await response.json();
-
-                            if (!response.ok) {
-                                throw new Error(data?.message || "Something went wrong");
-                            }
-
-                            showSuccess(data?.message || "Package renewed successfully.");
-
-                            // Optional refresh
-                            fetchOneToOneMembers(id);
-                        })
-                        .catch((error) => {
-                            showError(error.message || "Unable to renew the package.");
-                        });
+                    // Optional refresh
+                    fetchOneToOneMembers(id);
+                })
+                .catch((error) => {
+                    showError(error.message || "Unable to renew the package.");
                 });
-            };
+        });
+    };
 
 
 
 
 
 
-            return (
-                <>
-                    <div className="flex">
-                        <div className="md:w-[66%] pe-4">
-                            <section className="bg-white rounded-2xl p-4">
-                                <h3 className="text-xl font-bold text-[#282829] pb-4">Student Information</h3>
-                                {renderInputs(studentInputs, "student")}
-                            </section>
+    return (
+        <>
+            <div className="flex">
+                <div className="md:w-[66%] pe-4">
+                    <section className="bg-white rounded-2xl p-4">
+                        <h3 className="text-xl font-bold text-[#282829] pb-4">Student Information</h3>
+                        {renderInputs(studentInputs, "student")}
+                    </section>
 
-                            <section className="bg-white rounded-2xl p-4 mt-5">
-                                <div className="flex justify-between items-center pb-4">
-                                    <h3 className="text-xl font-bold text-[#282829]">Parent Information</h3>
+                    <section className="bg-white rounded-2xl p-4 mt-5">
+                        <div className="flex justify-between items-center pb-4">
+                            <h3 className="text-xl font-bold text-[#282829]">Parent Information</h3>
 
-                                </div>
-                                {formData.parent.map((_, index) => (
-                                    <div key={index} className="rounded-xl p-4 mb-4 ">
-                                        {renderInputs(parentInputs, "parent", index)}
-                                    </div>
-                                ))}
-                            </section>
+                        </div>
+                        {formData.parent.map((_, index) => (
+                            <div key={index} className="rounded-xl p-4 mb-4 ">
+                                {renderInputs(parentInputs, "parent", index)}
+                            </div>
+                        ))}
+                    </section>
 
-                            <div className="bg-white my-10 rounded-3xl p-6 space-y-4">
-                                <h2 className="text-[24px] font-semibold">Comment</h2>
+                    <div className="bg-white my-10 rounded-3xl p-6 space-y-4">
+                        <h2 className="text-[24px] font-semibold">Comment</h2>
 
-                                {/* Input section */}
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={adminInfo?.profile ? `${adminInfo.profile}` : '/members/dummyuser.png'}
-                                        alt="User"
-                                        className="w-14 h-14 rounded-full object-cover"
-                                    />
-                                    <input
-                                        type="text"
-                                        name='comment'
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        placeholder="Add a comment"
-                                        className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
-                                    />
-                                    <button
-                                        className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
-                                        onClick={handleSubmitComment}
-                                    >
-                                        <img src="/images/icons/sent.png" alt="" />
-                                    </button>
-                                </div>
+                        {/* Input section */}
+                        <div className="flex items-center gap-2">
+                            <img
+                                src={adminInfo?.profile ? `${adminInfo.profile}` : '/members/dummyuser.png'}
+                                alt="User"
+                                className="w-14 h-14 rounded-full object-cover"
+                            />
+                            <input
+                                type="text"
+                                name='comment'
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Add a comment"
+                                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
+                            />
+                            <button
+                                disabled={loadingComment}
+                                className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
+                                onClick={handleSubmitComment}
+                            >
+                                <img src="/images/icons/sent.png" alt="" />
+                            </button>
+                        </div>
 
-                                {/* Comment list */}
-                                {commentsList && commentsList.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {currentComments.map((c, i) => (
-                                            <div key={i} className="bg-gray-50 rounded-xl p-4 text-sm">
-                                                <p className="text-gray-700 text-[16px] font-semibold mb-1">{c.comment}</p>
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center gap-3">
-                                                        <img
-                                                            src={
-                                                                c?.bookedByAdmin?.profile
-                                                                    ? `${c?.bookedByAdmin?.profile}`
-                                                                    : '/members/dummyuser.png'
-                                                            }
-                                                            onError={(e) => {
-                                                                e.currentTarget.onerror = null; // prevent infinite loop
-                                                                e.currentTarget.src = '/members/dummyuser.png';
-                                                            }}
-                                                            alt={c?.bookedByAdmin?.firstName}
-                                                            className="w-10 h-10 rounded-full object-cover mt-1"
-                                                        />
-                                                        <div>
-                                                            <p className="font-semibold text-[#237FEA] text-[16px]">{c?.bookedByAdmin?.firstName} {c?.bookedByAdmin?.lastName}</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-gray-400 text-[16px] whitespace-nowrap mt-1">
-                                                        {formatTimeAgo(c.createdAt)}
-                                                    </span>
+                        {/* Comment list */}
+                        {commentsList && commentsList.length > 0 ? (
+                            <div className="space-y-4">
+                                {currentComments.map((c, i) => (
+                                    <div key={i} className="bg-gray-50 rounded-xl p-4 text-sm">
+                                        <p className="text-gray-700 text-[16px] font-semibold mb-1">{c.comment}</p>
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={
+                                                        c?.bookedByAdmin?.profile
+                                                            ? `${c?.bookedByAdmin?.profile}`
+                                                            : '/members/dummyuser.png'
+                                                    }
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null; // prevent infinite loop
+                                                        e.currentTarget.src = '/members/dummyuser.png';
+                                                    }}
+                                                    alt={c?.bookedByAdmin?.firstName}
+                                                    className="w-10 h-10 rounded-full object-cover mt-1"
+                                                />
+                                                <div>
+                                                    <p className="font-semibold text-[#237FEA] text-[16px]">{c?.bookedByAdmin?.firstName} {c?.bookedByAdmin?.lastName}</p>
                                                 </div>
                                             </div>
-                                        ))}
-
-                                        {/* Pagination controls */}
-                                        {totalPages > 1 && (
-                                            <div className="flex justify-center items-center gap-2 mt-4">
-                                                <button
-                                                    className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
-                                                    onClick={() => goToPage(currentPage - 1)}
-                                                    disabled={currentPage === 1}
-                                                >
-                                                    Prev
-                                                </button>
-                                                {Array.from({ length: totalPages }, (_, i) => (
-                                                    <button
-                                                        key={i}
-                                                        className={`px-3 py-1 rounded-lg border ${currentPage === i + 1 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:bg-gray-100'}`}
-                                                        onClick={() => goToPage(i + 1)}
-                                                    >
-                                                        {i + 1}
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
-                                                    onClick={() => goToPage(currentPage + 1)}
-                                                    disabled={currentPage === totalPages}
-                                                >
-                                                    Next
-                                                </button>
-                                            </div>
-                                        )}
+                                            <span className="text-gray-400 text-[16px] whitespace-nowrap mt-1">
+                                                {formatTimeAgo(c.createdAt)}
+                                            </span>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <p className="text-center">No Comments yet.</p>
+                                ))}
+
+                                {/* Pagination controls */}
+                                {totalPages > 1 && (
+                                    <div className="flex justify-center items-center gap-2 mt-4">
+                                        <button
+                                            className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
+                                            onClick={() => goToPage(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                        >
+                                            Prev
+                                        </button>
+                                        {Array.from({ length: totalPages }, (_, i) => (
+                                            <button
+                                                key={i}
+                                                className={`px-3 py-1 rounded-lg border ${currentPage === i + 1 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:bg-gray-100'}`}
+                                                onClick={() => goToPage(i + 1)}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                        <button
+                                            className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-100"
+                                            onClick={() => goToPage(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
                                 )}
                             </div>
-                        </div>
-                        <div className="md:w-[34%]">
-                            <div className="md:max-w-[510px]">
-                                {/* Status Header */}
+                        ) : (
+                            <p className="text-center">No Comments yet.</p>
+                        )}
+                    </div>
+                </div>
+                <div className="md:w-[34%]">
+                    <div className="md:max-w-[510px]">
+                        {/* Status Header */}
 
 
-                                {/* Details Section */}
-                                <div className="bg-[#363E49] text-white rounded-4xl p-6 space-y-3">
+                        {/* Details Section */}
+                        <div className="bg-[#363E49] text-white rounded-4xl p-6 space-y-3">
 
-                                    {/* Status */}
-                                    <div
-                                        className="text-white rounded-2xl p-4 relative overflow-hidden"
-                                        style={{
-                                            backgroundImage: `url('${getBg()}')`,
-                                            backgroundSize: "cover",
-                                            backgroundPosition: "center",
-                                        }}
-                                    >
-                                        <p className="text-[20px] text-black font-bold relative z-10">Status</p>
-                                        <p className="text-sm text-black relative z-10 capitalize">
-                                            {status}
-                                        </p>
-                                    </div>
+                            {/* Status */}
+                            <div
+                                className="text-white rounded-2xl p-4 relative overflow-hidden"
+                                style={{
+                                    backgroundImage: `url('${getBg()}')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            >
+                                <p className="text-[20px] text-black font-bold relative z-10">Status</p>
+                                <p className="text-sm text-black relative z-10 capitalize">
+                                    {status}
+                                </p>
+                            </div>
 
 
-                                    {/* Coach */}
-                                    <div className="border-b border-[#495362] pb-3 flex items-center gap-5">
-                                        <div>
-                                            <img src="/members/user2.png" alt="Coach" className="w-10 h-10 rounded-full object-cover" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold">Coach</h3>
-                                            <p className="text-gray-300 text-sm">
-                                                {oneToOneData?.booking?.coach
-                                                    ? `${oneToOneData.booking.coach.firstName} ${oneToOneData.booking.coach.lastName}`
-                                                    : "N/A"}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Venue */}
-                                    <div className="border-b border-[#495362] pb-3">
-                                        <p className="text-white text-[18px] font-semibold">Venue</p>
-                                        <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded-md mt-1">
-                                            {oneToOneData?.booking?.location || "N/A"}
-                                        </span>
-                                    </div>
-
-                                    {/* Parent */}
-                                    <div className="border-b border-[#495362] pb-3">
-                                        <p className="text-white text-[18px] font-semibold">Parent Name</p>
-                                        <p className="text-[16px] mt-1 text-[#BDC0C3]">
-                                            {oneToOneData?.booking?.parents?.[0]
-                                                ? `${oneToOneData.booking.parents[0].parentFirstName} ${oneToOneData.booking.parents[0].parentLastName}`
-                                                : oneToOneData?.parentName || "N/A"}
-                                        </p>
-                                    </div>
-
-                                    {/* Date of Class */}
-                                    <div className="border-b border-[#495362] pb-3">
-                                        <p className="text-white text-[18px] font-semibold">Date of Class</p>
-                                        <p className="text-[16px] mt-1 text-[#BDC0C3]">
-                                            {oneToOneData?.booking?.date
-                                                ? new Date(oneToOneData.booking.date).toLocaleDateString("en-GB", {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                })
-                                                : "N/A"}
-                                        </p>
-                                    </div>
-
-                                    {/* Package */}
-                                    <div className="border-b border-[#495362] pb-3">
-                                        <p className="text-white text-[18px] font-semibold">Package</p>
-                                        <p className="text-[16px] mt-1 text-[#BDC0C3]">
-                                            {oneToOneData?.booking?.paymentPlan?.title || oneToOneData?.packageInterest || "N/A"}
-                                        </p>
-                                    </div>
-
-                                    {/* Source */}
-                                    <div className="border-b border-[#495362] pb-3">
-                                        <p className="text-white text-[18px] font-semibold">Source</p>
-                                        <p className="text-[16px] mt-1 text-[#BDC0C3]">
-                                            {oneToOneData?.source || oneToOneData?.booking?.parents?.[0]?.howDidHear || "N/A"}
-                                        </p>
-                                    </div>
-
-                                    {/* Price */}
-                                    <div>
-                                        <p className="text-white text-[18px] font-semibold">Price</p>
-                                        <p className="text-[16px] mt-1 text-[#BDC0C3] font-semibold">
-                                            £
-                                            {oneToOneData?.booking?.payment?.amount
-                                                ? parseFloat(oneToOneData.booking.payment.amount).toFixed(2)
-                                                : "0.00"}
-                                        </p>
-                                    </div>
+                            {/* Coach */}
+                            <div className="border-b border-[#495362] pb-3 flex items-center gap-5">
+                                <div>
+                                    <img src="/members/user2.png" alt="Coach" className="w-10 h-10 rounded-full object-cover" />
                                 </div>
-
-
-                                {/* Action Buttons */}
-                                <div className="p-6 flex flex-col bg-white rounded-3xl mt-5 items-center space-y-3">
-                                    <div className="flex w-full justify-between gap-2">
-                                        <button onClick={() => {
-                                            if (bookingId) {
-                                                sendOnetoOneMail(bookingId);
-                                            } else {
-                                                showWarning("Booking ID not found. Cannot send email.");
-                                            }
-                                        }} className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[18px]  hover:bg-gray-50 transition">
-                                            <Mail className="w-4 h-4 mr-1" /> Send Email
-                                        </button>
-                                        <button className="flex-1 flex items-center gap-2 justify-center border border-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[#717073]  hover:bg-gray-50 transition">
-                                            <MessageSquare className="w-4 h-4 mr-1" /> Send Text
-                                        </button>
-                                    </div>
-
-
-
-                                    {status !== 'active' ? (
-
-                                        <button onClick={handleRenewPackage} className="w-full bg-[#237FEA] text-white text-[18px] py-3 rounded-xl  font-medium hover:bg-blue-700 transition">
-                                            Renew Package
-                                        </button>
-                                    ) : (
-                                        <button onClick={handleCancelPackage} className="w-full bg-[#FF6C6C] text-white my-3 text-[18px] py-3 rounded-xl  font-medium hover:bg-red-600 transition flex items-center justify-center">
-                                            Cancel Package
-                                        </button>
-                                    )}
+                                <div>
+                                    <h3 className="text-lg font-semibold">Coach</h3>
+                                    <p className="text-gray-300 text-sm">
+                                        {oneToOneData?.booking?.coach
+                                            ? `${oneToOneData.booking.coach.firstName} ${oneToOneData.booking.coach.lastName}`
+                                            : "N/A"}
+                                    </p>
                                 </div>
                             </div>
+
+                            {/* Venue */}
+                            <div className="border-b border-[#495362] pb-3">
+                                <p className="text-white text-[18px] font-semibold">Venue</p>
+                                <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded-md mt-1">
+                                    {oneToOneData?.booking?.location || "N/A"}
+                                </span>
+                            </div>
+
+                            {/* Parent */}
+                            <div className="border-b border-[#495362] pb-3">
+                                <p className="text-white text-[18px] font-semibold">Parent Name</p>
+                                <p className="text-[16px] mt-1 text-[#BDC0C3]">
+                                    {oneToOneData?.booking?.parents?.[0]
+                                        ? `${oneToOneData.booking.parents[0].parentFirstName} ${oneToOneData.booking.parents[0].parentLastName}`
+                                        : oneToOneData?.parentName || "N/A"}
+                                </p>
+                            </div>
+
+                            {/* Date of Class */}
+                            <div className="border-b border-[#495362] pb-3">
+                                <p className="text-white text-[18px] font-semibold">Date of Class</p>
+                                <p className="text-[16px] mt-1 text-[#BDC0C3]">
+                                    {oneToOneData?.booking?.date
+                                        ? new Date(oneToOneData.booking.date).toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                        })
+                                        : "N/A"}
+                                </p>
+                            </div>
+
+                            {/* Package */}
+                            <div className="border-b border-[#495362] pb-3">
+                                <p className="text-white text-[18px] font-semibold">Package</p>
+                                <p className="text-[16px] mt-1 text-[#BDC0C3]">
+                                    {oneToOneData?.booking?.paymentPlan?.title || oneToOneData?.packageInterest || "N/A"}
+                                </p>
+                            </div>
+
+                            {/* Source */}
+                            <div className="border-b border-[#495362] pb-3">
+                                <p className="text-white text-[18px] font-semibold">Source</p>
+                                <p className="text-[16px] mt-1 text-[#BDC0C3]">
+                                    {oneToOneData?.source || oneToOneData?.booking?.parents?.[0]?.howDidHear || "N/A"}
+                                </p>
+                            </div>
+
+                            {/* Price */}
+                            <div>
+                                <p className="text-white text-[18px] font-semibold">Price</p>
+                                <p className="text-[16px] mt-1 text-[#BDC0C3] font-semibold">
+                                    £
+                                    {oneToOneData?.booking?.payment?.amount
+                                        ? parseFloat(oneToOneData.booking.payment.amount).toFixed(2)
+                                        : "0.00"}
+                                </p>
+                            </div>
+                        </div>
+
+
+                        {/* Action Buttons */}
+                        <div className="p-6 flex flex-col bg-white rounded-3xl mt-5 items-center space-y-3">
+                            <div className="flex w-full justify-between gap-2">
+                                <button onClick={() => {
+                                    if (bookingId) {
+                                        sendOnetoOneMail(bookingId);
+                                    } else {
+                                        showWarning("Booking ID not found. Cannot send email.");
+                                    }
+                                }} className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[18px]  hover:bg-gray-50 transition">
+                                    <Mail className="w-4 h-4 mr-1" /> Send Email
+                                </button>
+                                <button className="flex-1 flex items-center gap-2 justify-center border border-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[#717073]  hover:bg-gray-50 transition">
+                                    <MessageSquare className="w-4 h-4 mr-1" /> Send Text
+                                </button>
+                            </div>
+
+
+
+                            {status !== 'active' ? (
+
+                                <button onClick={handleRenewPackage} className="w-full bg-[#237FEA] text-white text-[18px] py-3 rounded-xl  font-medium hover:bg-blue-700 transition">
+                                    Renew Package
+                                </button>
+                            ) : (
+                                <button onClick={handleCancelPackage} className="w-full bg-[#FF6C6C] text-white my-3 text-[18px] py-3 rounded-xl  font-medium hover:bg-red-600 transition flex items-center justify-center">
+                                    Cancel Package
+                                </button>
+                            )}
                         </div>
                     </div>
+                </div>
+            </div>
 
-                </>
-            )
-        }
+        </>
+    )
+}
 
 export default General

@@ -16,7 +16,7 @@ const ParentProfile = (fetchedData) => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("adminToken");
-
+const [loadingComment, setLoadingComment] = useState(false);
   const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [studentsData, setStudentsData] = useState([]);
 
@@ -162,7 +162,7 @@ const ParentProfile = (fetchedData) => {
          but for now we'll skip the Swal loading popup and rely on non-blocking UI updates or let the user wait.
          The original code used Swal.showLoading which is blocking. 
          If blocking is desired, we might need a showLoading helper, but for now we'll stick to error/success. */
-
+setLoadingComment(true)
       const response = await fetch(`${API_BASE_URL}/api/admin/lead/comment/create`, {
         method: "POST",
         headers: {
@@ -186,6 +186,8 @@ const ParentProfile = (fetchedData) => {
     } catch (error) {
       console.error("Error creating comment:", error);
       showError("Network Error", error.message || "An error occurred while submitting.");
+    }finally{
+      setLoadingComment(false)
     }
   };
 

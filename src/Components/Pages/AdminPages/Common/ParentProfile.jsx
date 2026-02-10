@@ -33,6 +33,7 @@ const ParentProfile = ({ ParentProfile }) => {
         { value: "Schedule conflict", label: "Schedule conflict" },
     ];
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
@@ -163,7 +164,7 @@ const ParentProfile = ({ ParentProfile }) => {
         };
 
         try {
-           setLoading(true);
+            setLoadingComment(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -171,12 +172,12 @@ const ParentProfile = ({ ParentProfile }) => {
             const result = await response.json();
 
             if (!response.ok) {
-               showError("Error", result.message || "Failed to add comment.");
+                showError("Error", result.message || "Failed to add comment.");
                 return;
             }
 
             showSuccess("Success!", result.message || "Comment has been added successfully!");
-           
+
 
 
             setComment('');
@@ -184,7 +185,9 @@ const ParentProfile = ({ ParentProfile }) => {
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Error", error.message || "An error occurred while adding the comment. Please try again.");
-          
+
+        } finally {
+            setLoadingComment(false);
         }
     }
     const canCancelTrial =
@@ -471,6 +474,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                                disabled={loadingComment}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >
@@ -902,7 +906,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                         onClick={() => {
                                             if (!selectedDate) {
                                                 showWarning("Please select a date first!");
-                                                
+
                                                 return;
                                             }
 

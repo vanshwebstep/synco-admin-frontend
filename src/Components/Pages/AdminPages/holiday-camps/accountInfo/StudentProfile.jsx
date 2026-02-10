@@ -18,9 +18,10 @@ const StudentProfile = () => {
   const { students, setStudents, handleUpdateHoliday, mainId } = useAccountsInfo();
 
   const { adminInfo } = useNotification();
- const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
+  const [loadingComment, setLoadingComment] = useState(false);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5; // Number of comments per page
@@ -114,8 +115,8 @@ const StudentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-showError("Failed to fetch comments", error.message || error.error || "Please try again later.");
-     
+      showError("Failed to fetch comments", error.message || error.error || "Please try again later.");
+
     }
   }, []);
 
@@ -145,9 +146,9 @@ showError("Failed to fetch comments", error.message || error.error || "Please tr
     };
 
     try {
-      
- 
-      setLoading(true);
+
+
+      setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
@@ -155,23 +156,23 @@ showError("Failed to fetch comments", error.message || error.error || "Please tr
       const result = await response.json();
 
       if (!response.ok) {
-        
+
         showError("Failed to Add Comment", result.message || "Something went wrong.");
         return;
       }
 
 
       // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
-        
+
 
       setComment('');
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
       showError("Network Error", error.message || "An error occurred while submitting the form.");
-       
-    }finally{
-      setLoading(false);
+
+    } finally {
+      setLoadingComment(false);
     }
   }
   const formatLocalDate = (date) => {
@@ -185,24 +186,24 @@ showError("Failed to fetch comments", error.message || error.error || "Please tr
   const handleAddStudent = () => {
     if (!newStudent.studentFirstName && !newStudent.studentLastName) {
       showWarning("Missing Name", "Please enter at least first or last name.");
-      
+
       return;
     }
     if (!newStudent.medicalInformation) {
       showWarning("Medical Information Missing", "Please enter Medical Information.");
-       
+
       return;
     }
     if (!newStudent.dateOfBirth) {
       showWarning("Date of Birth Missing", "Please select date of birth.");
-      
+
       return;
     }
 
     // Age
     if (!newStudent.age) {
       showWarning("Age Missing", "Please enter age.");
-       
+
       return;
     }
 
@@ -541,6 +542,7 @@ showError("Failed to fetch comments", error.message || error.error || "Please tr
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
           />
           <button
+          disabled={loadingComment}
             className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
             onClick={handleSubmitComment}
           >

@@ -16,6 +16,7 @@ const ParentProfile = () => {
   console.log('students', students)
   const [loadingData, setLoadingData] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
+  const [loadingComment, setLoadingComment] = useState(false);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5; // Number of comments per page
@@ -57,13 +58,13 @@ const ParentProfile = () => {
   const [country, setCountry] = useState("uk");
   const [countryEmergency, setCountryEmergency] = useState("uk");
 
- const hearOptions = [
-  { value: "Google", label: "Google" },
-  { value: "Facebook", label: "Facebook" },
-  { value: "Instagram", label: "Instagram" },
-  { value: "Friend", label: "Friend" },
-  { value: "Flyer", label: "Flyer" },
-];
+  const hearOptions = [
+    { value: "Google", label: "Google" },
+    { value: "Facebook", label: "Facebook" },
+    { value: "Instagram", label: "Instagram" },
+    { value: "Friend", label: "Friend" },
+    { value: "Flyer", label: "Flyer" },
+  ];
 
 
   // Handle text input
@@ -192,7 +193,7 @@ const ParentProfile = () => {
     };
 
     try {
-      setLoadingData(true);
+      setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -216,7 +217,7 @@ const ParentProfile = () => {
       showError("Failed to Add Comment", error.message || "An error occurred while adding the comment.");
 
     } finally {
-      setLoadingData(false);
+      setLoadingComment(false);
     }
   }
 
@@ -822,6 +823,7 @@ const ParentProfile = () => {
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
           />
           <button
+            disabled={loadingComment}
             className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
             onClick={handleSubmitComment}
           >

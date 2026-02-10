@@ -16,7 +16,7 @@ const General = () => {
     const [bookingId, setBookingId] = useState([]);
     const {
         showCancelTrial,
-      setshowCancelTrial,cancelHolidaySubmit
+        setshowCancelTrial, cancelHolidaySubmit
     } = useBookFreeTrial() || {};
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -27,7 +27,7 @@ const General = () => {
             setBookingId(prev => [...prev, data?.id]);
         }
     }, [data]);
-console.log('bookingId', id);
+    console.log('bookingId', id);
     const [formData, setFormData] = useState({
         student:
             data?.students?.length > 0
@@ -93,7 +93,9 @@ console.log('bookingId', id);
         });
     };
     const [commentsList, setCommentsList] = useState([]);
+    const [loadingComment, setLoadingComment] = useState(false);
     const [comment, setComment] = useState('');
+    const [commentLoading, setCommentLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5; // Number of comments per page
 
@@ -108,7 +110,7 @@ console.log('bookingId', id);
         if (page > totalPages) page = totalPages;
         setCurrentPage(page);
     };
-const reasonOptions = [
+    const reasonOptions = [
         { value: "Family emergency - cannot attend", label: "Family emergency - cannot attend" },
         { value: "Health issue", label: "Health issue" },
         { value: "Schedule conflict", label: "Schedule conflict" },
@@ -144,8 +146,8 @@ const reasonOptions = [
             setCommentsList(result);
         } catch (error) {
             console.error("Failed to fetch comments:", error);
-     showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
-           
+            showError("Error", error.message || error.error || "Failed to fetch comments. Please try again later.");
+
         }
     }, []);
     const handleSubmitComment = async (e) => {
@@ -169,7 +171,7 @@ const reasonOptions = [
 
         try {
 
-         setLoading(true);
+            setCommentLoading(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
@@ -178,12 +180,12 @@ const reasonOptions = [
 
             if (!response.ok) {
                 showError("Failed to Add Comment", result.message || "Something went wrong.");
-               
+
                 return;
             }
 
-// showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
-         
+            // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
+
 
 
             setComment('');
@@ -191,16 +193,16 @@ const reasonOptions = [
         } catch (error) {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
-              
+
         } finally {
-            setLoading(false);
+            setCommentLoading(false);
         }
     }
 
     const handleSelectChange = (selected, field, stateSetter) => {
         stateSetter((prev) => ({ ...prev, [field]: selected?.value || null }));
     };
-     const handleInputChange = (e, stateSetter) => {
+    const handleInputChange = (e, stateSetter) => {
         const { name, value } = e.target;
         stateSetter((prev) => ({ ...prev, [name]: value }));
     };
@@ -230,7 +232,7 @@ const reasonOptions = [
                 throw new Error(result.message || "Failed to send Email");
             }
 
-           await showSuccess("Success!", result.message || "Mail has been Sent successfully.");
+            await showSuccess("Success!", result.message || "Mail has been Sent successfully.");
 
             return result;
 
@@ -423,8 +425,8 @@ const reasonOptions = [
         );
     };
 
-    const [cancelData, setCancelData] = useState({ 
-        id : id,// corresponds to selected radio
+    const [cancelData, setCancelData] = useState({
+        id: id,// corresponds to selected radio
         cancelReason: "",         // corresponds to DatePicker
         additionalNote: "",        // textarea
     });
@@ -488,6 +490,7 @@ const reasonOptions = [
                                 className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
                             />
                             <button
+                            disabled={commentLoading}
                                 className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                                 onClick={handleSubmitComment}
                             >
@@ -569,7 +572,7 @@ const reasonOptions = [
                             {/* Status */}
                             <div
                                 className="text-white rounded-2xl p-4 relative overflow-hidden"
-                                 style={{
+                                style={{
                                     backgroundImage: `url('${getBg()}')`,
                                     backgroundSize: "cover",
                                     backgroundPosition: "center",
@@ -656,7 +659,7 @@ const reasonOptions = [
                                         sendEmail();
                                     } else {
                                         showWarning("No Booking ID", "No booking ID found to send email.");
-                                        
+
                                     }
                                 }} className="flex-1 flex items-center gap-2 justify-center border border-[#717073] text-[#717073] rounded-xl font-semibold py-3 text-[18px] text-[18px]  hover:bg-gray-50 transition">
                                     <Mail className="w-4 h-4 mr-1" /> Send Email
@@ -665,20 +668,19 @@ const reasonOptions = [
                                     <MessageSquare className="w-4 h-4 mr-1" /> Send Text
                                 </button>
                             </div>
-          
-          {status !== "cancelled" && (
-  <button
-    onClick={() => setshowCancelTrial(true)}
-    className={`w-full border text-[18px] rounded-xl py-3 font-medium transition-shadow duration-300
-      ${
-        showCancelTrial
-          ? "bg-[#FF6C6C] text-white shadow-md border-transparent"
-          : "border-gray-300 text-[#717073] hover:bg-[#FF6C6C] hover:text-white hover:shadow-md"
-      }`}
-  >
-    Cancel Membership
-  </button>
-)}
+
+                            {status !== "cancelled" && (
+                                <button
+                                    onClick={() => setshowCancelTrial(true)}
+                                    className={`w-full border text-[18px] rounded-xl py-3 font-medium transition-shadow duration-300
+      ${showCancelTrial
+                                            ? "bg-[#FF6C6C] text-white shadow-md border-transparent"
+                                            : "border-gray-300 text-[#717073] hover:bg-[#FF6C6C] hover:text-white hover:shadow-md"
+                                        }`}
+                                >
+                                    Cancel Membership
+                                </button>
+                            )}
 
 
 
@@ -699,7 +701,7 @@ const reasonOptions = [
                                 </div>
 
                                 <div className="space-y-4 px-6 pb-6 pt-4">
-                                   
+
                                     <div>
                                         <label className="block text-[16px] font-semibold">
                                             Reason for Cancellation
@@ -742,23 +744,23 @@ const reasonOptions = [
 
                                     {/* Buttons */}
                                     <div className="flex justify-end gap-4 pt-4">
-                                       <button
-                                onClick={() => {
-                                    // Validation: reason
-                                    if (!cancelData.cancelReason) {
-                                        showWarning("Missing Field", "Please select a reason for cancellation.");
-                                        return;
-                                    }
+                                        <button
+                                            onClick={() => {
+                                                // Validation: reason
+                                                if (!cancelData.cancelReason) {
+                                                    showWarning("Missing Field", "Please select a reason for cancellation.");
+                                                    return;
+                                                }
 
-                                    // ✅ All validations passed → close modal immediately
+                                                // ✅ All validations passed → close modal immediately
 
-                                    setshowCancelTrial(false)
-                                    // 🔥 Then call API (don’t wait for response)
-                                    cancelHolidaySubmit(cancelData, "allMembers");
-                                }}
-                                className="w-full bg-[#FF6C6C] text-white my-3 text-[18px] py-3 rounded-xl  font-medium hover:bg-red-600 transition flex items-center justify-center">
-                                Cancel Camp
-                            </button>
+                                                setshowCancelTrial(false)
+                                                // 🔥 Then call API (don’t wait for response)
+                                                cancelHolidaySubmit(cancelData, "allMembers");
+                                            }}
+                                            className="w-full bg-[#FF6C6C] text-white my-3 text-[18px] py-3 rounded-xl  font-medium hover:bg-red-600 transition flex items-center justify-center">
+                                            Cancel Camp
+                                        </button>
 
                                     </div>
                                 </div>

@@ -8,7 +8,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useAccountsInfo } from "../../../contexts/AccountsInfoContext";
 import { FaSave, FaEdit } from "react-icons/fa";
 import { useNotification } from "../../../contexts/NotificationContext";
-import { showError, showSuccess,showConfirm, showWarning } from "../../../../../../utils/swalHelper";
+import { showError, showSuccess, showConfirm, showWarning } from "../../../../../../utils/swalHelper";
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -16,7 +16,7 @@ const StudentProfile = () => {
   const { students, setStudents, handleUpdateBirthday, mainId } = useAccountsInfo();
   console.log('students', students)
   const { adminInfo, setAdminInfo } = useNotification();
-
+  const [loadingComment, setLoadingComment] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
   const [comment, setComment] = useState('');
@@ -112,8 +112,8 @@ const StudentProfile = () => {
       setCommentsList(result);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
-     showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
-    
+      showError(error.message || error.error || "Failed to fetch comments. Please try again later.");
+
     }
   }, []);
 
@@ -143,7 +143,7 @@ const StudentProfile = () => {
     };
 
     try {
-     setLoading(true);
+      setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -156,7 +156,7 @@ const StudentProfile = () => {
       }
 
       showSuccess(result.message || " Comment has been  added successfully!");
-     
+
 
 
       setComment('');
@@ -164,8 +164,8 @@ const StudentProfile = () => {
     } catch (error) {
       console.error("Error creating member:", error);
       showError(error.message || "An error occurred while submitting the form.");
-    }finally{
-      setLoading(false);
+    } finally {
+      setLoadingComment(false);
     }
   }
   const formatLocalDate = (date) => {
@@ -546,6 +546,7 @@ const StudentProfile = () => {
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
           />
           <button
+            disabled={loadingComment}
             className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
             onClick={handleSubmitComment}
           >

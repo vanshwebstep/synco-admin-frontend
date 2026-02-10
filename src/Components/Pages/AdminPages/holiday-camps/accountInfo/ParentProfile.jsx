@@ -14,8 +14,9 @@ const ParentProfile = () => {
   const { adminInfo, setAdminInfo } = useNotification();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { formData, setFormData, emergency, setEmergency, handleUpdateHoliday, students } = useAccountsInfo();
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [commentsList, setCommentsList] = useState([]);
+  const [commentLoading, setCommentLoading] = useState(false);
   const [comment, setComment] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 5;
@@ -54,13 +55,13 @@ const [loading, setLoading] = useState(false);
   const [dialCodeEmergency, setDialCodeEmergency] = useState("+44");
   const [dialCode, setDialCode] = useState("+44");
   const [country, setCountry] = useState("uk");
-const hearOptions = [
-  { value: "Google", label: "Google" },
-  { value: "Facebook", label: "Facebook" },
-  { value: "Instagram", label: "Instagram" },
-  { value: "Friend", label: "Friend" },
-  { value: "Flyer", label: "Flyer" },
-];
+  const hearOptions = [
+    { value: "Google", label: "Google" },
+    { value: "Facebook", label: "Facebook" },
+    { value: "Instagram", label: "Instagram" },
+    { value: "Friend", label: "Friend" },
+    { value: "Flyer", label: "Flyer" },
+  ];
 
 
   // Handle text input
@@ -189,7 +190,7 @@ const hearOptions = [
     };
 
     try {
-     setLoading(true);
+      setCommentLoading(true);
 
       const response = await fetch(`${API_BASE_URL}/api/admin/holiday/comment/create`, requestOptions);
 
@@ -203,7 +204,7 @@ const hearOptions = [
 
 
       // showSuccess("Comment Created", result.message || " Comment has been  added successfully!");
-      
+
 
 
       setComment('');
@@ -211,9 +212,9 @@ const hearOptions = [
     } catch (error) {
       console.error("Error creating member:", error);
       showError("Network Error", error.message || "An error occurred while submitting the form.");
-    
-    }finally {
-      setLoading(false);
+
+    } finally {
+      setCommentLoading(false);
     }
   }
   const showAlert = (title, text) => {
@@ -807,6 +808,7 @@ const hearOptions = [
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
           />
           <button
+            disabled={commentLoading}
             className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
             onClick={handleSubmitComment}
           >

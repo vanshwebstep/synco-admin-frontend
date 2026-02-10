@@ -13,7 +13,7 @@ import { showError, showSuccess, showConfirm, showWarning } from "../../../../..
 const StudentProfile = () => {
   const [editStudent, setEditStudent] = useState({});
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+  const [loadingComment, setLoadingComment] = useState(false);
   const { students, setStudents, handleUpdate, mainId } = useAccountsInfo();
   console.log('students', students)
   const { adminInfo, setAdminInfo } = useNotification();
@@ -169,7 +169,7 @@ const StudentProfile = () => {
     };
 
     try {
-      setLoading(true);
+      setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -189,8 +189,11 @@ const StudentProfile = () => {
       fetchComments();
     } catch (error) {
       console.error("Error creating member:", error);
+      setLoadingComment(false)
       showError("Error creating member", error.message || error.error || "An error occurred while submitting the form.");
 
+    } finally {
+      setLoadingComment(false)
     }
   }
 
@@ -591,6 +594,7 @@ const StudentProfile = () => {
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none md:w-full w-5/12"
           />
           <button
+            disabled={loadingComment}
             className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
             onClick={handleSubmitComment}
           >
