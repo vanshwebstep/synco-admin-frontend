@@ -168,7 +168,7 @@ const List = () => {
 
         }
     ]);
-    const finalClassId = classId || TrialData?.classScheduleId || TrialData?.classSchedule?.id;
+    const finalClassId = classId || TrialData?.classScheduleId || TrialData?.students?.[0]?.classSchedule?.id;
     const allPaymentPlans =
         singleClassSchedulesOnly?.venue?.paymentGroups[0]?.paymentPlans?.map((plan) => ({
             label: `${plan.title} (${plan.students} student${plan.students > 1 ? "s" : ""})`,
@@ -642,9 +642,13 @@ const List = () => {
         if (transformedPayment.pan) {
             transformedPayment.pan = transformedPayment.pan.replace(/\s+/g, ""); // remove spaces
         }
+
+     
         const missingClass = students.some(
-            (s, i) => i !== 0 && !s.selectedClassData
+            (s, i) => i !== 0 && !s.selectedClassData && !s?.classSchedule?.id
         );
+
+        console.log('missingClass' , students)
 
         if (missingClass) {
             showWarning("Class Required", "Please select class for all students");
@@ -663,7 +667,7 @@ const List = () => {
                 ...s,
                 dateOfBirth: toDateOnly(s.dateOfBirth),
                 classScheduleId:
-                    index === 0
+                    index === 0 || comesFrom
                         ? singleClassSchedulesOnly?.id
                         : s.selectedClassData?.id
             })),
@@ -1513,7 +1517,7 @@ const List = () => {
                                         <div className="w-1/2">
                                             <label className="block text-[16px] font-semibold">Class</label>
 
-                                            {index === 0 ? (
+                                            {index === 0 || comesFrom ? (
                                                 <input
                                                     type="text"
                                                     value={singleClassSchedulesOnly?.className || ""}
@@ -1546,7 +1550,7 @@ const List = () => {
                                                 type="text"
                                                 readOnly
                                                 value={
-                                                    index === 0
+                                                    index === 0 || comesFrom
                                                         ? `${singleClassSchedulesOnly?.startTime || ""} - ${singleClassSchedulesOnly?.endTime || ""}`
                                                         : student.selectedClassData
                                                             ? `${student.selectedClassData.startTime} - ${student.selectedClassData.endTime}`

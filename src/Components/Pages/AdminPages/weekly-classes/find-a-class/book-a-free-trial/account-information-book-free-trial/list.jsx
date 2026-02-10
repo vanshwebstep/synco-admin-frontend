@@ -19,7 +19,9 @@ import Loader from "../../../../contexts/Loader";
 import Feedback from "./Feedback";
 
 const list = () => {
-  const { serviceHistoryFetchById, serviceHistory, loading } = useBookFreeTrial()
+  const { serviceHistoryFetchById, serviceHistory, loading } = useBookFreeTrial();
+
+  console.log('serviceHistory',serviceHistory)
 
   const navigate = useNavigate();
   const location = useLocation();

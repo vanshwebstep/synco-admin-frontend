@@ -175,7 +175,7 @@ const BookingCard = ({ booking }) => {
               {renderField("Students", booking?.totalStudents)}
               {renderField(
                 "Venue",
-                booking?.classSchedule?.venue?.name ||
+                booking?.venue?.name ||
                 booking?.venue?.name ||
                 "N/A"
               )}
@@ -197,7 +197,7 @@ const BookingCard = ({ booking }) => {
             <>
               {renderField("Date of Trial", booking?.trialDate || booking?.startDate)}
               {renderField("Students", booking?.totalStudents)}
-              {renderField("Venue", booking?.classSchedule?.venue?.name)}
+              {renderField("Venue", booking?.venue?.name)}
               {renderField("Trial Attempt", booking?.attempt || "N/A")}
               {renderField("Date Of Booking", formatPrettyDate(booking?.createdAt))}
               {renderField(

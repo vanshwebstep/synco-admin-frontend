@@ -214,7 +214,7 @@ export const ClassScheduleProvider = ({ children }) => {
       return result;
     } catch (error) {
       console.error("Error updating classSchedule:", error);
-      await showError('Error', error.message || "Something went wrong while updating classSchedule.");
+      await showError('Error', error.message || "Something went wrong while updating classSchedule?.");
       throw error;
     } finally {
       setLoading(false);
@@ -282,7 +282,7 @@ export const ClassScheduleProvider = ({ children }) => {
       return result;
     } catch (error) {
       console.error("Error updating classSchedule:", error);
-      await showError('Error', error.message || "Something went wrong while updating classSchedule.");
+      await showError('Error', error.message || "Something went wrong while updating classSchedule?.");
 
       throw error;
     } finally {

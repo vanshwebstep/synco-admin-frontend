@@ -693,7 +693,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                 <img
                                     src={
                                         (status === 'pending' || status === 'attended') && bookedBy?.profile
-                                            ? `${API_BASE_URL}/${bookedBy.profile}`
+                                            ? `${API_BASE_URL}/${bookedBy?.profile}`
                                             : "https://cdn-icons-png.flaticon.com/512/147/147144.png"
                                     }
                                     alt="avatar"
@@ -710,8 +710,11 @@ const ParentProfile = ({ ParentProfile }) => {
                                     </div>
                                     <div className="text-[16px] text-gray-300">
                                         {status === 'pending' || status === 'attended'
-                                            ? `${bookedBy.firstName} ${bookedBy.lastName}`
-                                            : `${ParentProfile?.parents[0]?.parentFirstName} / ${ParentProfile?.parents[0].relationToChild}`}
+                                            ? [bookedBy?.firstName, bookedBy?.lastName].filter(Boolean).join(' ') || '-'
+                                            : ParentProfile?.parents?.[0]
+                                                ? `${ParentProfile.parents[0]?.parentFirstName ?? '-'} / ${ParentProfile.parents[0]?.relationToChild ?? '-'}`
+                                                : '-'}
+
                                     </div>
                                 </div>
                             </div>
@@ -721,7 +724,7 @@ const ParentProfile = ({ ParentProfile }) => {
                                 <div>
                                     <div className="text-[20px] font-bold tracking-wide">Venue</div>
                                     <div className="inline-block bg-[#007BFF] text-white text-[14px] px-3 py-1 rounded-md my-2">
-                                        {classSchedule?.venue?.name || "-"}
+                                        {ParentProfile?.venue?.name || "-"}
                                     </div>
                                 </div>
 

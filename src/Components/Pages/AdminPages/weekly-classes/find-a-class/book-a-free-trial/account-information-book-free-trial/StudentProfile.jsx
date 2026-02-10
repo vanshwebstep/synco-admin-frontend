@@ -444,7 +444,7 @@ const StudentProfile = ({ StudentProfile }) => {
                                         <input
                                             type="text"
                                             className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3 text-base"
-                                            value={classSchedule.className}
+                                            value={student?.classSchedule?.className || ""}
                                             readOnly
                                         />
                                     </div>
@@ -453,7 +453,7 @@ const StudentProfile = ({ StudentProfile }) => {
                                         <input
                                             type="text"
                                             className="w-full mt-2 border border-gray-300 rounded-xl px-4 py-3 text-base"
-                                            value={classSchedule?.startTime || ""}
+                                            value={student?.classSchedule?.startTime || ""}
                                             readOnly
                                         />
                                     </div>
@@ -618,7 +618,7 @@ const StudentProfile = ({ StudentProfile }) => {
                                 <img
                                     src={
                                         (status === 'pending' || status === 'attended') && bookedBy?.profile
-                                            ? `${API_BASE_URL}/${bookedBy.profile}`
+                                            ? `${API_BASE_URL}/${bookedBy?.profile}`
                                             : "https://cdn-icons-png.flaticon.com/512/147/147144.png"
                                     }
                                     alt="avatar"
@@ -635,8 +635,8 @@ const StudentProfile = ({ StudentProfile }) => {
                                     </div>
                                     <div className="text-[16px] text-gray-300">
                                         {status === 'pending' || status === 'attended'
-                                            ? `${bookedBy.firstName} ${bookedBy.lastName}`
-                                            : `${StudentProfile?.parents[0]?.parentFirstName} / ${StudentProfile?.parents[0].relationToChild}`}
+                                            ? `${bookedBy?.firstName} ${bookedBy?.lastName}`
+                                            : `${StudentProfile?.parents[0]?.parentFirstName} / ${StudentProfile?.parents[0]?.relationToChild}`}
                                     </div>
                                 </div>
                             </div>
@@ -646,7 +646,7 @@ const StudentProfile = ({ StudentProfile }) => {
                                 <div>
                                     <div className="text-[20px] font-bold tracking-wide">Venue</div>
                                     <div className="inline-block bg-[#007BFF] text-white text-[14px] px-3 py-1 rounded-md my-2">
-                                        {classSchedule?.venue?.name || "-"}
+                                        {StudentProfile?.venue?.name || "-"}
                                     </div>
                                 </div>
 

@@ -162,7 +162,7 @@ const ServiceHistory = ({ serviceHistory, itemId, labels = {}, comesFrom }) => {
                         {labels.venue || "Venue"}
                       </div>
                       <div className="text-[16px] font-semibold text-[#384455]">
-                        {classSchedule?.venue?.name || "-"}
+                        {serviceHistory?.venue?.name || "-"}
                       </div>
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState ,useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FiSearch } from "react-icons/fi";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Select from "react-select";
@@ -9,7 +9,7 @@ import Loader from '../../../contexts/Loader';
 import { usePermission } from '../../../Common/permission';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { showWarning,showError ,showSuccess,showConfirm } from '../../../../../../utils/swalHelper';
+import { showWarning, showError, showSuccess, showConfirm } from '../../../../../../utils/swalHelper';
 import StatsGrid from '../../../Common/StatsGrid';
 import DynamicTable from '../../../Common/DynamicTable';
 
@@ -26,7 +26,6 @@ const WaitingList = () => {
 
     const navigate = useNavigate();
 
-    console.log('bookedByAdmin', bookedByAdmin)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -50,16 +49,34 @@ const WaitingList = () => {
         fetchData();
     }, [selectedVenue, status, fetchAddtoWaitingList]);
 
-  const [showAgentPopup, setShowAgentPopup] = useState(null);
+    const [showAgentPopup, setShowAgentPopup] = useState(null);
     const [agentsLoading, setAgentsLoading] = useState(null);
     const [agentsData, setAgentsData] = useState([]);
     const [selectedAdminId, setSelectedAdminId] = useState(null);
-    
+
     const handleClick = () => {
         if (selectedStudents.length === 0) {
             showWarning('Please select at least 1 student');
             return;
         }
+
+        const matchedStudents = (bookFreeTrials || []).filter(
+            trial =>
+                selectedStudents?.includes(trial?.id) &&
+                trial?.assignedAgentId != null // covers null & undefined
+        );
+
+        const hasAssignedStudents = matchedStudents.some(
+            s => s?.status === "assigned"
+        );
+
+        if (hasAssignedStudents) {
+            showWarning(
+                "Warning",
+                "One or more selected students are already assigned to an agent. Please deselect them to proceed."
+            );
+        }
+
         fetchAllAgents();
     };
 
@@ -91,54 +108,54 @@ const WaitingList = () => {
 
 
 
-   const handleAgentSubmit = async (id) => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-        return showError("Not authorized.");
-    }
-
-    if (!selectedStudents || selectedStudents.length === 0) {
-        return showWarning("Please select at least one student.");
-    }
-
-    setAgentsLoading(true);
-
-    try {
-        const response = await fetch(
-            `${API_BASE_URL}/api/admin/book/free-trials/assign-booking`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    bookingIds: selectedStudents,
-                    agentId: id,
-                }),
-            }
-        );
-
-        const result = await response.json(); // ✅ parse once
-
-        if (!response.ok) {
-            throw new Error(result?.message || "Failed to assign booking");
+    const handleAgentSubmit = async (id) => {
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+            return showError("Not authorized.");
         }
 
-        showSuccess("Booking assigned successfully!");
+        if (!selectedStudents || selectedStudents.length === 0) {
+            return showWarning("Please select at least one student.");
+        }
 
-        fetchBookMemberships();
-        setSelectedStudents([]);
+        setAgentsLoading(true);
 
-    } catch (error) {
-        console.error("Error assigning booking:", error);
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/admin/book/free-trials/assign-booking`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        bookingIds: selectedStudents,
+                        agentId: id,
+                    }),
+                }
+            );
 
-        // ✅ show backend error message in Swal
-        showError(error.message || "Something went wrong.");
-    } finally {
-        setAgentsLoading(false);
-    }
-};
+            const result = await response.json(); // ✅ parse once
+
+            if (!response.ok) {
+                throw new Error(result?.message || "Failed to assign booking");
+            }
+
+            showSuccess("Booking assigned successfully!");
+
+            fetchAddtoWaitingList();
+            setSelectedStudents([]);
+
+        } catch (error) {
+            console.error("Error assigning booking:", error);
+
+            // ✅ show backend error message in Swal
+            showError(error.message || "Something went wrong.");
+        } finally {
+            setAgentsLoading(false);
+        }
+    };
     const formatLabel = (str) => {
         if (!str) return "-";
 
@@ -553,7 +570,7 @@ const WaitingList = () => {
                         </div>
                         <div onClick={handleClick} className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
                             <img
-                              
+
                                 src="/DashboardIcons/user-add-02.png" alt="" className="cursor-pointer" />
                         </div>
                     </div>
@@ -917,91 +934,91 @@ const WaitingList = () => {
 
             </div>
 
-             {
-                    showAgentPopup && (
+            {
+                showAgentPopup && (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
+                        onClick={() => setShowAgentPopup(false)}
+                    >
                         <div
-                            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
-                            onClick={() => setShowAgentPopup(false)}
+                            className="bg-white rounded-lg overflow-y-auto shadow-xl max-w-md w-full p-8 relative"
+                            onClick={(e) => e.stopPropagation()}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="admin-list-title"
                         >
-                            <div
-                                className="bg-white rounded-lg overflow-y-auto shadow-xl max-w-md w-full p-8 relative"
-                                onClick={(e) => e.stopPropagation()}
-                                role="dialog"
-                                aria-modal="true"
-                                aria-labelledby="admin-list-title"
+                            <h2
+                                id="admin-list-title"
+                                className="text-md font-extrabold mb-6 text-gray-800"
                             >
-                                <h2
-                                    id="admin-list-title"
-                                    className="text-md font-extrabold mb-6 text-gray-800"
-                                >
-                                    Select any one admin for assign
-                                </h2>
+                                Select any one admin for assign
+                            </h2>
 
-                                {agentsLoading ? (
-                                    <p className="text-center text-gray-500 text-lg">Loading admins...</p>
-                                ) : agentsData.length > 0 ? (
-                                    <ul className="space-y-4 ">
-                                        {agentsData.map((admin) => {
-                                            const isSelected = selectedAdminId === admin.id;
-                                            return (
-                                                <li
-                                                    key={admin.id}
-                                                    tabIndex={0}
-                                                    onClick={() => setSelectedAdminId(admin.id)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter" || e.key === " ") {
-                                                            e.preventDefault();
-                                                            setSelectedAdminId(admin.id);
-                                                        }
-                                                    }}
-                                                    className={`
+                            {agentsLoading ? (
+                                <p className="text-center text-gray-500 text-lg">Loading admins...</p>
+                            ) : agentsData.length > 0 ? (
+                                <ul className="space-y-4 ">
+                                    {agentsData.map((admin) => {
+                                        const isSelected = selectedAdminId === admin.id;
+                                        return (
+                                            <li
+                                                key={admin.id}
+                                                tabIndex={0}
+                                                onClick={() => setSelectedAdminId(admin.id)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
+                                                        e.preventDefault();
+                                                        setSelectedAdminId(admin.id);
+                                                    }
+                                                }}
+                                                className={`
                   cursor-pointer select-none rounded-lg py-4 px-6 text-lg font-semibold
                   transition-all duration-300 ease-in-out
                   ${isSelected
-                                                            ? "bg-[#0098d9] text-white shadow-lg shadow-blue-300/60"
-                                                            : "bg-[#a3def7] text-black hover:bg-blue-200"
-                                                        }
+                                                        ? "bg-[#0098d9] text-white shadow-lg shadow-blue-300/60"
+                                                        : "bg-[#a3def7] text-black hover:bg-blue-200"
+                                                    }
                 `}
-                                                    role="button"
-                                                    aria-pressed={isSelected}
-                                                >
-                                                    {admin.firstName} {admin.lastName}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                ) : (
-                                    <p className="text-center text-gray-500 text-lg">No admins found.</p>
-                                )}
+                                                role="button"
+                                                aria-pressed={isSelected}
+                                            >
+                                                {admin.firstName} {admin.lastName}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            ) : (
+                                <p className="text-center text-gray-500 text-lg">No admins found.</p>
+                            )}
 
-                                <div className="flex justify-end gap-4 mt-8">
-                                    <button
-                                        onClick={() => setShowAgentPopup(false) & setSelectedAdminId(null)}
-                                        className="px-6 py-3 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold transition"
-                                        type="button"
-                                    >
-                                        Cancel
-                                    </button>
+                            <div className="flex justify-end gap-4 mt-8">
+                                <button
+                                    onClick={() => setShowAgentPopup(false) & setSelectedAdminId(null)}
+                                    className="px-6 py-3 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold transition"
+                                    type="button"
+                                >
+                                    Cancel
+                                </button>
 
-                                    <button
-                                        onClick={() => {
-                                            if (selectedAdminId) {
-                                                handleAgentSubmit(selectedAdminId);
-                                                setShowAgentPopup(false);
-                                            } else {
-                                                alert("Please select an admin before submitting.");
-                                            }
-                                        }}
-                                        className="px-6 py-3 rounded-md bg-blue-500 hover:bg-[#0098d9] text-white font-semibold transition"
-                                        type="button"
-                                    >
-                                        Assign
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (selectedAdminId) {
+                                            handleAgentSubmit(selectedAdminId);
+                                            setShowAgentPopup(false);
+                                        } else {
+                                            alert("Please select an admin before submitting.");
+                                        }
+                                    }}
+                                    className="px-6 py-3 rounded-md bg-blue-500 hover:bg-[#0098d9] text-white font-semibold transition"
+                                    type="button"
+                                >
+                                    Assign
+                                </button>
                             </div>
                         </div>
-                    )
-                }
+                    </div>
+                )
+            }
 
         </div>
     )

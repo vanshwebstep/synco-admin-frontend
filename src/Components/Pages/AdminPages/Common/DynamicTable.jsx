@@ -117,7 +117,7 @@ const DynamicTable = ({
                 const uniqueId = (() => {
                   // Membership: multiple students under same booking
                   if (from === "membership") {
-                    return `${item.id}-${studentIndex}`;
+                    return `${item.id}`;
                   }
 
                   // Single-row sources

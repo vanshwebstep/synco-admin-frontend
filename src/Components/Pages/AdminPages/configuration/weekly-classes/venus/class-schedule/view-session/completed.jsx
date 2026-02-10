@@ -123,7 +123,7 @@ const ViewSessions = ({ item, sessionData }) => {
                             {/* Name & Age */}
                             <div className="md:flex md:w-5/12 space-x-2 justify-between items-center">
                                 <span className="font-semibold text-[14px]">
-                                    {idx + 1}. {student?.studentFirstName || "N/A"} {student?.studentLastName || ""}
+                                    {gIndex + 1}. {student?.studentFirstName || "N/A"} {student?.studentLastName || ""}
                                 </span>
                                 <span className="font-semibold text-[14px]">
                                     {student?.age || "-"} Years
@@ -190,7 +190,7 @@ const ViewSessions = ({ item, sessionData }) => {
                 !data ? (
                     <div className="p-10 text-center text-gray-400">No data available.</div>
                 ) : (
-                    <div className="bg-white rounded-3xl h-[95vh] shadow p-6 flex flex-col md:flex-row gap-6">
+                    <div className="bg-white rounded-3xl h-[95vh] overflow-auto shadow p-6 flex flex-col md:flex-row gap-6">
                         {/* Left Sidebar */}
                         <div
                             className={`
@@ -236,7 +236,7 @@ const ViewSessions = ({ item, sessionData }) => {
                                 <p>
                                     <span className="font-semibold">Time</span>
                                     <br /> {(data?.classSchedule?.startTime && data?.classSchedule?.endTime)
-                                        ? `${data.classSchedule.startTime} – ${data.classSchedule.endTime}`
+                                        ? `${data.classSchedule?.startTime} – ${data.classSchedule?.endTime}`
                                         : "—"}
                                 </p>
                             </div>

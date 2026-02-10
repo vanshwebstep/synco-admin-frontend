@@ -51,11 +51,19 @@ const TermCard = ({ item, sessionData }) => {
         <div className="grid md:w-[80%] 2xl:ps-4 lg:grid-cols-3 items-start md:grid-cols-2 gap-6">
           {sessionData.map(({ id, term, icon, date, sessions }) => (
             <div key={term} className="flex-shrink-0 justify-center w-full flex flex-col gap-2">
-              <div className="flex items-center gap-3 justify-around">
+              <div className="flex items-center gap-3 ">
                 <img src={icon} alt={term} className="w-6 h-6 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-[#717073] text-[14px] font-bold">{term}</p>
-                  <p className="text-[14px] inter font-semibold text-[#717073]">{date}</p>
+                  <p className="text-[#717073] text-[14px] mb-1 font-bold">{term}</p>
+                  <p className="text-[14px] inter font-semibold text-[#717073]">
+                    {date?.split("\n").map((line, index) => (
+                      <span key={index}>
+                        {line}
+                        <br />
+                      </span>
+                    ))}
+                  </p>
+
                 </div>
               </div>
 

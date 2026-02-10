@@ -9,7 +9,7 @@ const PlanTabs = ({ selectedPlans = [] }) => {
   }, {});
 
   const studentKeys = Object.keys(groupByStudents).sort();
-console.log('selectedPlans',selectedPlans)
+  console.log('selectedPlans', selectedPlans)
   const [activeTab, setActiveTab] = useState(null);
 
   // ✅ Update activeTab when selectedPlans changes
@@ -41,11 +41,10 @@ console.log('selectedPlans',selectedPlans)
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`px-6 md:w-auto w-full py-2 text-[16px] font-medium rounded-xl transition ${
-                activeTab === key
+              className={`px-6 md:w-auto w-full py-2 text-[16px] font-medium rounded-xl transition ${activeTab === key
                   ? "bg-[#237FEA] text-white"
                   : "bg-white text-[#237FEA]"
-              }`}
+                }`}
             >
               {key} Student{key > 1 ? "s" : ""}
             </button>
@@ -53,11 +52,11 @@ console.log('selectedPlans',selectedPlans)
         </div>
       </div>
 
-      <div className="grid pt-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {sortedPlans.map((plan) => (
+      <div className="flex sm:flex-row flex-col flex-wrap pt-2 mx-auto justify-center gap-3">
+        {sortedPlans?.map((plan, idx) => (
           <div
             key={plan?.id}
-            className="border border-[#E2E1E5] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow transition"
+            className="border md:w-[32%] border-[#E2E1E5]  rounded-[20px] p-4 sm:p-5 flex flex-col justify-between transition"
           >
             <h3 className="text-[18px] sm:text-[20px] font-semibold mb-2">
               {plan.title}

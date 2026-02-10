@@ -238,7 +238,7 @@ const HolidayCampCompleted = ({ item, sessionData }) => {
                                 <p>
                                     <span className="font-semibold">Time</span>
                                     <br /> {(data?.classSchedule?.startTime && data?.classSchedule?.endTime)
-                                        ? `${data.classSchedule.startTime} – ${data.classSchedule.endTime}`
+                                        ? `${data.classSchedule?.startTime} – ${data.classSchedule?.endTime}`
                                         : "—"}
                                 </p>
                             </div>

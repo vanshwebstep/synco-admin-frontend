@@ -15,6 +15,8 @@ import StatsGrid from '../../Common/StatsGrid';
 import DynamicTable from '../../Common/DynamicTable';
 import { useBookFreeTrialLoader } from '../../contexts/BookAFreeTrialLoaderContext';
 const trialLists = () => {
+    const { fetchBookFreeTrials, fetchBookFreeTrialsLoading, statsFreeTrial, bookFreeTrials, setSearchTerm, bookedByAdmin, searchTerm, loading, selectedVenue, setStatus, status, setSelectedVenue, myVenues, setMyVenues, sendFreeTrialmail } = useBookFreeTrial() || {};
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
@@ -36,12 +38,29 @@ const trialLists = () => {
     const [agentsLoading, setAgentsLoading] = useState(null);
     const [agentsData, setAgentsData] = useState([]);
     const [selectedAdminId, setSelectedAdminId] = useState(null);
-    
+
     const handleClick = () => {
         if (selectedStudents.length === 0) {
-            showWarning('Please select at least 1 student');
+            showWarning("Warning", 'Please select at least 1 student');
             return;
         }
+        const matchedStudents = (bookFreeTrials || []).filter(
+            trial =>
+                selectedStudents?.includes(trial?.id) &&
+                trial?.assignedAgentId != null // covers null & undefined
+        );
+
+        const hasAssignedStudents = matchedStudents.some(
+            s => s?.status === "assigned"
+        );
+
+        if (hasAssignedStudents) {
+            showWarning(
+                "Warning",
+                "One or more selected students are already assigned to an agent. Please deselect them to proceed."
+            );
+        }
+
         fetchAllAgents();
     };
 
@@ -73,54 +92,54 @@ const trialLists = () => {
 
 
 
-   const handleAgentSubmit = async (id) => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-        return showError("Not authorized.");
-    }
-
-    if (!selectedStudents || selectedStudents.length === 0) {
-        return showWarning("Please select at least one student.");
-    }
-
-    setAgentsLoading(true);
-
-    try {
-        const response = await fetch(
-            `${API_BASE_URL}/api/admin/book/free-trials/assign-booking`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    bookingIds: selectedStudents,
-                    agentId: id,
-                }),
-            }
-        );
-
-        const result = await response.json(); // ✅ parse once
-
-        if (!response.ok) {
-            throw new Error(result?.message || "Failed to assign booking");
+    console.log('selectedStudents', selectedStudents)
+    const handleAgentSubmit = async (id) => {
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+            return showError("Not authorized.");
+        }
+        if (!selectedStudents || selectedStudents.length === 0) {
+            return showWarning("Please select at least one student.");
         }
 
-        showSuccess("Booking assigned successfully!");
+        setAgentsLoading(true);
 
-        fetchBookMemberships();
-        setSelectedStudents([]);
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/api/admin/book/free-trials/assign-booking`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        bookingIds: selectedStudents,
+                        agentId: id,
+                    }),
+                }
+            );
 
-    } catch (error) {
-        console.error("Error assigning booking:", error);
+            const result = await response.json(); // ✅ parse once
 
-        // ✅ show backend error message in Swal
-        showError(error.message || "Something went wrong.");
-    } finally {
-        setAgentsLoading(false);
-    }
-};
+            if (!response.ok) {
+                throw new Error(result?.message || "Failed to assign booking");
+            }
+
+            showSuccess("Booking assigned successfully!");
+
+            fetchBookFreeTrials();
+            setSelectedStudents([]);
+
+        } catch (error) {
+            console.error("Error assigning booking:", error);
+
+            // ✅ show backend error message in Swal
+            showError(error.message || "Something went wrong.");
+        } finally {
+            setAgentsLoading(false);
+        }
+    };
 
     const exportFreeTrials = () => {
         const dataToExport = [];
@@ -199,7 +218,6 @@ const trialLists = () => {
         });
     };
     // const [selectedDate, setSelectedDate] = useState(null);
-    const { fetchBookFreeTrials, fetchBookFreeTrialsLoading, statsFreeTrial, bookFreeTrials, setSearchTerm, bookedByAdmin, searchTerm, loading, selectedVenue, setStatus, status, setSelectedVenue, myVenues, setMyVenues, sendFreeTrialmail } = useBookFreeTrial() || {};
 
 
 
@@ -218,6 +236,7 @@ const trialLists = () => {
 
     const month = currentDate.getMonth();
     const year = currentDate.getFullYear();
+    const selectedAdmin = bookFreeTrials.filter(t => t.assignedAgentId === selectedAdminId)[0];
 
     const getDaysArray = () => {
         const startDay = new Date(year, month, 1).getDay(); // Sunday = 0
@@ -964,6 +983,7 @@ const trialLists = () => {
                                     </button>
 
                                     <button
+                                        disabled={!selectedAdminId && selectedAdmin?.status == "assigned"}
                                         onClick={() => {
                                             if (selectedAdminId) {
                                                 handleAgentSubmit(selectedAdminId);

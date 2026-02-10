@@ -83,6 +83,8 @@ const AddtoWaitingList = () => {
   const [numberOfStudents, setNumberOfStudents] = useState('1')
   const [selectedDate, setSelectedDate] = useState(null);
   const { adminInfo, setAdminInfo } = useNotification();
+
+  console.log('selectedPlans', selectedPlans)
   const formatTimeAgo = (timestamp) => {
     const now = new Date();
     const past = new Date(timestamp);
@@ -774,25 +776,27 @@ const AddtoWaitingList = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [activePopup]);
-  useEffect(() => {
-    if (singleClassSchedulesOnly?.venue?.paymentPlans?.length > 0) {
-      const cleanedPlans = singleClassSchedulesOnly.venue.paymentPlans.map(plan => ({
-        id: plan.id,
-        title: plan.title,
-        price: plan.price,
-        interval: plan.interval,
-        students: plan.students,
-        duration: plan.duration,
-        joiningFee: plan.joiningFee,
-        holidayCampPackage: plan.HolidayCampPackage,
-        termsAndCondition: plan.termsAndCondition,
-      }));
-      // console.log('cleanedPlans', cleanedPlans);
-      setSelectedPlans(cleanedPlans);
-    } else {
-      // console.log('cleanedPlans not found');
-    }
-  }, [singleClassSchedulesOnly]); // ✅ now it runs when data is fetched
+ useEffect(() => {
+  const paymentPlans =
+    singleClassSchedulesOnly?.venue?.paymentGroups?.[0]?.paymentPlans || [];
+
+  if (paymentPlans.length > 0) {
+    const cleanedPlans = paymentPlans.map(plan => ({
+      id: plan.id,
+      title: plan.title,
+      price: plan.price,
+      interval: plan.interval,
+      students: plan.students,
+      duration: plan.duration,
+      joiningFee: plan.joiningFee,
+      holidayCampPackage: plan.HolidayCampPackage,
+      termsAndCondition: plan.termsAndCondition,
+    }));
+
+    setSelectedPlans(cleanedPlans);
+  }
+}, [singleClassSchedulesOnly]);
+
   // console.log('singleClassSchedulesOnly?.venue?', singleClassSchedulesOnly)
 
   const genderOptions = [

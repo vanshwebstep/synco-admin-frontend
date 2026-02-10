@@ -112,7 +112,7 @@ const ServiceHistory = ({ serviceHistory }) => {
                   Venue
                 </div>
                 <div className="text-[16px] font-semibold text-[#384455]">
-                  {venue?.name || "-"}
+                  {serviceHistory?.venue?.name || "-"}
                 </div>
               </div>
 

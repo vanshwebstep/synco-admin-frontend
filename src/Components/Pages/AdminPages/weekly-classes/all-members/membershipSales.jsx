@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState,useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { FiSearch } from "react-icons/fi";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Select from "react-select";
@@ -6,7 +6,7 @@ import { Check, Filter } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useBookFreeTrial } from '../../contexts/BookAFreeTrialContext';
 import Loader from '../../contexts/Loader';
-import { showWarning,showConfirm,showError } from '../../../../../utils/swalHelper';
+import { showWarning, showConfirm, showError } from '../../../../../utils/swalHelper';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import StatsGrid from '../../Common/StatsGrid';
@@ -89,13 +89,36 @@ const trialLists = () => {
     const [agentsData, setAgentsData] = useState([]);
     const [selectedAdminId, setSelectedAdminId] = useState(null);
 
+
     const handleClick = () => {
-        if (selectedStudents.length === 0) {
-            showWarning('Please select at least 1 student');
+        if (!selectedStudents?.length) {
+            showWarning("Please select at least 1 student");
             return;
         }
+
+        const matchedStudents = (bookMembership || []).filter(
+            member =>
+                selectedStudents.includes(String(member?.id)) &&
+                member?.assignedAgentId != null
+        );
+
+        const hasAssignedStudents = matchedStudents.some(
+            s => s?.status === "assigned"
+        );
+
+        console.log("matchedStudents-", matchedStudents);
+
+        if (hasAssignedStudents) {
+            showWarning(
+                "Warning",
+                "One or more selected students are already assigned to an agent. Please deselect them to proceed."
+            );
+            return;
+        }
+
         fetchAllAgents();
     };
+
 
     const fetchAllAgents = useCallback(async () => {
         const token = localStorage.getItem("adminToken");
@@ -161,7 +184,7 @@ const trialLists = () => {
 
             showSuccess("Booking assigned successfully!");
 
-            fetchBookMemberships();
+            fetchMembershipSales();
             setSelectedStudents([]);
 
         } catch (error) {
@@ -496,9 +519,9 @@ const trialLists = () => {
                     <div className="flex justify-end items-center gap-2">
                         <div className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center"> <Filter size={16} className='cursor-pointer' onClick={() => setShowFilter(!showFilter)} />
                         </div>
-                        <div   onClick={handleClick} className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
+                        <div onClick={handleClick} className="bg-white min-w-[38px] min-h-[38px]   border border-gray-300 p-2 rounded-full flex items-center justify-center">
                             <img
-                              
+
                                 src="/DashboardIcons/user-add-02.png" alt="" className="cursor-pointer" />
                         </div>
                     </div>

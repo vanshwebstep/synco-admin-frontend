@@ -403,12 +403,34 @@ const trialLists = () => {
     };
 
     const handleClick = () => {
-        if (selectedStudents.length === 0) {
-            showWarning('Please select at least 1 student');
+        if (!selectedStudents?.length) {
+            showWarning("Please select at least 1 student");
             return;
         }
+
+        const matchedStudents = (bookMembership || []).filter(
+            member =>
+                selectedStudents.includes(String(member?.id)) &&
+                member?.assignedAgentId != null
+        );
+
+        const hasAssignedStudents = matchedStudents.some(
+            s => s?.status === "assigned"
+        );
+
+        console.log("matchedStudents-", matchedStudents);
+
+        if (hasAssignedStudents) {
+            showWarning(
+                "Warning",
+                "One or more selected students are already assigned to an agent. Please deselect them to proceed."
+            );
+            return;
+        }
+
         fetchAllAgents();
     };
+
 
     useEffect(() => {
         if (isFilterApplied) {
