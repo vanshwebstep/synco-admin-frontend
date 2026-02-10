@@ -42,7 +42,7 @@ export const AccountsInfoProvider = ({ children }) => {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/api/admin/one-to-one/leads/update/${oneToOneData?.id}`,
+        `${API_BASE_URL}/api/admin/one-to-one/booking/update/${oneToOneData?.id}`,
         {
           method: "PUT",
           headers,

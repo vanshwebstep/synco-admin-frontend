@@ -643,12 +643,12 @@ const List = () => {
             transformedPayment.pan = transformedPayment.pan.replace(/\s+/g, ""); // remove spaces
         }
 
-     
+
         const missingClass = students.some(
             (s, i) => i !== 0 && !s.selectedClassData && !s?.classSchedule?.id
         );
 
-        console.log('missingClass' , students)
+        console.log('missingClass', students)
 
         if (missingClass) {
             showWarning("Class Required", "Please select class for all students");
@@ -1871,7 +1871,7 @@ const List = () => {
                                     >
                                         <div className="p-8 pt-0 relative border-t border-gray-50">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative pt-6">
-                                                {membershipKeyInfo.length > 0 ? (
+                                                {Array.isArray(membershipKeyInfo) && membershipKeyInfo.length > 0 ? (
                                                     membershipKeyInfo.map((option, index) => (
                                                         <motion.div
                                                             key={index}
@@ -1885,19 +1885,18 @@ const List = () => {
                                                                     <CheckCircle2 className="w-4 h-4 text-blue-600 group-hover:text-white" />
                                                                 </div>
                                                             </div>
-                                                            <div
-                                                                className="text-[16px] text-gray-700 leading-relaxed font-medium"
 
-                                                            >
-                                                                {
-                                                                    option
-                                                                }
+                                                            <div className="text-[16px] text-gray-700 leading-relaxed font-medium">
+                                                                {option ?? "—"}
                                                             </div>
                                                         </motion.div>
                                                     ))
                                                 ) : (
-                                                    <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">No key information available for this service.</div>
+                                                    <div className="text-gray-500 italic py-4 col-span-2 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                                        No key information available for this service.
+                                                    </div>
                                                 )}
+
                                             </div>
                                         </div>
                                     </motion.div>
