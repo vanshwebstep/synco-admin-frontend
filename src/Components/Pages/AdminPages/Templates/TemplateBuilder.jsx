@@ -4,8 +4,13 @@ import {
   Droppable,
   Draggable,
 } from "@hello-pangea/dnd";
+import {
+  FaFont, FaHeading, FaImage, FaRegImage, FaMousePointer, FaColumns,
+  FaList, FaShareAlt, FaCompass, FaMinus, FaChevronCircleDown,
+  FaIdCard, FaLayerGroup, FaMagic, FaStar, FaInfoCircle, FaVideo
+} from "react-icons/fa";
 
-import BlockRenderer from "./BlockRenderer";
+import BlockRenderer, { AdvancedStyleControls } from "./BlockRenderer";
 import PreviewModal from "./PreviewModal";
 
 export default function TemplateBuilder({
@@ -16,26 +21,47 @@ export default function TemplateBuilder({
   isPreview,
   setIsPreview
 }) {
+  const [selectedBlockId, setSelectedBlockId] = useState(null);
+  const [sidebarTab, setSidebarTab] = useState("blocks"); // "blocks" or "settings"
+
+  useEffect(() => {
+    if (selectedBlockId) {
+      setSidebarTab("settings");
+    }
+  }, [selectedBlockId]);
+
+  const updateStyle = (key, value) => {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === selectedBlockId
+          ? { ...b, style: { ...(b.style || {}), [key]: value } }
+          : b
+      )
+    );
+  };
 
 
   const sidebarBlocks = [
-    { id: "text", label: "Text field" },
-    { id: "heading", label: "Heading" },
-    { id: "banner", label: "Banner/Header" },
-    { id: "image", label: "Image" },
-    { id: "btn", label: "Button" },
-    { id: "sectionGrid", label: "Section Grid" },
-    { id: "featureGrid", label: "Feature Grid (Note)" },
-    { id: "socialLinks", label: "Social Links" },
-    { id: "navigation", label: "Navigation" },
-    { id: "divider", label: "Divider" },
-    { id: "accordion", label: "Accordion" },
-    { id: "card", label: "Card" },
-    { id: "cardRow", label: "Cards in Row" },
-    { id: "customSection", label: "Custom Section (BG)" },
+    { id: "text", label: "Text field", icon: <FaFont /> },
+    { id: "heading", label: "Heading", icon: <FaHeading /> },
+    { id: "banner", label: "Banner/Header", icon: <FaImage /> },
+    { id: "image", label: "Image", icon: <FaRegImage /> },
+    { id: "btn", label: "Button", icon: <FaMousePointer /> },
+    { id: "sectionGrid", label: "Section Grid", icon: <FaColumns /> },
+    { id: "featureGrid", label: "Feature Grid", icon: <FaList /> },
+    { id: "socialLinks", label: "Social Links", icon: <FaShareAlt /> },
+    { id: "navigation", label: "Navigation", icon: <FaCompass /> },
+    { id: "divider", label: "Divider", icon: <FaMinus /> },
+    { id: "accordion", label: "Accordion", icon: <FaChevronCircleDown /> },
+    { id: "card", label: "Card", icon: <FaIdCard /> },
+    { id: "cardRow", label: "Cards in Row", icon: <FaLayerGroup /> },
+    { id: "customSection", label: "Custom Section", icon: <FaMagic /> },
+    { id: "heroSection", label: "Hero (Wavy)", icon: <FaStar /> },
+    { id: "infoBox", label: "Info Box", icon: <FaInfoCircle /> },
+    { id: "videoGrid", label: "Video Grid", icon: <FaVideo /> },
   ];
 
-  const addBlock = async (type) => {
+  const addBlock = async (type, columnCount = 2) => {
     const defaultStyle = {
       backgroundColor: "transparent",
       textColor: "#000000",
@@ -99,7 +125,7 @@ export default function TemplateBuilder({
       newBlock.style.textAlign = "center";
       newBlock.content = "Click Here";
     } else if (type === "sectionGrid") {
-      newBlock.columns = Array(2).fill(null).map(() => []);
+      newBlock.columns = Array(columnCount).fill(null).map(() => []);
     } else if (type === "featureGrid") {
       newBlock.style.backgroundColor = "#f9f9f9";
       newBlock.style.borderRadius = 12;
@@ -194,7 +220,11 @@ export default function TemplateBuilder({
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Canvas */}
-      <div className="w-10/12 p-6 border-r border-gray-200">
+      <div
+        className="w-10/12 p-6 border-r border-gray-200 overflow-y-auto"
+        style={{ maxHeight: '100vh' }}
+        onClick={() => setSelectedBlockId(null)}
+      >
         <div className="mb-6">
           <label className="font-medium text-gray-700">Subject line</label>
           <input
@@ -248,6 +278,8 @@ export default function TemplateBuilder({
                           block={block}
                           blocks={blocks}
                           setBlocks={setBlocks}
+                          isSelected={selectedBlockId === block.id}
+                          onSelect={() => setSelectedBlockId(block.id)}
                         />
                       </div>
                     )}
@@ -261,20 +293,123 @@ export default function TemplateBuilder({
         </DragDropContext>
 
       </div>
-        <div className="p-4 w-2/12 bg-white">
-        <h3 className="font-semibold text-lg mb-3">Blocks</h3>
-
-        <div className="space-y-2">
-          {sidebarBlocks.map((block) => (
-            <div
-              key={block.id}
-              onClick={() => addBlock(block.id)}
-              className="px-3 py-2 rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200"
-            >
-              {block.label}
-            </div>
-          ))}
+      <div
+        className="p-4 w-3/12 bg-white flex flex-col border-l border-gray-200 shadow-xl z-30 overflow-y-auto"
+        style={{ maxHeight: '100vh', position: 'sticky', top: 0 }}
+      >
+        {/* Sidebar Tabs */}
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setSidebarTab("blocks")}
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition ${sidebarTab === "blocks" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            Blocks
+          </button>
+          <button
+            onClick={() => setSidebarTab("settings")}
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition ${sidebarTab === "settings" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            Settings
+          </button>
         </div>
+
+        {sidebarTab === "blocks" ? (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-200">
+            {/* Layout Presets */}
+            <div className="mb-8">
+              <h3 className="font-semibold text-sm text-gray-400 uppercase mb-4 tracking-widest">Layouts</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "1 Column", cols: 1 },
+                  { label: "2 Columns", cols: 2 },
+                  { label: "3 Columns", cols: 3 },
+                  { label: "4 Columns", cols: 4 },
+                ].map((layout) => (
+                  <button
+                    key={layout.label}
+                    onClick={() => addBlock("sectionGrid", layout.cols)}
+                    className="flex flex-col items-center justify-center p-3 bg-gray-50 border border-gray-100 rounded-xl hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                  >
+                    <div className="w-10 h-7 rounded bg-white border border-gray-200 flex gap-0.5 p-0.5 mb-2 group-hover:border-blue-200 transition">
+                      {Array(layout.cols).fill(0).map((_, i) => (
+                        <div key={i} className="flex-1 bg-gray-200 rounded-sm group-hover:bg-blue-200 transition" />
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-500 group-hover:text-blue-600 uppercase">{layout.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <h3 className="font-semibold text-sm text-gray-400 uppercase mb-4 tracking-widest">Available Blocks</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {sidebarBlocks.map((block) => (
+                <div
+                  key={block.id}
+                  onClick={() => addBlock(block.id)}
+                  className="px-4 py-3 rounded-xl cursor-pointer bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all flex items-center gap-3 group"
+                >
+                  <span className="text-gray-400 text-lg group-hover:text-blue-600 transition-colors">{block.icon}</span>
+                  <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 flex-1">{block.label}</span>
+                  <span className="text-blue-400 opacity-0 group-hover:opacity-100 transition text-lg">+</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 pt-8 border-t border-gray-100">
+              <h3 className="font-semibold text-sm text-gray-400 uppercase mb-4 tracking-widest">Variables</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  { label: "First Name", value: "{FirstName}" },
+                  { label: "Last Name", value: "{LastName}" },
+                  { label: "Company", value: "{Company}" },
+                  { label: "Link", value: "{Link}" },
+                ].map((v) => (
+                  <div
+                    key={v.value}
+                    onClick={() => {
+                      navigator.clipboard.writeText(v.value);
+                      alert(`Copied ${v.value} to clipboard!`);
+                    }}
+                    className="px-3 py-2 rounded-lg cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium border border-blue-100 flex justify-between items-center"
+                  >
+                    <span>{v.label}</span>
+                    <span className="text-[10px] bg-white px-1 rounded border shadow-sm">{v.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-left-4 duration-200">
+            {selectedBlockId ? (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-gray-400 uppercase tracking-widest">Edit Block</h3>
+                  <button
+                    onClick={() => setSelectedBlockId(null)}
+                    className="text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase transition"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100 mb-6 font-medium text-xs text-blue-700 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                  Editing: {blocks.find(b => b.id === selectedBlockId)?.type.toUpperCase()}
+                </div>
+                <AdvancedStyleControls
+                  block={blocks.find(b => b.id === selectedBlockId)}
+                  updateStyle={updateStyle}
+                />
+              </>
+            ) : (
+              <div className="text-center py-20 text-gray-400">
+                <div className="mb-4 text-4xl">🖱️</div>
+                <p className="text-sm">Click on any block in the canvas to edit its properties.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sidebar */}

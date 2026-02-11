@@ -76,6 +76,9 @@ const WaitingList = () => {
                 "One or more selected students are already assigned to an agent. Please deselect them to proceed."
             );
         }
+          if (hasAssignedStudents || selectedStudents.length === 0) {
+            return;
+        }
 
         fetchAllAgents();
     };

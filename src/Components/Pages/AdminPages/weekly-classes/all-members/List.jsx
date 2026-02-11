@@ -427,6 +427,9 @@ const trialLists = () => {
             );
             return;
         }
+          if (hasAssignedStudents || selectedStudents.length === 0) {
+            return;
+        }
 
         fetchAllAgents();
     };

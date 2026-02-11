@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";  // ✅ to read URL params
 
 import Select from "react-select";
@@ -37,6 +37,40 @@ export default function CreateTemplateSteps() {
         sender: "",
         message: ""
     });
+
+    // ✅ Ref for Text Area to support cursor insertion
+    const textMsgRef = useRef(null);
+
+    const variableOptions = [
+        { label: "First Name", value: "{FirstName}" },
+        { label: "Last Name", value: "{LastName}" },
+        { label: "Company", value: "{Company}" },
+        { label: "Link", value: "{Link}" },
+    ];
+
+    const insertVariable = (variable) => {
+        const textarea = textMsgRef.current;
+        if (!textarea) {
+            // Fallback if ref is missing
+            setTextForm(prev => ({ ...prev, message: prev.message + variable }));
+            return;
+        }
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textform.message;
+
+        const newText = text.substring(0, start) + variable + text.substring(end);
+
+        setTextForm(prev => ({ ...prev, message: newText }));
+
+        // Restore focus and cursor position after state update
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+        }, 0);
+    };
+
     const categoryList = Array.from(
         new Set(templateCategories.map((c) => c.category))
     );
@@ -181,7 +215,8 @@ export default function CreateTemplateSteps() {
                         type: "text",
                         content: textform.message
                     }
-                ]
+                ],
+                html: `<div style="white-space: pre-wrap; word-break: break-word;">${textform.message}</div>`
             }
         };
 
@@ -205,7 +240,8 @@ export default function CreateTemplateSteps() {
                         type: "text",
                         content: textform.message
                     }
-                ]
+                ],
+                html: `<div style="white-space: pre-wrap; word-break: break-word;">${textform.message}</div>`
             }
         };
         await updateCommunicationTemplate(templateId, payload);
@@ -516,8 +552,23 @@ export default function CreateTemplateSteps() {
 
                                         {/* SMS Text Box */}
                                         <div>
-                                            <label className="block text-base text-[#4B4B4B] mb-1">Text</label>
+                                            <label className="block text-base text-[#4B4B4B] mb-2">Message</label>
+
+                                            {/* Variables Toolbar */}
+                                            <div className="flex gap-2 flex-wrap mb-2">
+                                                {variableOptions.map((v) => (
+                                                    <button
+                                                        key={v.value}
+                                                        onClick={() => insertVariable(v.value)}
+                                                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-700 rounded-full border border-gray-200 transition"
+                                                    >
+                                                        + {v.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
                                             <textarea
+                                                ref={textMsgRef}
                                                 className="w-full h-40 px-4 py-3 border border-[#E2E1E5] rounded-xl bg-white"
                                                 maxLength={160}
                                                 placeholder="Enter message..."
@@ -578,17 +629,30 @@ export default function CreateTemplateSteps() {
                                             </button>
 
                                         </div>
-                                        <h3 className="text-[20px] font-semibold">Preview</h3>
+                                        <h3 className="text-[20px] font-semibold text-center">Preview</h3>
 
-                                        <div className="rounded-xl space-y-4">
-                                            <img className="w-full" src="/images/icons/TopNavigation.png" alt="" />
-                                            <div className="min-h-80 p-4 ">
-                                                <div className="bg-gray-100 p-4 rounded-xl min-h-20 text-sm text-gray-800 whitespace-pre-wrap break-words">
-                                                    {textform.message}
+                                        {/* CSS-Based Phone Mockup */}
+                                        <div className="mx-auto border-gray-300 border-[8px] rounded-[2.5rem] h-[550px] w-[300px] bg-white overflow-hidden relative shadow-2xl flex flex-col">
+                                            {/* Notch/Top Bar */}
+                                            <div className="h-8 bg-gray-100 border-b border-gray-200 flex items-center justify-center relative">
+                                                <div className="w-16 h-4 bg-gray-200 rounded-full"></div>
+                                            </div>
+
+                                            {/* Screen Content */}
+                                            <div className="flex-1 bg-white p-4 overflow-y-auto flex flex-col justify-end pb-10">
+                                                <div className="text-center text-xs text-gray-400 mb-4">Today 9:41 AM</div>
+
+                                                {/* Chat Bubble */}
+                                                <div className="bg-[#237FEA] text-white p-3 rounded-2xl rounded-br-sm self-end max-w-[85%] shadow-sm text-sm whitespace-pre-wrap break-words">
+                                                    {textform.message || "Preview message..."}
                                                 </div>
                                             </div>
-                                            <img className="w-full" src="/images/icons/mobileKeyboard.png" alt="" />
 
+                                            {/* Bottom Bar */}
+                                            <div className="h-12 bg-gray-50 border-t border-gray-200 flex items-center px-4 gap-2">
+                                                <div className="w-6 h-6 rounded-full border border-gray-300 bg-gray-200"></div>
+                                                <div className="flex-1 h-8 rounded-full border border-gray-300 bg-white"></div>
+                                            </div>
                                         </div>
 
                                         <button

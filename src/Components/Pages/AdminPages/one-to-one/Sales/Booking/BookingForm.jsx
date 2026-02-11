@@ -221,7 +221,7 @@ const List = () => {
     })) || [];
 
   const paymentPlanOptions = numberOfStudents
-    ? allPaymentPlans.filter((plan) => plan.all.students === Number(numberOfStudents))
+    ? allPaymentPlans.filter((plan) => plan.all?.students === Number(numberOfStudents))
     : allPaymentPlans;
   //// console.log('singleClassSchedulesOnly', singleClassSchedulesOnly)
 
@@ -846,7 +846,7 @@ const List = () => {
     };
 
     try {
-       setLoadingComment(true);
+      setLoadingComment(true);
 
 
       const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -866,7 +866,7 @@ const List = () => {
       showError("Network Error", error.message || "An error occurred while submitting the form.");
 
     } finally {
-       setLoadingComment(false);
+      setLoadingComment(false);
     }
   }
   // Function to convert HTML to plain text while preserving list structure

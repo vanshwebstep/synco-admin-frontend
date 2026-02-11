@@ -227,7 +227,7 @@ const BirthdayBookingForm = () => {
     })) || [];
 
   const paymentPlanOptions = numberOfStudents
-    ? allPaymentPlans.filter((plan) => plan.all.students === Number(numberOfStudents))
+    ? allPaymentPlans.filter((plan) => plan.all?.students === Number(numberOfStudents))
     : allPaymentPlans;
   // console.log('singleClassSchedulesOnly', singleClassSchedulesOnly)
 
@@ -238,7 +238,7 @@ const BirthdayBookingForm = () => {
       setNumberOfStudents(val);
 
       // If currently selected plan doesn't match new number, reset it
-      if (membershipPlan && membershipPlan.all.students !== val) {
+      if (membershipPlan && membershipPlan.all?.students !== val) {
         setMembershipPlan(null);
       }
     }
@@ -248,7 +248,7 @@ const BirthdayBookingForm = () => {
   const handlePlanChange = (plan) => {
     setMembershipPlan(plan);
     if (plan) {
-      setNumberOfStudents(plan.all.students); // Update numberOfStudents to match plan
+      setNumberOfStudents(plan.all?.students); // Update numberOfStudents to match plan
     }
   };
   useEffect(() => {
@@ -1943,7 +1943,7 @@ const BirthdayBookingForm = () => {
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-[16px] font-semibold outline-none"
                 />
                 <button
-                 disabled={loadingComment}
+                  disabled={loadingComment}
                   className="bg-[#237FEA] p-3 rounded-xl text-white hover:bg-blue-600"
                   onClick={handleSubmitComment}
                 >

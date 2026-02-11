@@ -179,7 +179,7 @@ const List = () => {
         })) || [];
 
     const paymentPlanOptions = numberOfStudents
-        ? allPaymentPlans.filter((plan) => plan.all.students === Number(numberOfStudents))
+        ? allPaymentPlans.filter((plan) => plan.all?.students === Number(numberOfStudents))
         : allPaymentPlans;
     // console.log('singleClassSchedulesOnly', singleClassSchedulesOnly)
 
@@ -208,7 +208,7 @@ const List = () => {
             setNumberOfStudents(val);
 
             // If currently selected plan doesn't match new number, reset it
-            if (membershipPlan && membershipPlan.all.students !== val) {
+            if (membershipPlan && membershipPlan.all?.students !== val) {
                 setMembershipPlan(null);
             }
         }
@@ -217,7 +217,7 @@ const List = () => {
     const handlePlanChange = (plan) => {
         setMembershipPlan(plan);
         if (plan) {
-            setNumberOfStudents(plan.all.students); // Update numberOfStudents to match plan
+            setNumberOfStudents(plan.all?.students); // Update numberOfStudents to match plan
         }
     };
     useEffect(() => {
@@ -870,7 +870,7 @@ const List = () => {
         };
 
         try {
-             setLoadingComment(true);
+            setLoadingComment(true);
 
 
             const response = await fetch(`${API_BASE_URL}/api/admin/book-membership/comment/create`, requestOptions);
@@ -893,7 +893,7 @@ const List = () => {
             console.error("Error creating member:", error);
             showError("Network Error", error.message || "An error occurred while submitting the form.");
         } finally {
-             setLoadingComment(false);
+            setLoadingComment(false);
         }
     }
     function stripHtml(html) {
@@ -987,8 +987,8 @@ const List = () => {
     const calculateAmount = (startDate) => {
         if (!membershipPlan || !startDate) return;
 
-        const pricePerLesson = membershipPlan.all.priceLesson; // price per class per child
-        const joiningFee = membershipPlan.all.joiningFee;
+        const pricePerLesson = membershipPlan.all?.priceLesson; // price per class per child
+        const joiningFee = membershipPlan.all?.joiningFee;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1241,7 +1241,7 @@ const List = () => {
                                 <input
                                     type="text"
                                     placeholder="Choose Joining fee"
-                                    value={membershipPlan?.joiningFee != null ? `£${membershipPlan.joiningFee}` : ""}
+                                    value={membershipPlan?.joiningFee != null ? `£${membershipPlan?.joiningFee}` : ""}
                                     readOnly
                                     className="w-full border border-gray-300 rounded-xl px-3 text-[16px] py-3  focus:outline-none"
                                 />
@@ -1374,7 +1374,7 @@ const List = () => {
                             >
                                 {/* <div className="mt-4 space-y-1 text-sm">
                                     <p>Remaining Lessons: <b>{remainingLessons}</b></p>
-                                    <p>Joining Fee: <b>₹{membershipPlan?.all.joiningFee}</b></p>
+                                    <p>Joining Fee: <b>₹{membershipPlan?.all?.joiningFee}</b></p>
                                     <p className="text-lg font-bold">
                                         Total Amount: ₹{calculatedAmount}
                                     </p>
@@ -1382,17 +1382,17 @@ const List = () => {
                                 <div className="flex justify-between text-[#333]">
                                     <span>Membership Plan</span>
                                     <span>
-                                        {membershipPlan?.all?.duration} {membershipPlan.all.interval}
-                                        {membershipPlan.all.duration > 1 ? 's' : ''}
+                                        {membershipPlan?.all?.duration} {membershipPlan?.all?.interval}
+                                        {membershipPlan?.all?.duration > 1 ? 's' : ''}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-[#333]">
                                     <span>Monthly Subscription Fee</span>
-                                    <span>£{membershipPlan.all.priceLesson} p/m</span>
+                                    <span>£{membershipPlan?.all?.priceLesson} p/m</span>
                                 </div>
                                 <div className="flex justify-between text-[#333]">
                                     <span>One-off Joining Fee</span>
-                                    <span>£{membershipPlan.all.joiningFee}</span>
+                                    <span>£{membershipPlan?.all?.joiningFee}</span>
                                 </div>
                                 <div className="flex justify-between text-[#333]">
                                     <span>Number of lessons pro-rated</span>
@@ -2052,7 +2052,7 @@ const List = () => {
                                             £{pricingBreakdown.costOfProRatedLessons}
                                             <sup className="text-[12px] ml-1">(Price per lesson)</sup>
                                             {" + "}
-                                            £{membershipPlan.all.joiningFee}
+                                            £{membershipPlan?.all?.joiningFee}
                                             <sup className="text-[12px] ml-1">(Joining Fee)</sup>
                                             {" = "}
                                             £{calculatedAmount}
